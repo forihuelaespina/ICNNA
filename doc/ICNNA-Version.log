@@ -1,0 +1,588 @@
+====================================
+= ICNA/ICNNA Version Log File
+= Copyright 2008-2020
+= Author: Felipe Orihuela-Espina
+====================================
+
+
+====================================
+= ICNNA v1.1.5 (released 13-Jan-2022)
+====================================
+
+ICNNA uploaded to GitHub. First public release.
+
+Minor Improvement.
++ Function @plotStructuredData.m: I noticed that sometimes it is 
+convenient to change the working directory in ICNNA but stil be able 
+to call ICNNA functions. When this happens calling this function will
+yield an error since the icons directory was fixed with respect
+to ICNNA main directory being the current directory e.g.
+
+    iconsFolder='./GUI/icons/';
+
+Obviously, making this fully flexible requires a more profound
+redesign of ICNNA. So in the meantime, I'm patching this by
+guessing the icons directory from the location of this
+function (using which).
+
+
+Bug fixing
++ Function @runIntegrityOnRaw.m: If the options does not have
+a field .nirs_neuroimage default values are not automatically set.
++ Method @channelLocationMap.set setting the number of optodes, was
+checking on the number of channels. It now checks for the number of
+optodes correctly.
++ Method @rawData_NIRScout.set. Gains can be negative (-1). I have
+substituted the error message for a warning.
++ Method @rawData_NIRScout.set. While setting the channel distances and ensuring
+that the number of channelDistances matches the number of channels
+I was directly comparing the (content of the) channelDistances to
+the number of channels, instead of the numel.
++ Function plotChannel.m: Shading the timeline now occurs before
+setting the legend to avoid the plotting of timeline to change the legend.
+
+
+====================================
+= ICNNA v1.1.4 (released 30-Oct-2019)
+====================================
+
+New features
+
++ Function plotStructuredData now handles channels with integrity
+problems of complex numbers is adequately. Also it renders on full
+screen.
++ Function guiAnalysis: Updated deprecated calls from
+get(obj,'numPoints') to get(obj,'nPoints') in myRedrawStatus.
++ NIRScout files, should be recognized up to file version 15.2.
+** Added capacity to handle missing field setupType in probeset
+descriptor.
+
+Bug fixing
++ Method @rawData_NIRScout.set now correctly reads probe set field
+''headmodel''. Also, unrecognised fields are now ignored, rather
+than forcing an error.
++ Method @rawData_NIRScout.import now correctly assigns 'U'ndefined when
+subject gender is left unset or empty.
++ Method @rawData_NIRScout.convert assumed that marks were coupled.
+Apparently, this is not the case, and we have been unable to trace
+where does NIRStar saves the information of the duration. Thus, in the
+meantime this behaviour has been desactivated and instead marks are
+considered as single instantaneous marks.
++ Method @rawData_NIRScout.set Detected by Samuel Montero. Error reading 
+field .subjectgender from the .inf file. It was assumed that the
+allowed values could be U, M or F but actually in the NIRx
+software, this is an open string field, and thus can contain
+other values; e.g. Man, male, etc. The request for strict values
+have been relaxed, and only a warning is yield if unrecognized.
+Also, .subjectgender field now records (U)ndefined for empty strings
++ Method @rawData_NIRScout.import Detected by Samuel Montero. Error
+while reading dates and times in auxiliar functions @myTimeStr2DateTime
+and @myDateStr2DateTime. It was assumed that the date was entered
+in the langague set in the OS, and that string do not have tildes.
+Not all date formats are still recognized but now errors are turn
+into warnings, and default values are set.
++ Function plotStructuredData. View of individual signals was an
+all or nothing. It now correctly renders those selected everytime.
++ Function guiDataSource/OptViewStructuredData_Callback was incorrectly
+checking sessID. Detected by Samuel Montero.
+
+
+Version update
++ Method @rawData_NIRScout.display now shows event markers more neatly.
++ Miscellaneours funtion runIntegrityOnRaw now provides support for class
+rawData_NIRScout
++ Added Dr. Samuel A. Montero Hernández, Dr. Harsimrat Singh and
+Mrs Michele Rojas Cisneros among beta testers in User Guide
+and function @aboutICNNA.
++ Cleaner startup script. Now called icnna_startup
++ Polished "About ICNNA" window.
+
+
+====================================
+= ICNNA v1.1.3 (released 25-Apr-2018) 
+=   As from this version the official name has been updated to
+=   Imperial College Near Infrared Spectroscopy Neuroimaging Analysis (ICNNA) 
+====================================
+
+New features
++ New class rawData_NIRScout added to support importing
+data from NIRx NIRScout devices.
++ A new function miscellaneous/mbll to calculate the modified
+Beer-Lambert law has been generated. Also the table of coefficients
+(still based on fOSA) has been isolated.
+    NOTE: Class rawData_ETG4000 remains using its internal
+    reconstruction and coefficients.
++ New functions to calculate haemodynamics
+(miscellaneous/calculateHemodynamics.m , gammaR.m and gammaT.m) are
+available. These functions provide very simple biophysical models
+for calculating the CBF, CBV and CMRO2. Properly speaking the
+function does not actually finds CMRO2 but the ratio D(CMRO2)/CMRO2.
+
+Bug fixing
++ Method @rawData_ETG4000.import:  The findField method got cycled
+forever if the field was not found.
++ Method @rawData_ETG4000.set:  When setting the value of the
+moving average it was expecting an integer, but this value is
+expressed in seconds and thus it may actually be a real number.
+
+Version updating
++ As from this version the official name is now Imperial College
+Near Infrared Spectroscopy Neuroimaging Analysis (ICNNA) 
++ New subclasses declared in comments or class @rawData
++ New error messages now start with ICNNA rather than ICNA
++ Documentation filenames are now named with ICNNA, and User guide
+now includes a document version control
++ Function icna is now deprecated in favour of icnna.
++ Function aboutICNA has been renamed aboutICNNA and calls to it updated.
++ Logo imagefile ICNA_jack.jpg has been renamed ICNNA_jack.jpg.
+
+====================================
+= ICNA v1.1.2 (released 1-Mar-2017)
+====================================
+
+New features
++ New method @rawData_ETG4000.addProbeSetInfo permits increasing
+the number of probe sets slots and enlarging the capacity of the
+data structures
++ Function import_ETG4000_3DChannelPosition can now deal with more
+flexible input format. Field sections can now appear in any order.
+
+Deprecated and abandoned features
++ batchBasicVisualization.m no longer permits choosing export formats.
+Instead it still permits choosing whether to save the figure or not,
+but upon saving it automatically saves the figure in .fig and .tiff
+(300dpi) formats.
++ guiBasicVisualization.m no longer permits choosing export formats.
+Consequently the tab for output formats has been removed.
++ getActivityMatrix.m and getActivityMatrixPerRecording no longer save
+the activity matrix figure in jpeg format.
+
+
+Bug fixing
++ Method @rawData_ETG4000.setProbeSetInfo:  Internal attempts
+to access obj.probesInfo were changed to obj.probesetInfo
++ Method @rawData_ETG4000.set:  When setting the 
+lightRawData, the check for the size of the input parameter now properly
+checks the match in size with the number of probe sets declared
+instead of "simply" expecting a 3D matrix.
+
+Version updating
++ MATLAB has recently changed the way gcf returns its output. It affects
+the call of matlab's function print for saving figures, which it used to
+look like:
+print(['-f' num2str(gcf)],...);
+whereasnow, look like:
+print(gcf,...);
+I have added a new function util/mySaveFig.m to deal with this which
+checks the matlab version and make the correct call in each case.
+Also, I have updated (some/all?) the files in ICNA that were calling 
+rint so that they now called the new function mySaveFig.m. If I
+have miss some, matlab will still produce an error for these!.
+
++ MATLAB has recently changed the way to access some of the component
+of the axes. Some axes properties are now associated to a subobject
+"ruler" which has properties such as color, etc. Setting some other
+axes properties have been "renamed"; for instance, axes location
+previously accessed as set(gca,'YAxis','left') should now be
+referred to as set(gca,'YAxisLocation','left')
+Method plotStructuredData has been affected as it changes the
+axes location depending on the channel being displayed. 
+
+
+====================================
+= ICNA v1.1.1 (released 4-Mar-2105)
+====================================
+
+New features
++ Added zoom capabilities to plotStructuredData. Currently
+restricted to abscissa axis only.
++ Method @rawData_ETG4000.convert now accept an option to allow
+adding overlapping conditions.
++ Method @dataSource.get in guessing/getting the type from a raw
+data, conversion does now allow for overlapping conditions.
++ guiDataSource: Conversion of rawData to structuredData now proceeds
+with overlapping behaviour.
++ Registration tool has now two new functions: registration_getDistances
+and registration_exportDB. GUI guiRegistration and icna_releaseVersion
+have been updated accordingly
+
+Bug fixing
++ Documentation of method timeline.setConditionTag
+has been fixed. Previously the function call in the documentation
+read obj=getCondition(obj,tag,newTag)
++ Ammended bug in batchBasicVisualization and plotTopo
+by which "old" function channelLocationMap.getOptodeArrays was still being
+called. This has been updated by channelLocationMap.getChannelOptodeArrays
++ Ammended bug in batchBasicVisualization and plotTopo.
+Calls to field oaInfo.topoArrangement has been updated to
+oaInfo.chTopoArrangement
++ In function plotStructuredData when the structuredData
+has a single channel calculating the height of the axis required
+a division by 0.
++ In function plotStructuredData, handles controlling
+visibility of signals won't work if the signal name included spaces.
+
+
+
+
+====================================
+= ICNA v1.1.0 (pre-released 4-Jan-2013)
+              (full release 13-Oct-2013)
+====================================
+
+    NOTE: Data structure for this version is not compatible
+        with previous versions. Your previous ICNA experient
+        files will not work with this version. No backward
+        compatibility is provided. If you want to open your
+        previous files, you will need to keep both versions
+        of ICNA.
+
++ New class channelLocationMap provides support
+for storing channels 3D locations, surface positions,
+stereotactic coordinates, optode arrays information,
+and probe sets.
++ Support for more than 1 probe set added.
++ Class Timeline has been extended and now provide support
+ for handling real timings through timestamps and storing
+information associated to events.
++ Initialization of the object rawData_ETG4000 has been updated
+to remove some assumptions (related to having 1 probe set only).
++ Algorithms for import and convert ETG4000 data have been
+improved and are now much faster. In fact, so quick that they
+no longer visualize a wait bar.
++ Several properties have been deprecated or fully removed
+across several classes:
+    * rawData_ETG4000.nProbes - Replaced by rawData_ETG4000.nProbeSets
+                                    which is calculated on the fly
+                                    from the new property
+                                    rawData_ETG4000.probesetInfo
+    * rawData_ETG4000.nBlocks - Replaced by rawData_ETG4000.repeatCount
+    * rawData_ETG4000.nChannels - Now calculated on the fly
+    * nirs_neuroimage.probeMode - Replaced by superclass
+                                    neuroimage.chLocationMap
++ Class rawData_ETG4000 now keeps track of analyze mode, body
+movement marks as determined by the ETG4000, removal marks and
+preScan samples. However, nothing is yet done with these.
++ Class neuroimage now has a channelLocationMap associated.
+Property neuroimage.chLocationMap.
++ Class neuroimage now has a new method assertInvariants.
++ Method timeline.getNEvents can now further  return the total
+number of events across all conditions.
++ Several methods of class timeline have been deprecated
+    * getNConditions - Replaced with get(obj,'NConditions')
+    * getTotalEvents - Replaced with getNEvents(obj)
+    * compatible - Not replaced with any other method. You still have
+            method eq to test whether two timelines are exactly equal.
++ Methods addCondition, getConditionEvents, setConditionEvents,
+addConditionEvents, and removeConditionEvents have now an extended
+signature to accept events associated information.
++ New feature: converts activity matrix .mat files
+to .xls. See function activityMatrix2xls.m
++ Readdressed of prior bug fixing to forbid the last
+event to go 1 sample beyond the length of the timeline.
+See special note in release log for v1.0.16 below.
++ Bug fixed in blockResample by which the timeline
+new event may extend beyond timeline's length under
+resampling variant 2 for fixed length across the chunks.
+Also code has been improved regarding the estimation
+of the timeline new length, and a new assert has been added
+to check this new length is in accordance to specified
+new number of samples.
++ Bug fixed affecting the getActivityMatrix and
+getActivityMatrixPerRecording by which the row labels expanded
+beyond the figure limits when too long. Now the plot position
+properly adjusts as needed to ensure thw row labels are correctly
+displayed.
++ Bug fixed in timeline.addCondition affecting an error
+message (a typo).
++ A number of error messages have been revised and updated in
+classes rawData_ETG4000, neuroimage, nirs_neuroimage and timeline.
++ Comments have been revised and updated in
+classes rawData_ETG4000, neuroimage, nirs_neuroimage and timeline.
++ Methods get/set in classes rawData_ETG4000, neuroimage, 
+nirs_neuroimage, timeline and experimentSpace
+are no longer case sensitive
++ guiBasicVisualization now has no plot series selected by default.
++ The function topoOptodeArray has changed its signature, now requiring
+an optode array information record as its third parameter.
++ Option .orientation in function topoOptodeArray, which was previously
+deprecated is no longer supported. Instead three new options are now
+available .flibHorizontal, .flipVertical and .rotation.
++ Function plotTopo no longer rely on topoOnHead, but directly calls
+topoOptodeArray. This is more efficient, and eliminates the dependency
+on pre-established poses.
++ Function topoOnHead has been temporally disabled. It is very likely
+that it will change its signature and functionality in future versions.
+In the meantime, please use plotTopo and topoOptodeArray instead.
++ Type of dataSource is now guessed from rawData if no structuredData
+is available (see method dataSource.get)
++ In saving an experiment using guiExperiment, the experiment variable
+is now called 'E' instead of 'dataset'
++ Warning about cropped or removed events that occurr naturally
+(and harmelessly) during the operation of window
+selection during computation of the experimentSpace is now
+temporally disabled, so that the computation runs without
+unneccessary warnings.
++ Call to get(experimentSpace,'NumPoints') has now been deprecated.
+Please use get(experimentSpace,'nPoints') instead.
++ Series SCHAVG and ACHAVG in batchBasicVisualization now use
+opt.blockResamplingRest=20 (instead of 30). This facilitates
+visualization of the task period and also matches parameter
+opt.blockMaxRest=20 in the case of ACHAVG
+
+
+Changes from pre-release on 4-Jan-2013
+
++ Bug fixed in guiExperimentSpace by which auxiliar function
+myRedraw was still using deprecated call to get(obj,'numPoints')
++ Bug fixed in timeline.getCondition which
+was still using deprecated call to getNConditions(obj)
++ Bug fixed in experimentSpace.compute where two variables were
+named 's' causing a lateral effect. The variable name has been
+disambiguated as 'subj' and 's'.
++ Function getConnectivity can now compute the connectivity
+either overall (default behaviour as previously) or by stimulus
++ Methods optodeSpace_* have been deprecated. Functionality will be
+replaced by class channelLocationMap and functions
+    * import_ETG4000_3DChannelPosition - For importing positional data
+    * generateRegistrationMesh - For generating a 3D mesh of the
+                    10/5 system registered to the channelLocationMap
++ Method generateOptodePositioningSystemGrid has been deprecated and
+superseded by analogous method generatePositioningSystemMesh
++ New function util/version_IsHigherOrEqual to compare version strings.
++ Added new property referencePoints to class channelLocationMap to
+support storing the 3D "real world" coordinates of the reference points
+e.g. nasion, inion, etc, and added support for getting/setting these.
++ Added support to store optode related information; this includes
+3D locations, types (emisor/detector), associated optode arrays and
+associated probes. To adapt for this new properties and associated
+access methods, a few methods of the channelLocationMap class
+have changed name;
+    * get3DLocations -> getChannel3DLocations / getOptode3DLocations
+    * getOptodeArrays -> getChannelOptodeArrays / getOptodeOptodeArrays
+    * getProbeSets -> getChannelProbeSets / getOptodeProbeSets
+    * getSurfacePositions -> getChannelSurfacePositions / getOptodeSurfacePositions
+    * getStereotacticPositions -> getChannelStereotacticPositions / N/A 
++ Additional methods get/setPairings for acessing optodes pair
+conforming the channels are now available.
++ Rest of the class channelLocationMap (get, eq, display, set) have also
+been updated to support the optode information.
++ The registration tool has now been updated to support the
+channelLocationMap class. This also includes the guiRegistration.
++ Everything related to the optodeSpace has now been deprecated.
++ Method generateOptodePositioningSystemGrid is now deprecated. It has
+been superseded by method generatePositioningSystemMesh
++ Method optodeSpace_import is now deprecated. It has
+been superseded by method import_ETG4000_3DChannelPosition
++ Method optodeSpace_getRegisteredSystemMesh is now deprecated. It has
+been superseded by method generateRegistrationMesh
++ Method optodeSpace_getChannelLocation is now deprecated. It has
+been superseded by method channelLocationMap.getChannel3DLocations
++ rawData_ETG4000.import had "forgot" how to read previous file versions.
+This has now been amended.
++ Bug fixed. rawData_ETG4000.convert The 3x3 mode was creating 48
+channels even for one probe only.
+
+
+====================================
+= ICNA v1.0.16 (Released 4-Nov-2012)
+====================================
++ Changed behaviour of the Grand Average series GAACHAVG of the
+batchBasicVisualization.m. Previously if the breakDelay was different
+from 0, the shaded patch representing the stimulus started "after"
+the breakDelay. Now it starts at the "proper" task onset and a vertical
+dashed line now shows were the breakDelay is.
++ generateDB is now marked as deprecated. Use generateDB_withBreak instead.
++ The option .breakSamples in generateDB_withBreak is now deprecated.
+Also the default value for this option has changed from 0 to
+get(expSpace,'WS_BreakDelay').
++ Improved some comments for the class experimentSpace.
++ Improved some comments for the function unfoldExperiment.
++ The activity matrix can now be generated either
+for Oxy, Deoxy or Combined (classical).
++ The activity matrix can now return the p-values and sign at each
+cell.
++ The functions getActivityMatrix and getActivityMatrixPerRecording
+have changed the order of the output parameters. This may affect a
+few functions. I have at least fixed the guiExperimentSpace, but
+some other may remain.
++ Bug fixed affecting getActivityMatrix and getActivityMatrixPerRecording
+by which the significanceLevel set in the options was not being passed
+to the subfunctions computing the pattern. Although the statistical
+test was performed using the correct threshold, the pattern assignment
+was always done using the default significanceLevel.
++ getActivityMatrixPerRecording now relys in dbCons obtained
+with getDBConstants
++ Bug fixed affecting topoOnHead and topoOptodeArray when
+the full data vector is NaN. The bug prevented the scales
+of the topograms to be properly selected and prevents
+computation of the griddata interpolation when all data
+was NaN. Now empty topograms are generated properly.
++ Removed tag 'v0' for calls to uitab and uitabgroup
+in guiExperiment, guiTimeline, guiBasicVisualization
+and guiExperimentSpace as they are no longer required by MATLAB.
++ Functions structuredData.eq and timeline.eq now use
+isequalwithequalnans instead of directly compared internal data
+with operator '=='. This eliminates the "problem" of
+two equal objects being assessed as unequal due to the
+presence of NaNs in the data.
++ Bug fixed in guiExperiment by which toolbar buttons
+were not properly enabled after creating a new experiment.
++ Bug fixed in timeline.assertInvariants that allow the last
+event to go 1 sample beyond the length of the timeline.
+    NOTE (17-Nov-2012): This bug fixing actually introduces
+        a different bug as it does not permit now that the last
+        event lasts until the timeline length. For instance
+        lets say that we have a 10 samples timeline, where the
+        first 5 samples correspond to a baseline and the last five
+        samples correspond to a task. In this sense, the event
+        indicating this should have the onset set to 6 (i.e. the
+        first sample of the task) and duration set to 5. The
+        above bug fixing enforced that onset+duration<=length, however
+        in this case 6+5>10, which will lead to a violation
+        of the invariant although it is obviously a valid situation.
+        This bug fixing has been therefore readdressed in version v1.0.17.
++ Bug fixed in structuredData.getBlock by which whenever
+a block was retrieved such that there were no in-between rest
+with the next block, the block obtained had a length 1 sample
+smaller than the block onset+duration.
+    Note that because of the above fixed bug, this was
+difficult to detect, as the timeline was permitting the last
+event to go 1 sample beyond the length of the timeline.
++ The experimentSpace now holds the session names.
++ Bug fixed in getActivityMatrix and getActivityMatrixPerRecording
+by which for all sessions
+included all stimuli even if for some sessions, some particular
+stimulus was not present. Now it only displays the correct
+stimuli for each session.
++ In batchBasicVisualization.m, default destination folder has
+been changed from an absolute path (e.g. C:\...) to a relative
+path (e.g. .\Images\expName\).
+
+
+====================================
+= ICNA v1.0.15 (Released 26-Aug-2011)
+====================================
++ A new function to average structuredData objects
++ A few routines for graph theory analysis are now included.
+This include some basic routines (graph_*), plus
+one high level getConnectivity function. In addition
+a function tpvalue.m is included. This function
+has been extracted from MATLAB's corrcoef.m function
+and copyright remains of Mathworks. Isolating
+this function is done with the only purpose of efficiency
+and code simplicity.
+
+
+====================================
+= ICNA v1.0.14 (Released  7-Apr-2011)
+====================================
++ Added support for the HITACHI ETG-4000 3x5 optode array
++ Generating the database from guiExperimentSpace.m
+now always include derived HbT and HbDiff.
++ Bug fixed in guiExperimentSpace.m by which the
+activity matrix was always generated regardless of
+whether the corresponding option was unselected.
++ Bug fixed in generateDB_withBreak.m which did not
+support timeToPeak and timeToNadir for derived HbT and
+HbDiff.
++ Bug fixed in batchBasicVisualization.m by
+which series GAACHAVG was displaying incorrect
+information when not clean channels were present.
++ Basic visualization (guiBasicVisualization.m,
+batchBasicVisualization.m, plotTopo.m) now
+offers new options for the topographical series;
+including differential topograms (Task-Baseline)
+and break delay. Also the guiBasicVisualization
+has a new arrangement.
++ Bug fixed in dataSource constructor by which
+the data source name was not correctly initialized.
+
+====================================
+= ICNA v1.0.13 (Released  11-Nov-2010)
+====================================
++ Major changes to the integrity check stage. Option
+for test in raw data when possible has been included
+(runIntegrityOnRaw). Check for saturation related
+artefacts is possible now raw data. Optode movement
+detection algorithms are now available. For a start,
+three algorithms are available (Pegna, Sato and mine),
+but only Sato's has been activated, since its performance
+is similar to mine, but its temporal efficiency, is
+massively better. Class nirs_neuroimage has been
+affected, with a number of new private methods.
+The guiIntegrityCheck has been updated to accommodate
+the new options.
++ Bug fixed in method rawData_ETG400.import by which
+empty lines preceding probe description in Data section
+causes the file reading to crash.
++ Bug fixed in blockResample by which in algorithm
+variant type 1 (Fixed length across the whole signal),
+the taskChunk upper limit may exceed the number of
+available samples when inter-trial rests for a
+certain stimulus is 0.
++ Bug fixed in methods dataSource.lock and dataSource.unlock
+making these two methods to have no effect on the object lock.
++ Bug fixed in method structuredData.windowSelection
+which makes the method crash when padding zeros due to
+less available samples than required.
++ Bug fixed in method structuredData.windowSelection
+which makes the method crash when a last event was
+removed.
++ Bug fixed in method structuredData.getBlock
+by which the new block (structuredData) single condition
+always has label 'A'.
++ Bug fixed in function plotTopo, which lead to subscript
+assignment mismatch in some boundary situations.
++ Optimized code in batchBasicVisualization for the production
+of Grand Average GAACHAVG series.
++ Two bugs fixed in function getActivityMatrix. The first one
+assigned the channel activity sign and pValues intermediate
+results as rows rather than columns. The second one, prevented
+proper reconstruction of opt.stimulusTags, when the number
+of stimulus was exactly 2.
++ Optimized code in function getActivityMatrix. Now has better
+preallocation of several variables, as well as making
+use of getDBconstants
++ Comments update in generateDB_WithBreak.m
+
+====================================
+= ICNA v1.0.12 (Released  27-Jul-2010)
+====================================
++ Partial integrity check is now available through the GUI.
++ Basic timecourse visualization including series SCHAVG,
+SCHNBA, ACHAVG and ACHNBA are now available through the
+GUI.
++ Database generation tool is now more accesible, either
+from the main menu, or from the Tools menu in guiExperiment.
++ Batch basic visualization now can generate series ACHAVG
+for visualize all channels averaged across trials signal
+timecourses. It also has now support for 4x4 arrays.
++ Plain (not on head/brain) topographic maps are now available
+as part of the basic visualization series.
++ rawData_ETG4000 now keeps track of the samples timestamps.
++ Manual setting of the integrity status is now available
++ Bug fixed in runIntegrity which forced all integrity
+checks to be done, even if uncheck in the GUI.
++ Bug fixed in nirs_neuroimage.checkIntegrity which
+now deal correctly with function arguments.
++ Bug fixed in structuredData.crop
++ Bug fixed in guiCheckIntegrity by which the
+window title shown was incorrect.
+
+====================================
+= ICNA v1.0.11
+====================================
++ Generation of the Activity Matrix is now directly
+accesible from the GUI
++ guiExperimentSpace has a slightly different layout
++ basicBatchVisualization now accepts a series across
+all channels and averaged (ACHAVG).
++ plotChannel can now do resampling
+
+====================================
+= ICNA v1.0.10
+====================================
++ This version log file is created for the first time
++ The subsubversion 10 has been chosen arbitrarily as
+I do not remember how many subsubversions have been.

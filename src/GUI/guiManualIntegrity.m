@@ -1,0 +1,232 @@
+function element=guiManualIntegrity(element)
+%guiManualIntegrity Graphical User Interface for manuak integrity
+%manipulation
+%
+% element=guiManualIntegrity(element) Allow manual selection
+%   of integrity codes and apply the selected integrity checks
+%   as appropriate to the element active data.
+%
+%
+%% Parameters
+%
+% element - A dataSource
+%
+%
+%
+% Copyright 2010
+% @date: 27-Jul-2010
+% @author Felipe Orihuela-Espina
+% @modified: 27-Jul-2010
+%
+% See also runIntegrity, guiCheckIntegrity, experiment, dataSource
+%
+
+
+if ~isa(element,'dataSource')
+    error('ICNA:guiManualIntegrity:InvalidInputParameter',...
+          'Input element must be a dataSource.');
+end
+
+%% Initialize the figure
+%...and hide the GUI as it is being constructed
+width=800;
+height=620;
+f=figure('Visible','off','Position',[100,100,width,height]);
+set(f,'NumberTitle','off');
+set(f,'MenuBar','none'); %Hide MATLAB figure menu
+%set(f,'CloseRequestFcn',{@OnClose_Callback});
+
+%% Add components
+fontSize=13;
+bgColor=get(f,'Color');
+
+
+%The layout is dynamic and depends on the number of channels
+sd=getStructuredData(element,get(element,'ActiveStructured'));
+nChannels = get(sd,'NChannels');
+integrity = double(get(sd,'Integrity'));
+
+%Guess-timate the best layout
+nRows = round(sqrt(nChannels));
+nCols = ceil(sqrt(nChannels));
+rowStep = 0.96/nRows; rowMargin=0.02;
+colOffset=0.025; %In between elements
+colStep = (0.96/nCols)-colOffset; colMargin=0.02;
+
+channelsPanel = uipanel(f,...
+       'Tag','channelsPanel',...
+       'Title', 'Channel Status',...
+       'BorderType', 'etchedin',...
+       'BackgroundColor',bgColor,...
+       'FontSize',fontSize,...
+       'Units','normalize',...
+       'Position', [0.02 0.2 0.96 0.78]);
+for ch=1:nChannels
+    row = ceil(ch/nCols);
+    col = ch-((row-1)*nCols);
+    uicontrol(channelsPanel,'Style', 'text',...
+       'String', [num2str(ch) ':'],...
+       'BackgroundColor',bgColor,...
+       'FontSize',fontSize-2,...
+       'HorizontalAlignment','left',...
+       'Units','normalize',...
+       'Position', [colMargin+(colStep*(col-1))+(colOffset*(col-1)) ...
+                    1-(rowMargin+rowStep+(rowStep*(row-1))) ...
+                    colStep/4 rowStep]);
+    
+ hpm=uicontrol(channelsPanel,'Style', 'popupmenu',...
+       'Tag',['ch' num2str(ch) 'PopupMenu'],...
+       'String',...
+   {[num2str(integrityStatus.UNCHECK) ': ' ...
+             getIntegrityCodeTag(integrityStatus.UNCHECK)], ...
+    [num2str(integrityStatus.FINE) ': ' ...
+             getIntegrityCodeTag(integrityStatus.FINE)], ...
+    [num2str(integrityStatus.MISSING) ': ' ...
+             getIntegrityCodeTag(integrityStatus.MISSING)], ...
+    [num2str(integrityStatus.NOISE) ': ' ...
+             getIntegrityCodeTag(integrityStatus.NOISE)], ...
+    [num2str(integrityStatus.OTHER) ': ' ...
+             getIntegrityCodeTag(integrityStatus.OTHER)], ...
+    [num2str(integrityStatus.MIRRORING) ': ' ...
+             getIntegrityCodeTag(integrityStatus.MIRRORING)], ...
+    [num2str(integrityStatus.NONRECORDINGS) ': ' ...
+             getIntegrityCodeTag(integrityStatus.NONRECORDINGS)], ...
+    [num2str(integrityStatus.NEGATIVERECORDINGS) ': ' ...
+             getIntegrityCodeTag(integrityStatus.NEGATIVERECORDINGS)], ...
+    [num2str(integrityStatus.OPTODEMOVEMENT) ': ' ...
+             getIntegrityCodeTag(integrityStatus.OPTODEMOVEMENT)], ...
+    [num2str(integrityStatus.HEADMOTION) ': ' ...
+             getIntegrityCodeTag(integrityStatus.HEADMOTION)]},...
+       'FontSize',fontSize-2,...
+       'HorizontalAlignment','left',...
+       'Units','normalize',...
+       'UserData',ch,...
+       'Position', [colMargin+colStep/4+(colStep*(col-1))+(colOffset*(col-1)) ...
+                    1-(rowMargin+rowStep+(rowStep*(row-1))) ...
+                    3*colStep/4 rowStep]);
+                
+    selectIntegrityCode(hpm,integrity(ch));
+end    
+    
+
+
+uicontrol(f,'Style', 'pushbutton',...
+       'String', 'Save',...
+       'Tag','saveButton',...
+       'BackgroundColor',bgColor,...
+       'FontSize',fontSize,...
+       'HorizontalAlignment','center',...
+       'Units','normalize',...
+       'Position', [0.6 0.02 0.2 0.1],...
+       'Callback',{@OnSave_Callback});
+
+uicontrol(f,'Style', 'pushbutton',...
+       'String', 'Close',...
+       'Tag','closeButton',...
+       'BackgroundColor',bgColor,...
+       'FontSize',fontSize,...
+       'HorizontalAlignment','right',...
+       'Units','normalize',...
+       'Position', [0.81 0.02 0.18 0.1],...
+       'Callback',{@OnQuit_Callback});   
+
+
+
+%% On Opening
+handles = guihandles(f); %NOTE that only include those whose 'Tag' are not empty
+
+guidata(f,handles);
+
+ 
+%% Make GUI visible
+set(f,'Name','ICNA - guiManualIntegrity');
+set(f,'Visible','on');
+waitfor(f);
+    
+
+
+%% OnQuit callback
+%Clear memory and exit the application
+function OnQuit_Callback(hObject,eventData)
+% hObject - Handle of the object, e.g., the GUI component,
+%   for which the callback was triggered.  See GCBO
+% eventdata - Reserved for later use.
+delete(get(gcf,'Children'));
+delete(gcf);
+end
+
+%% OnSaveIntegrity callback
+%Apply the selected integrity values to the object.
+function OnSave_Callback(hObject,eventData)
+% hObject - Handle of the object, e.g., the GUI component,
+%   for which the callback was triggered.  See GCBO
+% eventdata - Reserved for later use.
+handles=guidata(hObject);
+
+for ch=1:nChannels
+    tmpString = get(handles.(['ch' num2str(ch) 'PopupMenu']),'String');
+    valString = tmpString{get(handles.(['ch' num2str(ch) 'PopupMenu']),'Value')};
+    idx=find(valString==':');
+    integrity(ch) = str2double(valString(1:idx-1));
+end
+
+theIntegrityStatus=get(sd,'Integrity');
+theIntegrityStatus=setStatus(theIntegrityStatus,1:nChannels,integrity);
+sd=set(sd,'Integrity',theIntegrityStatus);
+element = setStructuredData(element,get(element,'ActiveStructured'),sd);
+
+end
+
+end
+    
+    
+    
+    
+%% AUXILIAR FUNCTIONS
+function codeTag=getIntegrityCodeTag(code)
+    switch(code)
+        case integrityStatus.UNCHECK
+            codeTag = 'Uncheck';
+        case integrityStatus.FINE
+            codeTag = 'Fine';
+        case integrityStatus.MISSING
+            codeTag = 'Missing';
+        case integrityStatus.NOISE
+            codeTag = 'Noise';
+        case integrityStatus.OTHER
+            codeTag = 'Other';
+        
+        case integrityStatus.MIRRORING
+            codeTag = 'Saturation (Mirroring)';
+        case integrityStatus.NONRECORDINGS
+            codeTag = 'Saturation (Non Recordings)';
+        case integrityStatus.NEGATIVERECORDINGS
+            codeTag = 'Negative Light Recordings';
+        case integrityStatus.OPTODEMOVEMENT
+            codeTag = 'Optode movement';
+        case integrityStatus.HEADMOTION
+            codeTag = 'Head motion';
+            
+        otherwise
+            codeTag = [num2str(code) ' - Code not recognised'];
+        
+    end
+end
+
+
+function selectIntegrityCode(h,code)
+    str=get(h,'String');
+    nValues = length(str);
+    for vv=1:nValues
+        tmpStr = str{vv};
+        idx=find(tmpStr==':');
+        codeList(vv)=str2double(tmpStr(1:idx-1));
+    end
+    
+    val=find(codeList==code);
+    if isempty(val)
+        error('ICNA:guiManualIntegrity:IntegrityCodeNotFound',...
+                'Integrity code not found.');
+    end
+    set(h,'Value',val(1));
+end

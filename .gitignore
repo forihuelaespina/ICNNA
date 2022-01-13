@@ -1,0 +1,28 @@
+##
+##
+## Log:
+##
+## 13-Jan-2021 (v0.1): Log of this file started.
+## 		Added the initial patterns:
+##
+##
+
+
+## Source
+src/startup.m
+src/miscellaneous/icnna_releaseVersion.m
+src/miscellaneous/upgradeICNAClassAndObjectStructureToNewerVersion.m
+src/oo/@UCLWireless
+src/plotting/27896c43-3bcd-48b8-bdb2-812764a0188b.mat
+
+
+## Documentation
+doc/*.zargo
+doc/*.doc
+doc/*.docx
+doc/UpdateVersionEmail.txt
+doc/ICAFv1.0.pdf
+doc/ICAFv1.1.pdf
+doc/ICAFv1.0.pdf
+doc/ICNNA-MENA*.pdf
+
