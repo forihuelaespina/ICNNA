@@ -42,7 +42,7 @@ function val = get(obj, propName)
 %   an error message if the property does not exist.
 %
 % 31-January-2022 (ESR): We simplify the code
-%   + We simplify the code. All cases are in the timeline class.
+%   +We simplify the code. All cases are in the timeline class.
 %
 val = obj.(lower(propName)); %Ignore case
 end

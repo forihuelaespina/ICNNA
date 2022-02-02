@@ -120,6 +120,24 @@
 %
 % See also assertInvariant
 %
+
+%% Log
+%
+% 2-Apr-2019 (FOE): Class created.
+%
+% 22-Apr-2019 (FOE): Several improvements
+%   + The subseries field disappears (now this is controlled using the
+%   pipelineContainer). Properties .description and .rundate are now
+%   unique and have better direct control with their own get/set pairs.
+%   + Added numerical .id and .userdata
+% 
+% 29-January-2022 (ESR): Get/Set Methods created in timeline
+%   + The methods are added with the new structure. All the properties have 
+%   the new structure (length,nominalsamplingrate,starttime and timestamps)
+%   + We create .cropOrRemoveEvents file inside the timeline class.
+%   
+%
+
 classdef timeline
     properties (SetAccess=private, GetAccess=private)
         length=0;
@@ -180,6 +198,102 @@ classdef timeline
                 end
             end
             assertInvariants(obj);
+        end
+        
+        %% Get/Set methods
+        %Provide struct like access to properties BUT maintaining class
+        %encapsulation.
+        
+         %Length
+        function val = get.length(obj)
+            % The method is converted and encapsulated. 
+            % obj is the timeline class
+            % val is the value added in the object
+            % get.length(obj) = Get the data from the timeline class
+            % and look for the length object.
+            val = obj.length;
+        end
+
+        function obj = set.length(obj,val)
+            % The method is converted and encapsulated and can be used 
+            % as the example in the constructor method.
+            % This method allows the change of data values.
+            %   obj is the timeline class
+            %   val = is the provided value, later it is conditioned 
+            %   according to the data type
+            if (isscalar(val) && (val==floor(val)))
+                
+                %Remove or crop events beyond the new length.
+                res=obj.cropOrRemoveEvents(val);
+                if (res)
+                    warning('ICNA:timeline:set:EventsCropped',...
+                        ['Events lasting beyond the new length ' ...
+                        'will be cropped or removed.']);
+                end
+                
+                if val>obj.length
+                    %Generate extra timestamps
+                    initStamp = 0;
+                    if ~isempty(obj.timestamps)
+                        initStamp = obj.timestamps(end);
+                    end
+                    extraTimestamps = initStamp + ...
+                        (1:val-obj.length) / get(obj,'NominalSamplingRate');
+                        obj.timestamps = [obj.timestamps; extraTimestamps'];
+                elseif val<obj.length
+                    %Remove the later timestamps
+                    obj.timestamps(val+1:end) = [];
+                end
+                
+                obj.length = val;
+                
+            else
+                error('ICNA:timeline:set:InvalidParameterValue',...
+                        'Value must be a scalar natural/integer.');
+            end  
+        end
+            
+        %nominalsamplingrate
+        function val = get.nominalSamplingRate(obj)
+            val = obj.nominalSamplingRate;
+        end
+        function obj = set.nominalSamplingRate(obj,val)
+            if (isscalar(val) && val>0)
+                obj.nominalSamplingRate = val;
+            else
+                error('ICNA:timeline:set:InvalidParameterValue',...
+                    'Value must be a scalar natural/integer.');
+            end
+        end
+        
+        %starttime
+        function  val = get.startTime(obj)
+            val = obj.startTime;
+        end
+        function obj = set.startTime(obj,val)
+             if (ischar(val) || isvector(val) || isscalar(val))
+                obj.startTime = datenum(val);
+             else
+                  error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                  'Value must be a date (whether a string, datevec or datenum).');
+             end
+        end
+        
+        %timestamps
+        function val = get.timestamps(obj)
+            val = obj.timestamps;
+        end
+        function obj = set.timestamps(obj,val)
+            if (isvector(val) && ~ischar(val) ...
+                && all(val(1:end-1)<val(2:end)) ...
+                && numel(val)==obj.get('length'))
+                %ensure it is a column vector
+                val = reshape(val,numel(val),1);
+                obj.timestamps = val;
+            else
+                error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                      'Value must be a vector of length get(obj,''Length'').');
+            end
         end
     end
     
