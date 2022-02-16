@@ -28,11 +28,29 @@
 %
 % See also subject, sessionDefinition, dataSource
 %
+%
+%% Log
+%
+% 15-February-2022 (ESR): Get/Set Methods created in session
+%   + The methods are added with the new structure. All the properties have 
+%   the new structure (definition and date)
+%   + The new structure enables new MATLAB functions
+%   + We create a dependent property inside the session class on line 50.
+%   + The Name, Description and ID properties are inside of
+%   session class.
+%   + All the properties are arranged alphabetically on Get/Set methods.
+%
 classdef session
-    properties (SetAccess=private, GetAccess=private)
+    properties %(SetAccess=private, GetAccess=private)
         definition=sessionDefinition;
         date=date;
         sources=cell(1,0);
+    end
+    
+    properties (Dependent)
+        ID
+        Name
+        Description
     end
     
     methods
@@ -79,6 +97,105 @@ classdef session
             end
             assertInvariants(obj);
         end
+        
+       %% Get/Set methods
+        %Provide struct like access to properties BUT maintaining class
+        %encapsulation.
+        
+        %Definition
+        function val = get.definition(obj)
+            % The method is converted and encapsulated. 
+            % obj is the session class
+            % val is the value added in the object
+            % get.definition(obj) = Get the data from the session class
+            % and look for the definition object.
+            val = obj.definition;
+        end
+        function obj = set.definition(obj, val)
+            % The method is converted and encapsulated and can be used 
+            % as the example in the constructor method.
+            % This method allows the change of data values.
+            %   obj is the session class
+            %   val = is the provided value, later it is conditioned 
+            %   according to the data type.
+            if (isa(val,'sessionDefinition'))
+                obj.definition = val;
+                IDList=getSourceList(obj.definition);
+                warning('ICNA:session:set:sessionDefinition',...
+                    ['Updating the definition may result in sources ' ...
+                    'being removed.']);
+                    nElements=length(obj.sources);
+                for ii=nElements:-1:1
+                    id=get(obj.sources{ii},'ID');
+
+                    %Check that it complies with the definition
+                    if ~(ismember(id,IDList))
+                        %Remove this source
+                        obj.sources(ii)=[];
+                    elseif ~(strcmp(...
+                            get(getSource(obj.definition,id),'Type'),...
+                            get(obj.sources{ii},'Type')))
+                        %Remove this source
+                        obj.sources(ii)=[];
+                    end
+                end
+    
+            else
+                error('Value must be a sessionDefinition');
+            end
+        end 
+        
+        %Date
+        function val = get.date(obj)
+            val = obj.date;
+        end
+        function obj = set.date(obj,val)
+            obj.date=val;
+        end
+        
+        %---------------------------------------------------------------->
+        %Definition Dependent
+        %Dependent properties do not store data. 
+        %The value of a dependent property depends on some other value, 
+        %such as the value of a nondependent property.
+        
+        %Dependent properties must define get-access methods () to 
+        %determine a value for the property when the property is queried: 
+        %get.id(obj)
+        %For example: The id, name and description properties
+        %dependent of definition property.
+        
+        %We create a dependent property on line 131
+        %---------------------------------------------------------------->
+        
+        %Decription
+        function val = get.Description (obj)
+           val = get(obj.definition,'Description'); 
+        end
+        function obj = set.Description(obj,val)
+            obj.definition = set(obj.definition,'Description',val);
+        end
+        
+        %ID
+        function val = get.ID(obj)
+            val = get(obj.definition,'ID');
+        end
+        function obj = set.ID(obj,val)
+            obj.definition = set(obj.definition,'ID',val);
+        end
+        
+        %Name
+        function val = get.Name(obj)
+           val = get(obj.definition,'Name'); 
+        end
+        function obj = set.Name(obj,val)
+            obj.definition = set(obj.definition,'Name',val);
+        end
+        
+        
+        
+        
+        
     end
     
     methods (Access=protected)

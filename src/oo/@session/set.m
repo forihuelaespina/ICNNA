@@ -21,52 +21,30 @@ function obj = set(obj,varargin)
 %
 % See also session, get
 %
+%
+%
+%% Log
+%
+% 3-Apr-2019 (FOE):
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
+%
+% 15-February-2022 (ESR): We simplify the code
+%   + All cases are in the session class.
+%   + We create a dependent property inside the session class on line 50.
+%   + The Name, ID and Description properties are in the
+%   session class.
+%
 propertyArgIn = varargin;
-while length(propertyArgIn) >= 2,
+while (length(propertyArgIn) >= 2)
    prop = propertyArgIn{1};
    val = propertyArgIn{2};
    propertyArgIn = propertyArgIn(3:end);
-   switch lower(prop)
-    case 'definition'
-        if (isa(val,'sessionDefinition'))
-            obj.definition = val;
-            IDList=getSourceList(obj.definition);
-            warning('ICNA:session:set:sessionDefinition',...
-                ['Updating the definition may result in sources ' ...
-                'being removed.']);
-            nElements=length(obj.sources);
-            for ii=nElements:-1:1
-                id=get(obj.sources{ii},'ID');
-
-                %Check that it complies with the definition
-                if ~(ismember(id,IDList))
-                    %Remove this source
-                    obj.sources(ii)=[];
-                elseif ~(strcmp(...
-                        get(getSource(obj.definition,id),'Type'),...
-                        get(obj.sources{ii},'Type')))
-                    %Remove this source
-                    obj.sources(ii)=[];
-                end
-            end
-                        
-        else
-            error('Value must be a sessionDefinition');
-        end
-
-    case 'date'
-        obj.date = val;
-
-%From the definition
-    case 'id'
-        obj.definition = set(obj.definition,'ID',val);
-    case 'name'
-        obj.definition = set(obj.definition,'Name',val);
-    case 'description'
-        obj.definition = set(obj.definition,'Description',val);
-
-    otherwise
-      error(['Property ' prop ' not valid.'])
-   end
+   
+   obj.(lower(prop)) = val; %Ignore case
+  
 end
-assertInvariants(obj);
+    assertInvariants(obj);
+end

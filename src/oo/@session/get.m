@@ -21,21 +21,17 @@ function val = get(obj, propName)
 %
 % See also session, set
 %
+%% Log
+%
+% 3-Apr-2019 (FOE):
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
+%
+% 15-February-2022 (ESR): We simplify the code
+%   + All cases are inside the session class in the Set/Get methods.
+%
 
-switch lower(propName)
-case 'definition'
-   val = obj.definition;
-case 'date'
-   val = obj.date;
-
-%From the definition
-case 'id'
-   val = get(obj.definition,'ID');
-case 'name'
-   val = get(obj.definition,'Name');
-case 'description'
-   val = get(obj.definition,'Description');
-        
-otherwise
-   error([propName,' is not a valid property'])
+    val = obj.(lower(propName)); %Ignore case
 end
