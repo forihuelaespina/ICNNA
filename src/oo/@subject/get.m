@@ -20,17 +20,16 @@ function val = get(obj, propName)
 % See also subject, set
 %
 
-switch propName
-case 'ID'
-   val = obj.id;
-case 'Name'
-   val = obj.name;
-case 'Age'
-   val = obj.age;
-case 'Sex'
-   val = obj.sex;
-case 'Hand'
-   val = obj.hand;
-otherwise
-   error([propName,' is not a valid property'])
+%% Log
+%
+% 3-Apr-2019: FOE.
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
+%
+% 31-January-2022 (ESR): We simplify the code
+%   + We simplify the code. All cases are in the subject class.
+%
+   val = obj.(lower(propName)); %Ignore case
 end

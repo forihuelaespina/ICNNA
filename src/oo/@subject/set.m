@@ -19,77 +19,26 @@ function obj = set(obj,varargin)
 %
 % See also get
 %
+%% Log
+%
+% 3-Apr-2019 (FOE):
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
+%
+% 31-January-2022 (ESR): We simplify the code
+%   + We simplify the code. All cases are in the subject class.
+%   
+%
+
 propertyArgIn = varargin;
-while length(propertyArgIn) >= 2,
+while (length(propertyArgIn) >= 2)
    prop = propertyArgIn{1};
    val = propertyArgIn{2};
    propertyArgIn = propertyArgIn(3:end);
-   switch prop
-    case 'ID'
-        if (isscalar(val) && isreal(val) && ~ischar(val) ...
-            && (val==floor(val)) && (val>0))
-            %Note that a char which can be converted to scalar
-            %e.g. will pass all of the above (except the ~ischar)
-            obj.id = val;
-        else
-            error('ICNA:subject:set:InvalidPropertyValue',...
-                  'Value must be a positive integer.');
-        end
- 
-    case 'Name'
-        if (ischar(val))
-            obj.name = val;
-        else
-            error('ICNA:subject:set:InvalidPropertyValue',...
-                  'Value must be a string.');
-        end
-
-    case 'Age'
-        if (isscalar(val) && (val==floor(val)) && (val>=0))
-            obj.age = val;
-        else
-            error('ICNA:subject:set:InvalidPropertyValue',...
-                  'Value must be a positive integer (or 0).');
-        end
-
-    case 'Sex'
-        val=upper(val);
-        switch (val)
-            case 'M'
-                obj.sex = val;
-            case 'F'
-                obj.sex = val;
-            case 'U'
-                obj.sex = val;
-            case ''
-                obj.sex = 'U';
-        otherwise
-            error('ICNA:subject:set:InvalidPropertyValue',...
-                  ['Value must be a single char. ' ...
-                    '''M''ale/''F''emale/''U''nknown.']);
-        end
-
-    case 'Hand'
-        val=upper(val);
-        switch (val)
-            case 'L'
-                obj.hand = val;
-            case 'R'
-                obj.hand = val;
-            case 'A'
-                obj.hand = val;
-            case 'U'
-                obj.hand = val;
-            case ''
-                obj.hand = 'U';
-        otherwise
-            error('ICNA:subject:set:InvalidPropertyValue',...
-                  ['Value must be a single char. ' ...
-                    '''L''eft/''R''ight/''A''mbidextrous/''U''nknown.']);
-        end
-
-    otherwise
-      error('ICNA:subject:set:InvalidPropertyName',...
-            ['Property ' prop ' not valid.'])
-   end
+   
+   obj.(lower(prop)) = val; %Ignore case
+end
+    assertInvariants(obj);
 end
