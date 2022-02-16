@@ -24,25 +24,16 @@ function val = get(obj, propName)
 % See also structuredData, getBlock, getSample, getChannel, getSignal
 %
 
-switch lower(propName)
-case 'id'
-   val = obj.id;
-case 'description'
-   val = obj.description;
-case 'nsamples'
-   val = size(obj.data,1);
-case 'nchannels'
-   val = size(obj.data,2);
-case 'nsignals'
-   val = size(obj.data,3);
-case 'timeline'
-   val = obj.timeline;
-case 'data'
-   val = obj.data;
-case 'integrity'
-   val = obj.integrity;
-case 'signaltags'
-   val = obj.signalTags;
-otherwise
-   error([propName,' is not a valid property'])
+%% Log
+% 3-Apr-2019: FOE.
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
+%
+% 13-February-2022 (ESR): We simplify the code
+%   + We simplify the code. All cases are in the structuredData class.
+%   + We create a dependent property inside the structuredData class on line 143.
+
+    val = obj.(lower(propName)); %Ignore case
 end

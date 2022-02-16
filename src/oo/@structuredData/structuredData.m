@@ -118,6 +118,18 @@
 %
 % See also session, dataSource, neuroimage, timeline
 %
+
+%% Log
+%
+% 13-February-2022 (ESR): Get/Set Methods created in structuredData
+%   + The methods are added with the new structure. All the properties have 
+%   the new structure (id,description,timeline,data,integrity and signalTags)
+%   + The new structure enables new MATLAB functions
+%   + We create a dependent property inside the structuredData class on line 143.
+%   + The nSamples, nChannels and nSignals properties are in the
+%   structuredData class.
+%
+
 classdef structuredData
     properties (SetAccess=private, GetAccess=private)
         id=1;
@@ -126,6 +138,12 @@ classdef structuredData
         data=zeros(0,0,0); %Ensure 3D
         integrity=integrityStatus;
         signalTags=cell(1,0);
+    end
+    
+    properties (Dependent)
+        nSamples
+        nChannels
+        nSignals
     end
 
     methods
@@ -180,6 +198,227 @@ classdef structuredData
             obj.integrity=integrityStatus(get(obj,'NChannels'));
             assertInvariants(obj);
         end
+        
+        %% Get/Set methods
+        %Provide struct like access to properties BUT maintaining class
+        %encapsulation.
+        
+        %Description
+        function val = get.description(obj)
+            % The method is converted and encapsulated. 
+            % obj is the structuredData class
+            % val is the value added in the object
+            % get.description(obj) = Get the data from the structuredData class
+            % and look for the description object.
+            val = obj.description;
+        end
+        function obj = set.description(obj,val)
+            % The method is converted and encapsulated and can be used 
+            % as the example in the constructor method.
+            % This method allows the change of data values.
+            %   obj is the structuredData class
+            %   val = is the provided value, later it is conditioned 
+            %   according to the data type
+            if (ischar(val))
+               obj.description = val;
+            else
+               error('ICNA:structuredData:set:InvalidPropertyValue',...
+                     'Value must be a string');
+            end
+        end
+        
+        %Data
+        function val = get.data(obj)
+            val = obj.data;
+        end
+        function obj = set.data(obj,val)
+            if (isnumeric(val)) % && ndims(val)==3) %This ndims test will not work if there's only 1 signal!!
+               [nSamples,nChannels,nSignals]=size(val);
+               obj.timeline=set(obj.timeline,'Length',nSamples);
+               if isempty(val)
+                   %val will be empty as long as either
+                   %nSamples, nChannels or nSignals is 0.
+                   %however, the other two elements of the vector may not
+                   %be 0.
+                   %%%%obj.data=zeros(0,0,0); %Do not use it like this
+                   %%%%          %otherwise rawData_TobiiEyeTracker
+                   %%%%          %will crash upon converting empty
+                   %%%%          %data.
+                   obj.data=zeros(nSamples,nChannels,nSignals);
+                        %Ensure a 3D matrix
+                        %so that derivate attributes NSamples,
+                        %NChannels and NSignals works correctly
+               else
+                   obj.data = val;
+               end
+               obj.integrity= ...
+                   setNElements(obj.integrity,get(obj,'NChannels'));
+               if nSignals>length(obj.signalTags)
+                       nNewSignals=nSignals-length(obj.signalTags);
+                       tmpTags=cell(1,nNewSignals);
+                       for tt=1:nNewSignals
+                               tmpTags(tt)={['Signal ' ...
+                           num2str(tt+length(obj.signalTags))]};
+                       end
+                                obj.signalTags(end+1:nSignals)=tmpTags;
+               elseif nSignals<length(obj.signalTags)
+                   obj.signalTags(nSignals+1:end)= [];
+               end
+           else
+                   error('ICNA:structuredData:set:InvalidPropertyValue',...
+                         'Data must be a numeric');
+           end
+        end
+        
+        %ID
+        function val = get.id(obj)
+            val = obj.id;
+        end
+        function obj = set.id(obj,val)
+             if (isscalar(val) && isreal(val) && ~ischar(val) ...
+                && (val==floor(val)) && (val>0))
+                %Note that a char which can be converted to scalar
+                %e.g. will pass all of the above (except the ~ischar)
+                obj.id = val;
+            else
+               error('ICNA:structuredData:set:InvalidID',...
+                     'Value must be a scalar natural/integer');
+            end
+        end
+        
+        %Integrity
+        function val = get.integrity(obj)
+            val = obj.integrity;
+        end
+        function obj = set.integrity(obj,val)
+            if (isa(val,'integrityStatus'))
+               obj.integrity = integrityStatus(val);
+           else
+               error('ICNA:structuredData:set:InvalidPropertyValue',...
+                     'Value must be of class integrityStatus');
+           end
+        end
+        
+        %---------------------------------------------------------------->
+        %Data Dependent
+        %Dependent properties do not store data. 
+        %The value of a dependent property depends on some other value, 
+        %such as the value of a nondependent property.
+        
+        %Dependent properties must define get-access methods () to 
+        %determine a value for the property when the property is queried: 
+        %get.nSamples
+        %For example: The nSamples, nChannels and nSignals properties
+        %dependent of data property.
+        
+        %We create a dependent property on line 131
+        %---------------------------------------------------------------->
+        
+        %nSamples
+        function val = get.nSamples(obj)
+            val = size(obj.data,1);
+        end
+        function obj = set.nSamples(obj,val)
+            if (isscalar(val) && isnumeric(val) && val==floor(val) && val>=0)
+               [nSamples]=size(obj.data,1);
+               if (val~=nSamples)
+                   obj.timeline=set(obj.timeline,'Length',nSamples);
+                   if (val<nSamples) %Decrease size
+                       obj.data(val+1:end,:,:)= [];
+                   else %Increase size
+                       if isempty(obj.data)
+                           obj.data(end+1:val,:,:)= zeros(val-nSamples,0,0);
+                       else
+                           obj.data(:,end+1:val,:,:)= 0;
+                       end
+                   end
+               end
+           else
+               error('ICNA:structuredData:set:InvalidPropertyValue',...
+                     ['Number of (time) samples must be 0 ' ...
+                        'or a positive integer']);
+            end
+        end
+        
+        %nChannels
+        function val = get.nChannels(obj)
+            val = size(obj.data,2);
+        end
+        function obj = set.nChannels(obj,val)
+            if (isscalar(val) && isnumeric(val) && val==floor(val) && val>=0)
+               [nChannels]=size(obj.data,2);
+               if (val~=nChannels)
+                   if (val<nChannels) %Decrease size
+                       obj.data(:,val+1:end,:)= [];
+                   else %Increase size
+                       if isempty(obj.data)
+                           obj.data(:,end+1:val,:)= zeros(0,val-nChannels,0);
+                       else
+                           obj.data(:,end+1:val,:)= 0;
+                       end
+                   end
+               end
+               obj.integrity= ...
+                   setNElements(obj.integrity,get(obj,'NChannels'));
+           else
+               error('ICNA:structuredData:set:InvalidPropertyValue',...
+                     ['Number of channels must be 0 ' ...
+                        'or a positive integer']);
+           end
+        end
+        
+        %nSignals
+        function val = get.nSignals(obj)
+           val = size(obj.data,3); 
+        end
+        function obj = set.nSignals(obj,val)
+            if (isscalar(val) && isnumeric(val) && val==floor(val) && val>=0)
+               [nSignals]=size(obj.data,3);
+               if (val~=nSignals)
+                   if (val<nSignals) %Decrease size
+                       obj.data(:,:,val+1:end)= [];
+                       obj.signalTags(val+1:end)= [];
+                   else %Increase size
+                       if isempty(obj.data)
+                           obj.data(:,:,end+1:val)= zeros(0,0,val-nSignals);
+                       else
+                           obj.data(:,:,end+1:val)= 0;
+                       end
+                       nNewSignals=val-length(obj.signalTags);
+                       tmpTags=cell(1,nNewSignals);
+                       for tt=1:nNewSignals
+                           tmpTags(tt)={['Signal ' ...
+                                num2str(tt+length(obj.signalTags))]};
+                       end
+                       obj.signalTags(end+1:val)=tmpTags;  
+                   end
+               end
+           else
+               error('ICNA:structuredData:set:InvalidPropertyValue',...
+                     ['Number of signals must be 0 ' ...
+                    'or a positive integer']);
+           end
+        end
+        
+        %signalTags
+        function val = get.signalTags(obj)
+            val = obj.signalTags;
+        end
+        
+        %timeline
+        function val = get.timeline(obj)
+            val = obj.timeline;
+        end
+        function obj = set.timeline(obj, val)
+            if (isa(val,'timeline'))
+               obj.timeline = timeline(val);
+            else
+               error('ICNA:structuredData:set:InvalidPropertyValue',...
+                     'Value must be of class Timeline');
+            end
+        end
+        
+ 
     end
     
     methods (Access=protected)
