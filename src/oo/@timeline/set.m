@@ -52,6 +52,6 @@ while (length(propertyArgIn) >= 2)
 
    obj.(lower(prop)) = val; %Ignore case
 end
-assertInvariants(obj);
+    assertInvariants(obj);
 
 end

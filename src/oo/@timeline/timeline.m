@@ -123,20 +123,11 @@
 
 %% Log
 %
-% 2-Apr-2019 (FOE): Class created.
-%
-% 22-Apr-2019 (FOE): Several improvements
-%   + The subseries field disappears (now this is controlled using the
-%   pipelineContainer). Properties .description and .rundate are now
-%   unique and have better direct control with their own get/set pairs.
-%   + Added numerical .id and .userdata
-% 
 % 29-January-2022 (ESR): Get/Set Methods created in timeline
 %   + The methods are added with the new structure. All the properties have 
 %   the new structure (length,nominalsamplingrate,starttime and timestamps)
 %   + We create .cropOrRemoveEvents file inside the timeline class.
 %   
-%
 
 classdef timeline
     properties (SetAccess=private, GetAccess=private)

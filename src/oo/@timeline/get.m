@@ -32,9 +32,6 @@ function val = get(obj, propName)
 %
 
 %% Log
-%  2-Apr-2019: FOE.
-%   + Method created.
-%
 % 3-Apr-2019: FOE.
 %   + Updated following the definition of get/set.property methods in
 %   the class main file. This is now a simple wrapper to ignore case.
@@ -44,5 +41,7 @@ function val = get(obj, propName)
 % 31-January-2022 (ESR): We simplify the code
 %   + We simplify the code. All cases are in the timeline class.
 %
-val = obj.(lower(propName)); %Ignore case
+
+    val = obj.(lower(propName)); %Ignore case
+
 end
