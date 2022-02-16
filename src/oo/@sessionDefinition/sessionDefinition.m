@@ -43,6 +43,16 @@
 %
 % See also experiment, dataSourceDefinition, session, subject
 %
+
+%% Log
+%
+% 13-February-2022 (ESR): Get/Set Methods created in sessionDefinition
+%   + The methods are added with the new structure. All the properties have 
+%   the new structure (id,name and description)
+%   + The new structure enables new MATLAB functions
+%   + The properties are arranged alphabetically on Get/Set methods.
+%
+
 classdef sessionDefinition
     properties (SetAccess=private, GetAccess=private)
         id=1;
@@ -90,6 +100,62 @@ classdef sessionDefinition
         end
         assertInvariants(obj);
         end
+        
+        %% Get/Set methods
+        %Provide struct like access to properties BUT maintaining class
+        %encapsulation.
+        
+        %Description
+        function val = get.description(obj)
+            % The method is converted and encapsulated. 
+            % obj is the sessionDefinition class
+            % val is the value added in the object
+            % get.description(obj) = Get the data from the sessionDefinition class
+            % and look for the description object.
+            val = obj.description;
+        end
+        function obj = set.description(obj,val)
+            % The method is converted and encapsulated and can be used 
+            % as the example in the constructor method.
+            % This method allows the change of data values.
+            %   obj is the sessionDefinition class
+            %   val = is the provided value, later it is conditioned 
+            %   according to the data type
+            if (ischar(val))
+                obj.description = val;
+            else
+                error('Value must be a string');
+            end
+            
+        end
+        
+        %ID
+        function val = get.id(obj)
+            val = obj.id;
+        end
+        function obj = set.id(obj,val)
+            if (isscalar(val) && isreal(val) && ~ischar(val) ...
+                && (val==floor(val)) && (val>0))
+                %Note that a char which can be converted to scalar
+                %e.g. will pass all of the above (except the ~ischar
+                obj.id = val;
+            else
+                error('Value must be a scalar natural/integer');
+            end
+        end
+        
+        %Name
+        function val = get.name(obj)
+            val = obj.name;
+        end
+        function obj = set.name(obj,val)
+            if (ischar(val))
+                obj.name = val;
+            else
+                error('Value must be a string');
+            end
+        end    
+            
     end
 
     methods (Access=protected)
