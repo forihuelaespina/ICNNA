@@ -77,6 +77,14 @@
 %
 % 1-Sep-2016 (FOE): Class created.
 %
+% 13-February-2022 (ESR): Get/Set Methods created in rawData_UCLWireless
+%   + The methods are added with the new structure. All the properties have 
+%   the new structure.
+%   + The new structure enables new MATLAB functions
+%   + We create a dependent property inside the rawData_UCLWireless class.
+%   + The nSamples, nChannels and nEvents properties dependents are in the
+%   rawData_UCLWireless class.
+%
 
 
 classdef rawData_UCLWireless < rawData
@@ -107,6 +115,12 @@ classdef rawData_UCLWireless < rawData
                            'starttime',{}, ...
                            'entime',{});%preTimeline
     end
+    
+    properties (Dependent)
+        nEvents
+        nSamples
+        nChannels
+    end
  
     methods    
         function obj=rawData_UCLWireless(varargin)
@@ -136,7 +150,144 @@ classdef rawData_UCLWireless < rawData
             assertInvariants(obj);
 
         end
-  
+        
+        %% Get/Set methods
+        %Provide struct like access to properties BUT maintaining class
+        %encapsulation.
+
+        %deoxyRawData
+        function val = get.deoxyRawData(obj)
+            % The method is converted and encapsulated. 
+            % obj is the rawData_UCLWireless class
+            % val is the value added in the object
+            % get.deoxyRawData(obj) = Get the data from the rawData_UCLWireless class
+            % and look for the deoxyRawData object.
+            val = obj.deoxyRawData;
+        end
+        function obj = set.deoxyRawData(obj,val)
+            % The method is converted and encapsulated and can be used 
+            % as the example in the constructor method.
+            % This method allows the change of data values.
+            %   obj is the rawData_UCLWireless class
+            %   val = is the provided value, later it is conditioned 
+            %   according to the data type
+            if (isreal(val) && size(val,3)==2)
+                obj.oxyRawData = val(:,:,1);
+                obj.deoxyRawData = val(:,:,2);
+            else
+            error('ICNA:rawData_UCLWireless:set:InvalidParameterValue',...
+                  'Data is expected to contain both Oxy and Deoxy data.');
+            end
+        end
+        
+        %wLengths/nominalwavelengthset
+        function val = get.wLengths(obj)
+            val = obj.wLengths;
+        end
+        function obj = set.wLengths(obj,val)
+            if (isvector(val) && isreal(val))
+                obj.wLengths = val;
+            else
+            error('ICNA:rawData_UCLWireless:set:InvalidParameterValue',...
+                  'Value must be a vector of wavelengths in nm.');
+            end
+        end
+        
+        %oxyRawData
+        function val = get.oxyRawData(obj)
+            val = obj.oxyRawData;
+        end
+        function obj = set.oxyRawData(obj,val)
+            if (isreal(val) && size(val,3)==2)
+                obj.oxyRawData = val(:,:,1);
+                obj.deoxyRawData = val(:,:,2);
+            else
+            error('ICNA:rawData_UCLWireless:set:InvalidParameterValue',...
+                  'Data is expected to contain both Oxy and Deoxy data.');
+            end
+        end
+        
+        %pretimeline
+        function val = get.preTimeline(obj)
+            val = obj.preTimeline;
+        end
+        function val = set.preTimeline(obj,val)
+             if (isstruct(val) && ...
+                isfield(val,'label') && ...
+                isfield(val,'code') && ...
+                isfield(val,'remainder') && ...
+                isfield(val,'starttime') && ...
+                isfield(val,'endtime'))
+                
+                obj.preTimeline = val;
+            else
+            error('ICNA:rawData_UCLWireless:set:InvalidParameterValue',...
+                  ['Value must be a struct with the following fields: ' ...
+                  'label, code, remainder, starttime, endtime.']);
+            end
+        end
+        
+        %samplingrate
+        function val = get.samplingRate(obj)
+            val = obj.samplingRate;
+        end
+        function obj = set.samplingRate(obj,val)
+            if (isscalar(val) && isreal(val) && val>0)
+                obj.samplingRate = val;
+            else
+            error('ICNA:rawData_UCLWireless:set:InvalidParameterValue',...
+                      'Value must be a positive real');
+            end
+        end
+        
+        %timestamps
+        function val = get.timestamps(obj)
+            val = obj.timestamps;
+        end
+        function obj = set.timestamps(obj,val)
+            if (all(val>=0))
+            obj.timestamps = val;
+                %Note that the length of timestamps is expected to match
+                %that of the rawData
+                %See assertInvariants
+            else
+            error('ICNA:rawData_UCLWireless:set:InvalidParameterValue',...
+                  'Value must be a vector positive integer.');
+            end
+        end
+        
+        %---------------------------------------------------------------->
+        %Data Dependent
+        %Dependent properties do not store data. 
+        %The value of a dependent property depends on some other value, 
+        %such as the value of a nondependent property.
+        
+        %Dependent properties must define get-access methods () to 
+        %determine a value for the property when the property is queried: 
+        %get.nSamples
+        %For example: The nSamples, nChannels and nSignals properties
+        %dependent of data property.
+        
+        %We create a dependent property on line 131
+        %---------------------------------------------------------------->
+        
+        %nChannels
+        function val = get.nChannels(obj)
+           val= size(obj.oxyRawData,2);
+           %Note that oxyRawData and deoxyRawData have the same size (class invariant)
+        end
+        
+        %nEvents
+        function val = get.nEvents(obj)
+           val = length(obj.preTimeline); 
+        end
+        
+        %nSamples
+        function val = get.nSamples(obj)
+           val= size(obj.oxyRawData,1);
+           %Note that oxyRawData and deoxyRawData have the same size (class invariant) 
+        end
+
     end
 
     methods (Access=protected)

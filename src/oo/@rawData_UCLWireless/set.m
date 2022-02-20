@@ -41,70 +41,25 @@ function obj = set(obj,varargin)
 % See also rawData.set, get
 %
 
+%% Log
+% 3-Apr-2019 (FOE):
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
+%
+% 13-February-2022 (ESR): We simplify the code
+%   + All cases are in the rawData_UCLWireless class.
+%   + We create a dependent property inside the rawData_UCLWireless class.
+%   + The nSamples, nChannels and nEvents properties are in the
+%   rawData_UCLWireless class.
 
 propertyArgIn = varargin;
-while length(propertyArgIn) >= 2,
-   prop = propertyArgIn{1};
-   val = propertyArgIn{2};
-   propertyArgIn = propertyArgIn(3:end);
-   switch lower(prop)
-%Measure information
-    case 'nominalwavelenghtset'
-        if (isvector(val) && isreal(val))
-            obj.wLengths = val;
-        else
-            error('ICNA:rawData_UCLWireless:set:InvalidParameterValue',...
-                  'Value must be a vector of wavelengths in nm.');
-        end
-
-    case 'samplingrate'
-        if (isscalar(val) && isreal(val) && val>0)
-            obj.samplingRate = val;
-        else
-            error('ICNA:rawData_UCLWireless:set:InvalidParameterValue',...
-                  'Value must be a positive real');
-        end
-        
-%The data itself!!
-    case 'rawdata'
-        if (isreal(val) && size(val,3)==2)
-            obj.oxyRawData = val(:,:,1);
-            obj.deoxyRawData = val(:,:,2);
-        else
-            error('ICNA:rawData_UCLWireless:set:InvalidParameterValue',...
-                  'Data is expected to contain both Oxy and Deoxy data.');
-        end
-        
-    case 'timestamps'
-        if (all(val>=0))
-            obj.timestamps = val;
-                %Note that the length of timestamps is expected to match
-                %that of the rawData
-                %See assertInvariants
-        else
-            error('ICNA:rawData_UCLWireless:set:InvalidParameterValue',...
-                  'Value must be a vector positive integer.');
-        end
-
-
-    case 'pretimeline'
-        if (isstruct(val) && ...
-                isfield(val,'label') && ...
-                isfield(val,'code') && ...
-                isfield(val,'remainder') && ...
-                isfield(val,'starttime') && ...
-                isfield(val,'endtime'))
-                
-            obj.preTimeline = val;
-        else
-            error('ICNA:rawData_UCLWireless:set:InvalidParameterValue',...
-                  ['Value must be a struct with the following fields: ' ...
-                  'label, code, remainder, starttime, endtime.']);
-        end
-
-
-
-   otherwise
-        obj=set@rawData(obj, prop, val);
+    while (length(propertyArgIn) >= 2)
+       prop = propertyArgIn{1};
+       val = propertyArgIn{2};
+       propertyArgIn = propertyArgIn(3:end);
+       
+       obj.(lower(prop)) = val; %Ignore case
    end
 end
