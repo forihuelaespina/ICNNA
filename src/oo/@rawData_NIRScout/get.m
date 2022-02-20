@@ -129,118 +129,15 @@ function val = get(obj, propName)
 %
 % 4/25-Apr-2018: FOE. Method created
 %
+% 3-Apr-2019: FOE.
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
 %
-
-
-
-switch lower(propName)
-%General information
-case 'filename'
-   val = obj.filename;
-case 'device'
-   val = obj.device;
-case 'source'
-   val = obj.source;
-case 'studytypemodulation'
-   val = obj.studyTypeModulation;
-case 'fileversion'
-   val = obj.fileVersion;
-case 'subjectindex'
-   val = obj.subjectIndex;
-
-
-   
-% Measurement information
-case 'nsources'
-   val = obj.nSources;
-case 'ndetectors'
-   val = obj.nDetectors;
-case 'nsteps'
-   val = obj.nSteps;
-case 'nominalwavelengthset'
-   val = obj.wLengths;
-case 'ntriggerinputs'
-   val = obj.nTriggerInputs;
-case 'ntriggeroutputs'
-   val = obj.nTriggerOutputs;
-case 'nanaloginputs'
-   val = obj.nAnalogInputs;
-case 'samplingperiod'
-   val = 1/obj.samplingRate;
-case 'samplingrate'
-   val = obj.samplingRate;
-case 'modulationamplitudes'
-   val = obj.modulationAmplitudes;
-case 'modulationthresholds'
-   val = obj.modulationThresholds;
-   
- %Measure information
-case 'probeset'
-   val = obj.probesetInfo;
-case 'nchannels'
-    %Total number of channels across all probes.
-    val=obj.nChannels;
-
-% % case 'channels'
-% %    val = obj.nChannels; %The vector of channels at each optode array or probe
-% case 'repeatcount' %Number of Blocks
-%    val = obj.repeatCount;
-  
-
-% Paradigm Information
-case 'paradigmstimulustype'
-   val = obj.paradigmStimulusType;
-   
-% Experimental Notes
-case 'notes'
-   val = obj.notes;
-
-% Gain settings
-case 'gains'
-   val = obj.gains;
-% Markers Information
-case 'eventtriggermarkers'
-   val = obj.eventTriggerMarkers;
-
-% Data Structure:
-case 'sdkey'
-   val = obj.sdKey;
-case 'sdmask'
-   val = obj.sdMask;
-
-% Channel Distances:
-case 'channeldistances'
-   val = obj.channelDistances;
-   
-
-% %Patient information
-case 'subjectname'
-   val = obj.userName;
-case 'subjectgender'
-   val = obj.userGender;
-% case 'subjectbirthdate'
-%    val = obj.userBirthDate;
-case 'subjectage'
-   val = obj.userAge;
-
-
-
-
-%The data itself!!
-case 'lightrawdata'
-   val = obj.lightRawData;%The raw light intensity data.
-% case 'marks'
-%    val = obj.marks;%The stimulus marks.
-% case 'timestamps'
-%    val = obj.timestamps;
-% case 'bodymovement'
-%    val = obj.bodyMovement;
-% case 'removalmarks'
-%    val = obj.removalMarks;
-% case 'prescan'
-%    val = obj.preScan;
-
-   
-otherwise
-   val = get@rawData(obj, propName);
+% 13-February-2022 (ESR): We simplify the code
+%   + All cases are in the rawData_NIRScout class.
+%   + We create a dependent property inside the rawData_NIRScout.
+%
+     val = obj.(lower(propName)); %Ignore case
 end

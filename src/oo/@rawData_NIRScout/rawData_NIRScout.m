@@ -314,7 +314,13 @@
 %
 % 30-Oct-2018 (FOE): Class should now recognize files for version 15.2
 %
-
+% 13-February-2022 (ESR): Get/Set Methods created in rawData_NIRScout
+%   + The methods are added with the new structure. All the properties have 
+%   the new structure.
+%   + The new structure enables new MATLAB functions
+%   + We create a dependent property inside the rawData_NIRScout class.
+%   +The samplingPeriod dependent property depends on samplingRate. 
+%
 
 classdef rawData_NIRScout < rawData
     properties (SetAccess=private, GetAccess=private)
@@ -406,6 +412,10 @@ classdef rawData_NIRScout < rawData
 %         removalMarks=nan(0,0);%Removal marks
 %         preScan=nan(0,0);%preScan stamps
     end
+    
+    properties (Dependent)
+       samplingPeriod
+    end
  
     methods    
         function obj=rawData_NIRScout(varargin)
@@ -439,7 +449,470 @@ classdef rawData_NIRScout < rawData
             assertInvariants(obj);
 
         end
-  
+        
+        %% Get/Set methods
+        %Provide struct like access to properties BUT maintaining class
+        %encapsulation.
+        
+        % Channel Distances:
+        %channelDistances
+        function val = get.channelDistances(obj)
+           val = obj.channelDistances; 
+        end
+        function obj = set.channelDistances(obj,val)
+            if (all(all(val>=0)) && length(val)==obj.nChannels)
+                obj.channelDistances = val;
+            else
+                if (length(val)==obj.nChannels)
+                    error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be a vector positive numbers.');
+                else
+                    error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Number of channel distances is different from the number of channels.');
+                end
+            end
+        end
+        
+        %General information
+        %device
+        function val = get.device(obj)
+            val = obj.device;
+        end
+        function obj = set.device(obj,val)
+            if (ischar(val))
+                obj.device = val;
+            else
+            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be a string');
+            end
+        end
+        
+        %Markers Information
+        %eventTriggerMarkers
+        function val = get.eventTriggerMarkers(obj)
+           val = obj.eventTriggerMarkers; 
+        end
+        function obj = set.eventTriggerMarkers(obj,val)
+            if (size(val,2)==3 && all(all(floor(val(:,2:3))==val(:,2:3))) && all(all(val>=0)))
+                obj.eventTriggerMarkers = val;
+            else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be a 3 columns matrix with the second and third columns being integer numbers.');
+            end  
+        end
+        
+        %General Information
+        %filename
+        function val = get.filename(obj)
+            val = obj.filename;
+        end
+        function obj = set.filename(obj,val)
+            if (ischar(val))
+                obj.filename = val;
+            else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be a string');
+            end
+        end
+        
+        %General Information
+        %fileVersion
+        function val = get.fileVersion(obj)
+            val = obj.fileVersion;
+        end
+        function obj = set.fileVersion(obj,val)
+            if (ischar(val))
+                obj.fileVersion = val;
+            else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be a string');
+            end
+        end
+        
+        %Gain settings
+        %gains
+        function val = get.gains(obj)
+            val = obj.gains;
+        end
+        function obj = set.gains(obj,val)
+            if any(any(val<0))
+            warning('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Nagative gain found.');
+            end
+            obj.gains = val;
+        end
+        
+        
+        
+        %wLengths
+        function val = get.wLengths(obj)
+            val = obj.wLengths;
+        end
+        function obj = set.wLengths(obj,val)
+            if (isvector(val) && isreal(val))
+                obj.wLengths = val;
+            else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be a vector of wavelengths in nm.');
+            end
+        end
+        
+        %The data itself!!
+        %lightRawData
+        function val = get.lightRawData(obj)
+           val = obj.lightRawData; %The raw light intensity data.
+        end
+        function obj = set.lightRawData(obj,val)
+           if (isreal(val) && size(val,3)==length(obj.probesetInfo))
+                obj.lightRawData = val;
+                %Note that the size along the 3rd dimension is expected to
+                %match the number of probes sets declared.
+                %See assertInvariants
+           else
+            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Size of data is expected to match the number of probes sets declared.');
+           end 
+        end
+        
+        % Measurement information
+        %modulationAmplitudes
+        function val = get.modulationAmplitudes(obj)
+            val = obj.modulationAmplitudes;
+        end
+        function obj = set.modulationAmplitudes(obj,val)
+            if (isvector(val) && isreal(val))
+                obj.modulationAmplitudes = val;
+            else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be a vector of amplitudes.');
+            end
+        end
+        
+        % Measurement information
+        %modulationThresholds
+        function val = get.modulationThresholds(obj)
+            val = obj.modulationThresholds;
+        end
+        function obj = set.modulationThresholds(obj,val)
+            if (isvector(val) && isreal(val))
+                obj.modulationThresholds = val;
+            else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be a vector of thresholds.');
+            end
+        end
+        
+        % Experimental Notes
+        %notes
+        function val = get.notes(obj)
+            val = obj.notes;
+        end
+        function obj = set.notes(obj,val)
+            if (ischar(val))
+                obj.notes = val;
+            else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be a string');
+            end
+        end
+        
+        % Measurement information: -------------------------------------->
+        
+        %nAnalogInputs
+        function val = get.nAnalogInputs(obj)
+            val = obj.nAnalogInputs;
+        end
+        function obj = set.nAnalogInputs(obj,val)
+            if (isscalar(val) && isnumeric(val) && mod(val,val)==0)
+                obj.nAnalogInputs = val;
+            else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be an integer number.');
+            end
+        end
+       
+        %nChannels
+        function val = get.nChannels(obj)
+            %Total number of channels across all probes.
+            val = obj.nChannels;
+        end
+        function obj = set.nChannels(obj,val)
+            if (isscalar(val) && isnumeric(val) && mod(val,val)==0 && val>=0)
+                obj.nChannels = val;
+            else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be an integer number.');
+            end
+        end
+        
+        %nDetectors
+        function val = get.nDetectors(obj)
+            val = obj.nDetectors;
+        end
+        function obj = set.nDetectors(obj,val)
+            if (isscalar(val) && isnumeric(val) && mod(val,val)==0 && val>=0)
+                obj.nDetectors = val;
+            else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be an integer number.');
+            end
+        end
+
+        %nSources
+        function val = get.nSources(obj)
+            val = obj.nSources;
+        end
+        function obj =setnSources(obj,val)
+            if (isscalar(val) && isnumeric(val) && mod(val,val)==0 && val>=0)
+                obj.nSources = val;
+            else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be an integer number.');
+            end
+        end
+
+        %nSteps
+        function val = get.nSteps(obj)
+            val = obj.nSteps;
+        end
+        function obj = set.nSteps(obj,val)
+            if (isscalar(val) && isnumeric(val) && mod(val,val)==0)
+                obj.nSteps = val;
+            else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be an integer number.');
+            end
+        end
+
+        %nTriggerInputs
+        function val = get.nTriggerInputs(obj)
+            val = obj.nTriggerInputs;
+        end
+        function obj = set.nTriggerInputs(obj,val)
+            if (isscalar(val) && isnumeric(val) && mod(val,val)==0)
+                obj.nTriggerInputs = val;
+            else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be an integer number.');
+            end
+        end
+
+        %nTriggerOutputs
+        function val = get.nTriggerOutputs(obj)
+            val = obj.nTriggerOutputs;
+        end
+        function obj = set.nTriggerOutputs(obj,val)
+            if (isscalar(val) && isnumeric(val) && mod(val,val)==0)
+                obj.nTriggerOutputs = val;
+            else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be an integer number.');
+            end
+        end
+        %---------------------------------------------------------------->
+        
+        %Measure information
+        %probesetInfo
+        function val = get.probesetInfo(obj)
+            val = obj.probesetInfo;
+        end
+        function obj = set.probesetInfo(obj,val)
+            if (isstruct(val))
+                %The fields in this probeset struct are NOT always the
+                %same. So these have to be check everytime.
+                obj.probesetInfo = struct('probes',[],'geom',[],...
+                        'temphandles',[],'headmodel','',...
+                        'probeInforFileName','','probeInforFilePath','');
+                fields = fieldnames(val);
+                nFields = length(fields);
+                for ff=1:nFields
+                    fieldname = fields{ff};
+                    if isfield(obj.probesetInfo,fieldname)
+                        obj.probesetInfo.(fieldname) = val.(fieldname);
+                    else
+                        warning('ICNNA:rawData_NIRScout:set:UnexpectedParameterValue',...
+                                ['Unexpected field name ''' fieldname '''in probe set descriptor. Ignoring field.'])
+                    end
+                end
+            
+            
+               %Field setupType is not present in all file versions.
+               % I have found it in version 14.2 but not in 15.2
+               %but it was used for several things during conversion
+               %to structuredData.
+               if ~isfield(obj.probesetInfo.probes,'setupType')
+                   obj.probesetInfo.probes.setupType = 1;
+               end
+            
+            else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be a struct.');
+            end
+        end
+        
+        %Paradigm Information
+        %paradigmStimulusType
+        function val = get.paradigmStimulusType(obj)
+            val = obj.paradigmStimulusType;
+        end
+        function obj = set.paradigmStimulusType(obj,val)
+            if (ischar(val))
+                obj.paradigmStimulusType = val;
+            else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be a string');
+            end
+        end
+                
+        %General Information
+        %Source
+        function val = get.source(obj)
+            val = obj.source;
+        end
+        function obj = set.source(obj,val)
+            if (ischar(val) && ismember(upper(val),{'LED','LASER'}))
+                obj.source = upper(val);
+            else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be either "LED" or "LASER".');
+            end
+        end
+        
+        %General Information
+        %studyTypeModulation
+        function val = get.studyTypeModulation(obj)
+            val = obj.studyTypeModulation;
+        end
+        function obj = set.studyTypeModulation(obj,val)
+            if (ischar(val))
+                obj.studyTypeModulation = val;
+            else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be a string');
+            end
+        end
+        
+        %General Information
+        %subjectIndex
+        function val = get.subjectIndex(obj)
+            val = obj.subjectIndex;
+        end
+        function obj = set.subjectIndex(obj,val)
+            if (isscalar(val) && isnumeric(val) && mod(val,val)==0)
+                obj.subjectIndex = val;
+            else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be an integer number.');
+            end
+        end
+        
+        % Measurement information
+        %samplingRate
+        function val = get.samplingRate(obj)
+            val = obj.samplingRate;
+        end
+        function obj = set.samplingRate(obj,val)
+            if (isscalar(val) && isreal(val) && val>0)
+                obj.samplingRate = val;
+            else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be a positive real');
+            end
+        end
+        
+        % Measurement information
+        %samplingPeriod
+        function val = get.samplingPeriod(obj)
+           val = 1/obj.samplingRate; 
+        end
+        
+        % Data Structure: ----------------------------------------------->
+        %sdKey
+        function val = get.sdKey(obj)
+           val = obj.sdKey; 
+        end
+        function obj = set.sdKey(obj,val)
+            if (all(all(floor(val)==val)) && all(all(val>=0)))
+                obj.sdKey = val;
+            else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be a matrix positive integers.');
+            end 
+        end
+        
+        %sdMask
+        function val = get.sdMask(obj)
+           val = obj.sdMask; 
+        end
+        function obj = set.sdMask(obj,val)
+           if (all(all(ismember(val,[0,1]))))
+                obj.sdMask = val;
+           else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be a binary matrix (of 0s and 1s).');
+           end 
+        end
+        %--------------------------------------------------------------->
+        
+        
+        %Patient information: ------------------------------------------>
+        %userAge
+        function val = get.userAge(obj)
+           val = obj.userAge; 
+        end
+        function obj = set.userAge(obj,val)
+           if (isscalar(val) && isreal(val))
+                obj.userAge = val;
+           else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be numeric');
+           
+           
+           end 
+        end
+
+        %userGender
+        function val = get.userGender(obj)
+           val = obj.userGender; 
+        end
+        function obj = set.userGender(obj,val)
+           if isempty(val)
+                obj.userGender = 'U';
+            elseif ischar(val)
+                %Try to decode the gender; if not possible, set to 'U'
+                %and issue a warning.
+                if ismember(upper(val),{'F','FEMALE','WOMAN'})
+                        obj.userGender = 'F';
+                    elseif ismember(upper(val),{'M','MALE','MAN'})
+                        obj.userGender = 'M';
+                    elseif ismember(upper(val),{'U'})
+                        obj.userGender = 'U';
+                else
+                    obj.userGender = 'U';
+                    warning('ICNNA:rawData_NIRScout:set:UnexpectedParameterValue',...
+                        ['Value for subject gender is not recognised. ' ...
+                        'It will be set to (U)nset. ' ...
+                        'Try common gender identifiers e.g. (M)ale or (F)emale.']);
+                end
+           else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be a string.');
+           end 
+        end
+        
+        %userName
+        function val = get.userName(obj)
+           val = obj.userName; 
+        end
+        function obj = set.userName(obj,val)
+            if ischar(val)
+                obj.userName = val;
+            else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be a string');
+            end
+        end
+
     end
 
     methods (Access=protected)

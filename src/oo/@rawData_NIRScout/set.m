@@ -151,11 +151,13 @@ function obj = set(obj,varargin)
 %   I was directly comparing the (content of the) channelDistances to
 %   the number of channels, instead of the numel.
 %
-
-
-
-
-
+% 13-February-2022 (ESR): We simplify the code
+%   + All cases are in the rawData_NIRScout class.
+%   + We create a dependent property inside the rawData_NIRScout
+%   class.
+%   + All properties are in the rawData_NIRScout class.
+%
+%
 
 propertyArgIn = varargin;
 while (length(propertyArgIn) >= 2)
@@ -295,7 +297,7 @@ while (length(propertyArgIn) >= 2)
                   'Value must be a vector of thresholds.');
         end
 
-    case 'samplingperiod'
+    case 'samplingperiod' %what is?
         if (isscalar(val) && isreal(val) && val>0)
             obj.samplingRate = 1/val;
         else
