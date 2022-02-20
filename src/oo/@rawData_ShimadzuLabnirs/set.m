@@ -41,77 +41,29 @@ function obj = set(obj,varargin)
 % See also rawData.set, get
 %
 
+%% Log
+%
+% 3-Apr-2019 (FOE):
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
+%
+% 13-February-2022 (ESR): We simplify the code
+%   + All cases are in the rawData_ShimadzuLabnirs class.
+%   + We create a dependent property inside the rawData_ShimadzuLabnirs
+%   class.
+%   + The nSamples, nChannels and nEvents properties are in the
+%   rawData_ShimadzuLabnirs class.
 
 propertyArgIn = varargin;
-while length(propertyArgIn) >= 2,
+while (length(propertyArgIn) >= 2)
    prop = propertyArgIn{1};
    val = propertyArgIn{2};
    propertyArgIn = propertyArgIn(3:end);
-   switch lower(prop)
-%Measure information
-    case 'nominalwavelenghtset'
-        if (isvector(val) && isreal(val))
-            obj.wLengths = val;
-        else
-            error('ICNA:rawData_ShimadzuLabnirs:set:InvalidParameterValue',...
-                  'Value must be a vector of wavelengths in nm.');
-        end
-
-    case 'samplingrate'
-        if (isscalar(val) && isreal(val) && val>0)
-            obj.samplingRate = val;
-        else
-            error('ICNA:rawData_ShimadzuLabnirs:set:InvalidParameterValue',...
-                  'Value must be a positive real');
-        end
-        
-%The data itself!!
-    case 'rawdata'
-        if (isreal(val) && (mod(size(val,2),3)==0))
-            obj.rawData = val(:,:);
-        else
-            error('ICNA:rawData_ShimadzuLabnirs:set:InvalidParameterValue',...
-                  'Data is expected to contain all Oxy, Deoxy and Total Hb data.');
-        end
-        
-    case 'timestamps'
-        if (isvector(val) && all(val>=0))
-            obj.timestamps = val;
-                %Note that the length of timestamps is expected to match
-                %that of the rawData
-                %See assertInvariants
-        else
-            error('ICNA:rawData_ShimadzuLabnirs:set:InvalidParameterValue',...
-                  'Value must be a vector positive integer.');
-        end
-
-
-    case 'pretimeline'
-        if (isvector(val) && isreal(val))
-            obj.preTimeline = val;
-                %Note that the length of pretimeline vector is expected to match
-                %that of the rawData
-                %See assertInvariants
-        else
-            error('ICNA:rawData_ShimadzuLabnirs:set:InvalidParameterValue',...
-                  ['Value must be a vector positive integer.']);
-        end
-
-
-    case 'marks'
-        if (isvector(val) && isreal(val))
-            obj.marks = val;
-                %Note that the length of marks vector is expected to match
-                %that of the rawData
-                %See assertInvariants
-        else
-            error('ICNA:rawData_ShimadzuLabnirs:set:InvalidParameterValue',...
-                  ['Value must be a vector positive integer.']);
-        end
-
-
-
-   otherwise
-        obj=set@rawData(obj, prop, val);
-   end
+   
+   obj.(lower(prop)) = val; %Ignore case
+  
+end
+    assertInvariants(obj);
 end

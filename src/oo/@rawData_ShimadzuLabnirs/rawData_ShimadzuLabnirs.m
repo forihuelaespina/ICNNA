@@ -86,7 +86,15 @@
 %
 % 20-Sep-2016 (FOE): Class created.
 %
-
+% 13-February-2022 (ESR): Get/Set Methods created in
+%   rawData_ShimadzuLabnirs
+%   + The methods are added with the new structure. All the properties have 
+%   the new structure.
+%   + The new structure enables new MATLAB functions
+%   + We create a dependent property inside the rawData_ShimadzuLabnirs class.
+%   + The nSamples, nChannels and nEvents properties are in the
+%   rawData_ShimadzuLabnirs class.
+%
 
 classdef rawData_ShimadzuLabnirs < rawData
     properties (SetAccess=private, GetAccess=private)
@@ -110,6 +118,12 @@ classdef rawData_ShimadzuLabnirs < rawData
         timestamps=nan(0,0);%Timestamps.
         preTimeline=[];%preTimeline
         marks=[];%Marks
+    end
+    
+    properties (Dependent)
+        nSamples
+        nChannels
+        nEvents
     end
  
     methods    
@@ -140,7 +154,156 @@ classdef rawData_ShimadzuLabnirs < rawData
             assertInvariants(obj);
 
         end
-  
+        
+        %% Get/Set methods
+        %Provide struct like access to properties BUT maintaining class
+        %encapsulation.
+        %
+        
+        %Measure information
+        %wLengths
+        function val = get.wLengths(obj)
+            % The method is converted and encapsulated. 
+            % obj is the rawData_ShimadzuLabnirs class
+            % val is the value added in the object
+            % get.wLengths(obj) = Get the data from the rawData_ShimadzuLabnirs class
+            % and look for the wLengths object.
+            val=obj.wLengths;
+        end
+        function obj = set.wLengths(obj,val)
+            % The method is converted and encapsulated and can be used 
+            % as the example in the constructor method.
+            % This method allows the change of data values.
+            %   obj is the rawData_ShimadzuLabnirs class
+            %   val = is the provided value, later it is conditioned 
+            %   according to the data type
+            if (isvector(val) && isreal(val))
+                obj.wLengths = val;
+            else
+            error('ICNA:rawData_ShimadzuLabnirs:set:InvalidParameterValue',...
+                  'Value must be a vector of wavelengths in nm.');
+            end
+        end
+        
+        %samplingRate
+        function val = get.samplingRate(obj)
+            val = obj.samplingRate;
+        end
+        function obj = set.samplingRate(obj,val)
+            if (isscalar(val) && isreal(val) && val>0)
+            obj.samplingRate = val;
+            else
+            error('ICNA:rawData_ShimadzuLabnirs:set:InvalidParameterValue',...
+                  'Value must be a positive real');
+            end
+        end
+
+        %The data itself!!
+        %marks
+        function val = get.marks(obj)
+            % The method is converted and encapsulated. 
+            % obj is the rawData_ShimadzuLabnirs class
+            % val is the value added in the object
+            % get.marks(obj) = Get the data from the rawData_ShimadzuLabnirs class
+            % and look for the marks object.
+            val=obj.marks;
+        end
+        function obj = set.marks(obj,val)
+            % The method is converted and encapsulated and can be used 
+            % as the example in the constructor method.
+            % This method allows the change of data values.
+            %   obj is the rawData_ShimadzuLabnirs class
+            %   val = is the provided value, later it is conditioned 
+            %   according to the data type
+            if (isvector(val) && isreal(val))
+                obj.marks = val;
+                %Note that the length of marks vector is expected to match
+                %that of the rawData
+                %See assertInvariants
+            else
+            error('ICNA:rawData_ShimadzuLabnirs:set:InvalidParameterValue',...
+                  ['Value must be a vector positive integer.']);
+            end
+        end
+        
+        %preTimeline
+        function val = get.preTimeline(obj)
+            val = obj.preTimeline;
+        end
+        function obj = set.preTimeline(obj,val)
+            if (isvector(val) && isreal(val))
+                obj.preTimeline = val;
+                %Note that the length of pretimeline vector is expected 
+                %to match that of the rawData
+                %See assertInvariants
+            else
+            error('ICNA:rawData_ShimadzuLabnirs:set:InvalidParameterValue',...
+                  ['Value must be a vector positive integer.']);
+            end
+        end
+        
+        %rawData
+        function val = get.rawData(obj)
+            val = obj.rawData;
+        end
+        function obj = set.rawData(obj,val)
+            if (isreal(val) && (mod(size(val,2),3)==0))
+                obj.rawData = val(:,:);
+            else
+            error('ICNA:rawData_ShimadzuLabnirs:set:InvalidParameterValue',...
+                  'Data is expected to contain all Oxy, Deoxy and Total Hb data.');
+            end
+        end
+        
+        %---------------------------------------------------------------->
+        %rawData Dependent
+        %Dependent properties do not store data. 
+        %The value of a dependent property depends on some other value, 
+        %such as the value of a nondependent property.
+        
+        %Dependent properties must define get-access methods () to 
+        %determine a value for the property when the property is queried: 
+        %get.nSamples
+        %For example: The nSamples, nChannels and nEvents properties
+        %dependent of data property.
+        
+        %Dependents
+        %---------------------------------------------------------------->
+        %nSamples
+        function val = get.nSamples(obj)
+           val= size(obj.rawData,1); 
+        end
+        
+        %nChannels
+        function val = get.nChannels(obj)
+           val= size(obj.rawData,2)/3;
+           %Three hemoglobin species per channel; oxy, deoxy and total
+        end
+        
+        %nEvents
+        function val = get.nEvents(obj)
+           idx=find(obj.preTimeline~=0);
+           val = length(idx); 
+        end
+        
+        %---------------------------------------------------------------->
+        
+        %timestamps
+        function val = get.timestamps(obj)
+            val=obj.timestamps;
+        end
+        function obj = set.timestamps(obj,val)
+            if (isvector(val) && all(val>=0))
+            obj.timestamps = val;
+                %Note that the length of timestamps is expected to match
+                %that of the rawData
+                %See assertInvariants
+            else
+            error('ICNA:rawData_ShimadzuLabnirs:set:InvalidParameterValue',...
+                  'Value must be a vector positive integer.');
+            end
+        end
+
     end
 
     methods (Access=protected)

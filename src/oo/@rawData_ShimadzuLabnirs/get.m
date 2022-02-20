@@ -38,33 +38,17 @@ function val = get(obj, propName)
 % See also rawData.get, set
 %
 
-switch lower(propName)
-%Measure information
-case 'nominalwavelengthset'
-   val = obj.wLengths;
-case 'nsamples'
-   val= size(obj.rawData,1);
-case 'nchannels'
-   val= size(obj.rawData,2)/3;
-    %Three hemoglobin species per channel; oxy, deoxy and total
-   
-case 'samplingrate'
-   val = obj.samplingRate;
-%The data itself!!
-case 'rawdata'
-   val = obj.rawData;%Three hemoglobin species per channel; oxy, deoxy and total
-case 'timestamps'
-   val = obj.timestamps;
-case 'pretimeline'
-   val = obj.preTimeline;
-case 'nevents'
-    idx=find(obj.preTimeline~=0);
-   val = length(idx);
-case 'marks'
-   val = obj.marks;
+%% Log
+% 3-Apr-2019: FOE.
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
+%
+% 13-February-2022 (ESR): We simplify the code
+%   + All cases are in the rawData_ShamdzuLabnirs class.
+%   + We create a dependent property inside the rawData_ShamdzuLabnirs.
+%
 
-
-   
-otherwise
-   val = get@rawData(obj, propName);
+     val = obj.(lower(propName)); %Ignore case
 end
