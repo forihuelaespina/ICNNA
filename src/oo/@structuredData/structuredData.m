@@ -311,7 +311,7 @@ classdef structuredData
         %For example: The nSamples, nChannels and nSignals properties
         %dependent of data property.
         
-        %We create a dependent property on line 131
+        %We create a dependent property.
         %---------------------------------------------------------------->
         
         %nSamples

@@ -33,7 +33,7 @@ function val = get(obj, propName)
 %
 % 13-February-2022 (ESR): We simplify the code
 %   + We simplify the code. All cases are in the structuredData class.
-%   + We create a dependent property inside the structuredData class on line 143.
+%   + We create a dependent property inside the structuredData.
 
     val = obj.(lower(propName)); %Ignore case
 end

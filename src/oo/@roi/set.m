@@ -16,33 +16,24 @@ function obj = set(obj,varargin)
 %
 % See also get
 %
+%% Log
+%
+% 3-Apr-2019 (FOE):
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
+%
+% 13-February-2022 (ESR): We simplify the code
+%   + All cases are in the roi class.
+%   + We create a dependent property inside of the roi class.
+%
 propertyArgIn = varargin;
-while length(propertyArgIn) >= 2,
-   prop = propertyArgIn{1};
-   val = propertyArgIn{2};
-   propertyArgIn = propertyArgIn(3:end);
-   switch prop
-    case 'ID'
-        if (isscalar(val) && isreal(val) && ~ischar(val) ...
-            && (val==floor(val)) && (val>0))
-            %Note that a char which can be converted to scalar
-            %e.g. will pass all of the above (except the ~ischar)
-            obj.id = val;
-        else
-            error('ICNA:ROI:set:InvalidPropertyValue',...
-                  'Value must be a positive integer.');
-        end
- 
-    case 'Name'
-        if (ischar(val))
-            obj.name = val;
-        else
-            error('ICNA:ROI:set:InvalidPropertyValue',...
-                  'Value must be a string.');
-        end
+    while (length(propertyArgIn) >= 2)
+       prop = propertyArgIn{1};
+       val = propertyArgIn{2};
+       propertyArgIn = propertyArgIn(3:end);
 
-    otherwise
-      error('ICNA:ROI:set:InvalidPropertyName',...
-            ['Property ' prop ' not valid.'])
-   end
+       obj.(lower(prop)) = val; %Ignore case
+    end
 end
