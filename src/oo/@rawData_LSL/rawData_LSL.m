@@ -66,8 +66,12 @@
 % 23-Aug-2021 (FOE): 
 %	File and class created.
 %
-%
-
+% 13-February-2022 (ESR): Get/Set Methods created in rawData_LSL
+%   + The methods are added with the new structure. All the properties have 
+%   the new structure.
+%   + The new structure enables new MATLAB functions
+%   + We create a dependent property inside the rawData_LSL class.
+%   
 
 classdef rawData_LSL < rawData
     properties (SetAccess=private, GetAccess=private)
@@ -107,6 +111,20 @@ classdef rawData_LSL < rawData
             set(obj,'Description',description);
             %assertInvariants(obj);
 
+        end
+        
+        %% %% Get/Set methods
+        %Provide struct like access to properties BUT maintaining class
+        %encapsulation.
+        
+        %The data itself!!
+        function val = get.data(obj)
+            % The method is converted and encapsulated. 
+            % obj is the rawData_LSL class
+            % val is the value added in the object
+            % get.data(obj) = Get the data from the rawData_LSL class
+            % and look for the data object.
+            val = obj.data;
         end
   
     end

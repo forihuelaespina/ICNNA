@@ -33,16 +33,17 @@ function val = get(obj, propName)
 %
 % 23-Aug-2021 (FOE): 
 %	File created.
-%       
+%
+% 3-Apr-2019: FOE.
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
+%
+% 13-February-2022 (ESR): We simplify the code
+%   + All cases are in the rawData_LSL class.
+%   + We create a dependent property inside the rawData_LSL.    
 %
 
-switch lower(propName)
-%  == The data
-%The data itself!!
-case 'rawdata'
-   val = obj.data;
-   
-otherwise
-   val = get@rawData(obj, propName);  
-end
+     val = obj.(lower(propName)); %Ignore case
 end
