@@ -32,35 +32,26 @@ function obj = set(obj,varargin)
 %
 % See also nirs_neuroimage, get
 %
+%% Log
+%
+% 3-Apr-2019 (FOE):
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
+%
+% 17-February-2022 (ESR): We simplify the code
+%   + We simplify the code. All cases are in the timeline class.
+%   + Creation of the .cropOrRemoveEvents object:
+%   the Auxiliar Nested functions are inside.
+%
 
-propertyArgIn = varargin;
-while length(propertyArgIn) >= 2,
-    prop = propertyArgIn{1};
-    val = propertyArgIn{2};
-    propertyArgIn = propertyArgIn(3:end);
-    switch lower(prop)
-        case 'probemode'
-            warning('ICNA:nirs_neuroimage:set:Deprecated',...
-                ['Use of probeMode has now been deprecated. ' ...
-                'Please refer to neuroimage.channelLocationMap.']);
-            if ischar(val)
-                switch(val)
-                    case '3x3'
-                        obj.probeMode = '3x3';
-                    case '4x4'
-                        obj.probeMode = '4x4';
-                    case '3x5'
-                        obj.probeMode = '3x5';
-                    otherwise
-                        error('ICNA:nirs_neuroimage:set:InvalidParameterValue',...
-                              'ProbeMode must be a string ''3x3'', ''4x4'' etc.');
-                end
-            else
-                error('ICNA:nirs_neuroimage:set:InvalidParameterValue',...
-                      'ProbeMode must be a string ''3x3'', ''4x4'' etc.');
-            end
-        otherwise
-            obj=set@neuroimage(obj,prop,val);
+    propertyArgIn = varargin;
+    while (length(propertyArgIn) >= 2)
+       prop = propertyArgIn{1};
+       val = propertyArgIn{2};
+       propertyArgIn = propertyArgIn(3:end);
+
+       obj.(lower(prop)) = val; %Ignore case
     end
 end
-%assertInvariants(obj);

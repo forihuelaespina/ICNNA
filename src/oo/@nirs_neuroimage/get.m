@@ -30,12 +30,15 @@ function val = get(obj, propName)
 % See also nirs_neuroimage
 %
 
-switch lower(propName)
-case 'probemode'
-    warning('ICNA:nirs_neuroimage:get:Deprecated',...
-            ['Use of probeMode has now been deprecated. ' ...
-            'Please refer to neuroimage.channelLocationMap.']);
-    val = obj.probeMode;
-otherwise
-    val =get@neuroimage(obj,propName);
+%% Log
+%
+% 17-February-2022 (ESR): We simplify the code
+%   + All cases are in the timeline class.
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
+%
+
+    val = obj.(lower(propName)); %Ignore case
 end

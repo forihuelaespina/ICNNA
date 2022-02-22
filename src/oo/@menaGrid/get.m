@@ -33,32 +33,17 @@ function val = get(obj, propName)
 % See also menaGrid, set
 %
 
-switch propName
-case 'ID'
-   val = obj.id;
-case 'EdgeLineWidth'
-   val = obj.lineWidth;
-case 'EdgeLineColor'
-   val = obj.edgeColor;
-case 'HighlightCells'
-   val = obj.highlightCells;
-case 'HighlightEdgeColor'
-   val = obj.highlightEdgeColor;
-case 'HighlightFaceColor'
-   val = obj.highlightFaceColor;
-case 'HighlightFaceAlpha'
-   val = obj.highlightFaceAlpha;
-case 'LabelCells'
-   val = obj.labelCells;
-case 'VertexVisible'
-   val = obj.vertexVisible;
-case 'VertexColor'
-   val = obj.vertexColor;
-case 'VertexMarker'
-   val = obj.vertexMarker;
-case 'VertexMarkerSize'
-   val = obj.vertexMarkerSize;   
-otherwise
-   error('ICNA:menaGrid:get:InvalidPropertyName',...
-        [propName,' is not a valid property']);
+%% Log
+%
+% 3-Apr-2019: FOE.
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
+%
+% 20-February-2022 (ESR): We simplify the code
+%   + We simplify the code. All cases are in the menaGrid class.
+%
+
+    val = obj.(lower(propName)); %Ignore case
 end

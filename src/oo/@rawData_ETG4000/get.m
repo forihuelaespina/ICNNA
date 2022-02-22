@@ -67,105 +67,21 @@ function val = get(obj, propName)
 %
 % See also rawData.get, set
 %
+%
 
-switch lower(propName)
-case 'version' %DEPRECATED
-   val = obj.fileVersion;
-   warning('ICNA:rawData_ETG4000:get:Deprecated',...
-           ['The use of ''version'' has been deprecated. ' ...
-            'Please use ''fileVersion'' instead.']);
-case 'fileversion'
-   val = obj.fileVersion;
-%Patient information
-case 'subjectname'
-   val = obj.userName;
-case 'subjectsex'
-   val = obj.userSex;
-case 'subjectbirthdate'
-   val = obj.userBirthDate;
-case 'subjectage'
-   val = obj.userAge;
-%Analysis information (for presentation only)
-case 'analyzemode'
-   val = obj.analyzeMode;
-case 'pretime'
-   val = obj.preTime;
-case 'posttime'
-   val = obj.postTime;
-case 'recoverytime'
-   val = obj.recoveryTime;
-case 'basetime'
-   val = obj.baseTime;
-case 'fittingdegree'
-   val = obj.fittingDegree;
-case 'hpf'
-   val = obj.hpf;
-case 'lpf'
-   val = obj.hpf;
-case 'movingaverage'
-   val = obj.movingAvg;
-%Measure information
-case 'nominalwavelengthset'
-   val = obj.wLengths;
-case 'nprobes'
-   %val = obj.nProbes; %DEPRECATED
-   val = length(obj.probesetInfo);
-   warning('ICNA:rawData_ETG4000:get:Deprecated',...
-           ['The use of ''nProbes'' has been deprecated. ' ...
-            'Please use ''nProbeSets'' instead.']);
-case 'nprobesets'
-   val = length(obj.probesetInfo);
-case 'nchannels'
-    %Total number of channels across all probes.
-   %val = sum(obj.nChannels); %DEPRECATED
-nProbeSets=length(obj.probesetInfo);
-nCh=0;
-for ps=1:nProbeSets
-    if obj.probesetInfo(ps).read %Count only those which have been imported
-        pMode=obj.probesetInfo(ps).mode;
-        switch (pMode)
-            case '3x3'
-                nCh =nCh+24;
-            case '4x4'
-                nCh =nCh+24;
-            case '3x5'
-                nCh =nCh+22;
-            otherwise
-                error('ICNA:rawData_ETG4000:get:UnexpectedProbeSetMode',...
-                    'Unexpected probe set mode.');
-        end
-    end
-end
-   val=nCh;
-   
-% case 'channels'
-%    val = obj.nChannels; %The vector of channels at each optode array or probe
-case 'samplingperiod'
-   val = obj.samplingPeriod;
-case 'samplingrate'
-   val = 1/obj.samplingPeriod;
-case 'nblocks' %DEPRECATED
-   val = obj.repeatCount;
-   warning('ICNA:rawData_ETG4000:get:Deprecated',...
-           ['The use of ''nBlocks'' has been deprecated. ' ...
-            'Please use ''repeatCount'' instead.']);
-case 'repeatcount'
-   val = obj.repeatCount;
-%The data itself!!
-case 'lightrawdata'
-   val = obj.lightRawData;%The raw light intensity data.
-case 'marks'
-   val = obj.marks;%The stimulus marks.
-case 'timestamps'
-   val = obj.timestamps;
-case 'bodymovement'
-   val = obj.bodyMovement;
-case 'removalmarks'
-   val = obj.removalMarks;
-case 'prescan'
-   val = obj.preScan;
+%% Log
+%
+%
+% 3-Apr-2019: FOE.
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
+%
+% 17-February-2022 (ESR): We simplify the code
+%   + We simplify the code. All cases are in the rawData_ETG4000 class.
+%   + We create a dependent property inside the rawData_ETG4000 class.
+%
 
-   
-otherwise
-   val = get@rawData(obj, propName);
+    val = obj.(lower(propName)); %Ignore case
 end

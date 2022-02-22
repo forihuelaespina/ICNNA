@@ -16,25 +16,23 @@ function obj = set(obj,varargin)
 %
 % See also rawData, get
 
-propertyArgIn = varargin;
-while length(propertyArgIn) >= 2,
-   prop = propertyArgIn{1};
-   val = propertyArgIn{2};
-   propertyArgIn = propertyArgIn(3:end);
-   switch prop
-    case 'Description'
-        if (ischar(val))
-            obj.description = val;
-        else
-            error('ICNA:rawData:set:Description',...
-                  'Value must be a string');
-        end
+%% Log
+%
+% 3-Apr-2019 (FOE):
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
+%
+% 17-February-2022 (ESR): We simplify the code
+%   + All cases are in the rawData class.
+%
+        propertyArgIn = varargin;
+    while (length(propertyArgIn) >= 2)
+           prop = propertyArgIn{1};
+           val = propertyArgIn{2};
+           propertyArgIn = propertyArgIn(3:end);
 
-    case 'Date'
-      obj.date=val;
-
-    otherwise
-      error('ICNA:rawData:set',...
-            ['Property ' prop ' not valid.'])
-   end
+           obj.(lower(prop)) = val; %Ignore case
+    end
 end

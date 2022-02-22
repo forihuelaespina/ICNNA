@@ -30,45 +30,23 @@ function obj = set(obj,varargin)
 %
 % See also rawData.set, get
 %
+%% Log
+%
+% 3-Apr-2019 (FOE):
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
+%
+% 17-February-2022 (ESR): We simplify the code
+%   + All cases are in the rawData_BioHarnessECG class.
+%
 
-propertyArgIn = varargin;
-while length(propertyArgIn) >= 2,
+    propertyArgIn = varargin;
+while (length(propertyArgIn) >= 2)
    prop = propertyArgIn{1};
    val = propertyArgIn{2};
    propertyArgIn = propertyArgIn(3:end);
-   switch prop
-    case 'StartTime'
-        tmpVal=datenum(val);
-        if all(tmpVal==val)
-            error('Value must be a date vector; [YY, MM, DD, HH, MN, SS]');
-        else
-            obj.startTime = datevec(tmpVal);
-        end
 
-    case 'SamplingRate'
-        if (isscalar(val) && isreal(val) && val>0)
-            obj.samplingRate = val;
-        else
-            error('Value must be a positive real');
-        end
-        
-    case 'Timestamps'
-        if (isvector(val) && all(floor(val)==val) && all(val>=0))
-            obj.timestamps = val;
-        else
-            error('Value must be a vector positive integers.');
-        end
-
-%The data itself!!
-    case 'RawData'
-        if (isreal(val))
-            obj.data = val;
-        else
-            error('A matrix of real numbers expected.');
-        end
-
-
-   otherwise
-        obj=set@rawData(obj, prop, val);
-   end
+   obj.(lower(prop)) = val; %Ignore case
 end

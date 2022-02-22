@@ -24,21 +24,18 @@ function val = get(obj, propName)
 % See also imagePartition, set
 %
 
-switch propName
-case 'ID'
-   val = obj.id;
-case 'Name'
-   val = obj.name;
-case 'Size'
-   val = obj.size;
-case 'Width'
-   val = obj.size(1);
-case 'Height'
-   val = obj.size(2);
-case 'ScreenResolution'
-   val = obj.screenResolution;
-case 'AssociatedFile'
-   val = obj.associatedFile;
-otherwise
-   error([propName,' is not a valid property'])
+%% Log
+%
+% 3-Apr-2019: FOE.
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
+%
+% 20-February-2022 (ESR): We simplify the code
+%   + We simplify the code. All cases are in the imagePartition class.
+%   + We create a dependent property inside of the imagePartition class 
+%
+%
+     val = obj.(lower(propName)); %Ignore case
 end

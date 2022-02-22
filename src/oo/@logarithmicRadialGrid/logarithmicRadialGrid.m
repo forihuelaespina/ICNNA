@@ -42,6 +42,14 @@
 %
 % See also menaGrid, createGrid
 %
+
+%% Log
+%
+% 20-February-2022 (ESR): Get/Set Methods created in logarithmicRadialGrid
+%   + The methods are added with the new structure. All the properties have 
+%   the new structure.
+%   
+
 classdef logarithmicRadialGrid < menaGrid
     properties (SetAccess=private, GetAccess=private)
         minR=10;
@@ -107,7 +115,7 @@ classdef logarithmicRadialGrid < menaGrid
         end
 
         
-        %%Dependent properties
+        %% Dependent properties
         function r = get.r(obj)
             which createGrid
             [r,tmp]=createGrid(obj,obj.minR,obj.maxR,obj.nRings,obj.nAngles);
@@ -115,6 +123,77 @@ classdef logarithmicRadialGrid < menaGrid
         function th = get.th(obj)
             [tmp,th]=createGrid(obj,obj.minR,obj.maxR,obj.nRings,obj.nAngles);
         end % th get method
+        
+        %% Get/Set methods
+        %Provide struct like access to properties BUT maintaining class
+        %encapsulation.
+        
+        %minR
+        function val = get.minR(obj)
+            % The method is converted and encapsulated. 
+            % obj is the logarithmicRadialGrid class
+            % val is the value added in the object
+            % get.minR(obj) = Get the data from the logarithmicRadialGrid class
+            % and look for the minR object.
+            val = obj.minR;
+        end
+        function obj = set.minR(obj,val)
+            % The method is converted and encapsulated and can be used 
+            % as the example in the constructor method.
+            % This method allows the change of data values.
+            %   obj is the logarithmicRadialGrid class
+            %   val = is the provided value, later it is conditioned 
+            %   according to the data type
+            if (isscalar(val) && isreal(val) && ~ischar(val) ...
+                 && (val>0))
+                obj.minR = val;
+            else
+                error('ICNA:logarithmicRadialGrid:set:InvalidPropertyValue',...
+                  'Value must be a positive integer.');
+            end
+        end
+        
+        %maxR
+        function val = get.maxR(obj)
+           val = obj.maxR; 
+        end
+        function obj = set.maxR(obj,val)
+            if (isscalar(val) && isreal(val) && ~ischar(val) ...
+                && (val>0))
+                obj.maxR = val;
+            else
+                error('ICNA:logarithmicRadialGrid:set:InvalidPropertyValue',...
+                  'Value must be a positive integer.');
+            end
+        end
+        
+        %nAngles
+        function val = get.nAngles(obj)
+            val = obj.nAngles;
+        end
+        function obj = set.nAngles(obj,val)
+            if (isscalar(val) && isreal(val) && ~ischar(val) ...
+                && (val==floor(val)) && (val>=0))
+                obj.nAngles = val;
+            else
+                error('ICNA:logarithmicRadialGrid:set:InvalidPropertyValue',...
+                  'Value must be a positive integer.');
+            end
+        end
+        
+        %nRings
+        function val = get.nRings(obj)
+           val = obj.nRings; 
+        end
+        function obj = set.nRings(obj,val)
+            if (isscalar(val) && isreal(val) && ~ischar(val) ...
+                && (val==floor(val)) && (val>=0))
+                obj.nRings = val;
+            else
+                error('ICNA:logarithmicRadialGrid:set:InvalidPropertyValue',...
+                  'Value must be a positive integer.');
+            end
+        end
         
     end
 

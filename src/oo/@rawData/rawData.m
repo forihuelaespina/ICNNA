@@ -60,10 +60,11 @@
 
 %% Log
 %
-% 4-Apr-2018 (FOE): Added known subclasses.
+% 17-February-2022 (ESR): Get/Set Methods created in rawData_BioHarnessECG
+%   + The methods are added with the new structure. All the properties have 
+%   the new structure.
+%   + The new structure enables new MATLAB functions
 %
-
-
 
 classdef rawData
     properties (SetAccess=private, GetAccess=private)
@@ -98,6 +99,47 @@ classdef rawData
 
         end
    
+     %% Get/Set methods    
+     %Provide struct like access to properties BUT maintaining class
+     %encapsulation.
+     
+     %ID
+     function val = get.id(obj)
+         % The method is converted and encapsulated. 
+            % obj is the rawData class
+            % val is the value added in the object
+            % get.id(obj) = Get the data from the rawData class
+            % and look for the data object.
+        val = obj.id; 
+     end
+     
+     %description
+     function val = get.description(obj)
+        val = obj.description; 
+     end
+     function obj = set.description(obj,val)
+         % The method is converted and encapsulated and can be used 
+            % as the example in the constructor method.
+            % This method allows the change of data values.
+            %   obj is the rawData class
+            %   val = is the provided value, later it is conditioned 
+            %   according to the data type.
+        if (ischar(val))
+            obj.description = val;
+        else
+            error('ICNA:rawData:set:Description',...
+                  'Value must be a string');
+        end
+     end
+     
+     %date
+     function val = get.date(obj)
+        val = obj.date; 
+     end
+     function obj = set.date(obj,val)
+        obj.date=val; 
+     end
+     
     end
 
     methods (Abstract=true)

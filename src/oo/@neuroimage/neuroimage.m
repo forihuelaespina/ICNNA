@@ -55,9 +55,22 @@
 %
 % See also structuredData, nirs_neuroimage, integrityStatus, get
 %
+
+%% Log
+%
+% 20-February-2022 (ESR): Get/Set Methods created in neuroimage class.
+%   + The methods are added with the new structure. All the properties have 
+%   the new structure.
+%   + The new structure enables new MATLAB functions.
+%
+
 classdef neuroimage < structuredData
     properties (SetAccess=private, GetAccess=private)
         chLocationMap=channelLocationMap;
+    end
+    
+    properties (Dependent)
+       Data 
     end
 
     methods
@@ -103,6 +116,53 @@ classdef neuroimage < structuredData
             obj=set(obj,'Description',...
                     ['Neuroimage' num2str(get(obj,'ID'),'%04i')]);
             assertInvariants(obj);
+        end
+        %% Get/Set methods
+        %Provide struct like access to properties BUT maintaining class
+        %encapsulation.
+        
+        function val = get.chLocationMap(obj)
+           val = obj.chLocationMap; 
+        end
+        function obj = set.chLocationMap(obj,val)
+           if (isa(val,'channelLocationMap'))
+               obj.chLocationMap = channelLocationMap(val);
+                    %Note that the channelLocationMap should
+                    %have the same number of channels that the
+                    %data, and if this is not the case, the
+                    %assertInvariants will issue an error.
+           else
+               error('ICNA:neuroimage:set:InvalidPropertyValue',...
+                     'Value must be of class channelLocationMap.');
+           end 
+        end
+        
+        %Data
+        function obj = set.Data(obj,val)
+            %Setting the data may alter the size of it (i.e. the
+            %number of channels. If I call the set method directly
+            %it will evaluate the assertInvariants method -of the
+            %neuroimage class!! regardless of whether it is call
+            %as obj=set@structuredData(...)- BEFORE the 
+            %channelLocationMap has adjusted its size. Thus, the
+            %neuroimage.assertInvariants will yield an error because
+            %the channel capacity of the channelLocationMap mismatches
+            %the channel capacity of the data. To avoid this
+            %error, it is necessary to set the size of the
+            %channelLocationMap BEFORE setting the data, so that
+            %when the assertInvariants is called, the channelLocationMap
+            %already has the appropriate size.
+            try
+                %ensure that the channelLocationMap has the appropriate
+                %size
+                obj.chLocationMap = ...
+                    set(obj.chLocationMap,'nChannels',size(val,2));
+                %...and only then, set the data
+                obj=set@structuredData(obj,'Data',val);
+            catch
+               error('ICNA:neuroimage:set:InvalidPropertyValue',...
+                     'Data must be a numeric.');
+            end
         end
     end
     

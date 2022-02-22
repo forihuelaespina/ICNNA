@@ -34,6 +34,15 @@
 %
 % See also neuroimage
 %
+
+%% Log
+%
+% 17-February-2022 (ESR): Get/Set Methods created in nirs_neuroimage
+%   + The methods are added with the new structure. All the properties have 
+%   the new structure.
+%   + The new structure enables new MATLAB functions.
+%
+
 classdef nirs_neuroimage < neuroimage
     properties (SetAccess=private, GetAccess=private)
         probeMode='3x3'; %DEPRECATED. See superclass neuroimage channelLocationMap
@@ -95,7 +104,50 @@ classdef nirs_neuroimage < neuroimage
                     ['NIRSImage' num2str(get(obj,'ID'),'%04i')]);
             %assertInvariants(obj);
         end
-
+    
+        %% Get/Set methods    
+        %Provide struct like access to properties BUT maintaining class
+        %encapsulation.
+        
+        %probeMode
+        function val = get.probeMode(obj)
+            % The method is converted and encapsulated. 
+            % obj is the nirs_neuroimage class
+            % val is the value added in the object
+            % get.probeMode(obj) = Get the data from the nirs_neuroimage class
+            % and look for the data object.
+               warning('ICNA:nirs_neuroimage:get:Deprecated',...
+                ['Use of probeMode has now been deprecated. ' ...
+                'Please refer to neuroimage.channelLocationMap.']);
+            val = obj.probeMode; 
+        end
+        function obj = set.probeMode(obj,val)
+            % The method is converted and encapsulated and can be used 
+            % as the example in the constructor method.
+            % This method allows the change of data values.
+            %   obj is the probeMode class
+            %   val = is the provided value, later it is conditioned 
+            %   according to the data type.
+            warning('ICNA:nirs_neuroimage:set:Deprecated',...
+                ['Use of probeMode has now been deprecated. ' ...
+                'Please refer to neuroimage.channelLocationMap.']);
+            if ischar(val)
+                switch(val)
+                    case '3x3'
+                        obj.probeMode = '3x3';
+                    case '4x4'
+                        obj.probeMode = '4x4';
+                    case '3x5'
+                        obj.probeMode = '3x5';
+                    otherwise
+                        error('ICNA:nirs_neuroimage:set:InvalidParameterValue',...
+                              'ProbeMode must be a string ''3x3'', ''4x4'' etc.');
+                end
+            else
+                error('ICNA:nirs_neuroimage:set:InvalidParameterValue',...
+                      'ProbeMode must be a string ''3x3'', ''4x4'' etc.');
+            end
+        end
     end
     
     methods (Static)

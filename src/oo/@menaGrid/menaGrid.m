@@ -71,6 +71,14 @@
 %
 % See also analysis
 %
+
+%% Log
+%
+% 20-February-2022 (ESR): Get/Set Methods created in menaGrid
+%   + The methods are added with the new structure. All the properties have 
+%   the new structure.
+%   
+
 classdef menaGrid
     properties (SetAccess=private, GetAccess=private)
         id=1;
@@ -116,6 +124,230 @@ classdef menaGrid
 
         end
    
+        %% Get/Set methods
+        %Provide struct like access to properties BUT maintaining class
+        %encapsulation.
+        
+        %edgeColor
+        function val = get.edgeColor(obj)
+            % The method is converted and encapsulated. 
+            % obj is the menaGrid class
+            % val is the value added in the object
+            % get.edgeColor(obj) = Get the data from the edgeColor class
+            % and look for the length object.
+              val = obj.edgeColor; 
+        end
+        function obj = set.edgeColor(obj,val)
+            % The method is converted and encapsulated and can be used 
+            % as the example in the constructor method.
+            % This method allows the change of data values.
+            %   obj is the menaGrid class
+            %   val = is the provided value, later it is conditioned 
+            %   according to the data type
+           if (ischar(val) && length(val)==1)
+                rgb=getColorVector(val);
+                if isempty(rgb)
+                    error('ICNA:menaGrid:set:InvalidPropertyValue',...
+                      'Invalid color descriptor.');
+                else
+                    obj.edgeColor=rgb;
+                end
+           elseif (isreal(val) && all([1 3]==size(val)) && ...
+                    all(val<=1) &&  all(val>=0))
+                obj.edgeColor=val;
+           else
+                error('ICNA:menaGrid:set:InvalidPropertyValue',...
+                        'Value must be a char');
+           end 
+        end
+        
+        %highlightCells
+        function val = get.highlightCells(obj)
+            val = obj.highlightCells;
+        end
+        function obj = set.highlightCells(obj,val)
+            if (all(isreal(val)) &&  ~ischar(val) ...
+                  && all(val==floor(val)) && all(val>0) ...
+                  && all(val<=getNCells(obj)))
+                  obj.highlightCells= sort(unique(val));
+           else
+              error('ICNA:menaGrid:set:InvalidPropertyValue',...
+                    ['Cell indexes must be a list positive ' ...
+                     'integers and be within the number of ' ...
+                     'existing cells.']);
+           end
+        end
+        
+        %highlightEdgeColor
+        function val = get.highlightEdgeColor(obj)
+            val = obj.highlightEdgeColor;
+        end
+        function obj = set.highlightEdgeColor(obj,val)
+             if (ischar(val) && length(val)==1)
+                rgb=getColorVector(val);
+                    if isempty(rgb)
+                        error('ICNA:menaGrid:set:InvalidPropertyValue',...
+                          'Invalid color descriptor.');
+                    else
+                        obj.highlightEdgeColor=rgb;
+                    end
+            elseif (isreal(val) && all([1 3]==size(val)) && ...
+                    all(val<=1) &&  all(val>=0))
+                obj.highlightEdgeColor=val;
+            else
+                error('ICNA:menaGrid:set:InvalidPropertyValue',...
+                        'Value must be a char');
+            end
+        end
+        
+        %highlightFaceColor
+        function val = get.highlightFaceColor(obj)
+            val = obj.highlightFaceColor;
+        end
+        function obj = set.highlightFaceColor(obj,val)
+            if (ischar(val) && length(val)==1)
+                rgb=getColorVector(val);
+                    if isempty(rgb)
+                        error('ICNA:menaGrid:set:InvalidPropertyValue',...
+                          'Invalid color descriptor.');
+                    else
+                        obj.highlightFaceColor=rgb;
+                    end
+            elseif (isreal(val) && all([1 3]==size(val)) && ...
+                    all(val<=1) &&  all(val>=0))
+                obj.highlightFaceColor=val;
+            else
+                error('ICNA:menaGrid:set:InvalidPropertyValue',...
+                        'Value must be a char');
+            end
+        end
+        
+        %highlightFaceAlpha
+        function val = get.highlightFaceAlpha(obj)
+            val = obj.highlightFaceAlpha;
+        end
+        function obj = set.highlightFaceAlpha(obj,val)
+            if (isscalar(val) && isreal(val) && ~ischar(val) ...
+                 && (val>=0) && (val<=1))
+                obj.highlightFaceAlpha = val;
+            else
+                error('ICNA:menaGrid:set:InvalidPropertyValue',...
+                  'Value must be a positive real between 0 and 1.');
+            end
+        end
+        
+        %id
+        function val = get.id(obj)
+           val = obj.id; 
+        end
+        function obj = set.id(obj,val)
+            if (isscalar(val) && isreal(val) && ~ischar(val) ...
+                && (val==floor(val)) && (val>0))
+                %Note that a char which can be converted to scalar
+                %e.g. will pass all of the above (except the ~ischar)
+                obj.id = val;
+            else
+                error('ICNA:menaGrid:set:InvalidPropertyValue',...
+                  'Value must be a positive integer.');
+            end
+        end
+        
+        %labelCells
+        function val = get.labelCells(obj)
+            val = obj.labelCells;
+        end
+        function obj = set.labelCells(obj,val)
+            if (~ischar(val) && isscalar(val))
+                obj.labelCells=logical(val);
+            else
+                error('ICNA:menaGrid:set:InvalidPropertyValue',...
+                      'Value must be boolean');
+            end
+        end
+        
+        %lineWidth
+        function val = get.lineWidth(obj)
+            val = obj.lineWidth;
+        end
+        function obj = set.lineWidth(obj,val)
+            if (isscalar(val) && isreal(val) && ~ischar(val) ...
+                && (val>0))
+                %Note that a char which can be converted to scalar
+                %e.g. will pass all of the above (except the ~ischar)
+                obj.lineWidth = val;
+            else
+                error('ICNA:menaGrid:set:InvalidPropertyValue',...
+                      'Value must be a scalar natural/integer');
+            end
+        end
+        
+        %vertexColor
+        function val = get.vertexColor(obj)
+            val = obj.vertexColor;
+        end
+        function obj = set.vertexColor(obj,val)
+            if (ischar(val) && length(val)==1)
+                rgb=getColorVector(val);
+                    if isempty(rgb)
+                        error('ICNA:menaGrid:set:InvalidPropertyValue',...
+                          'Invalid color descriptor.');
+                    else
+                        obj.vertexColor=rgb;
+                    end
+            elseif (isreal(val) && all([1 3]==size(val)) && ...
+                    all(val<=1) &&  all(val>=0))
+                obj.vertexColor=val;
+            else
+                error('ICNA:menaGrid:set:InvalidPropertyValue',...
+                        'Value must be a char');
+            end
+        end
+        
+        %vertexMarker
+        function val = get.vertexMarker(obj)
+            val = obj.vertexMarker;
+        end
+        function obj = set.vertexMarker(obj,val)
+            if (ischar(val) && length(val)==1)
+                    if (ismember(val,'+o*.xsv^d><ph'))
+                        obj.vertexMarker = val;
+                    else
+                        error('ICNA:menaGrid:set:InvalidPropertyValue',...
+                          'Invalid marker');
+                    end
+            else
+                error('ICNA:menaGrid:set:InvalidPropertyValue',...
+                        'Value must be a char');
+            end
+        end
+        
+        %vertexMarkerSize
+        function val = get.vertexMarkerSize(obj)
+            val = obj.vertexMarkerSize; 
+        end
+        function obj = set.vertexMarkerSize(obj,val)
+            if (isscalar(val) && isreal(val) && floor(val)==val && val>=0)
+                obj.vertexMarkerSize = val;
+            else
+                error('ICNA:menaGrid:set:InvalidPropertyValue',...
+                        'Invalid markerSize. Must be a positive integer.');
+            end
+        end
+        
+        %vertexVisible
+        function val = get.vertexVisible(obj)
+            val = obj.vertexVisible;
+        end
+        function obj = set.vertexVisible(obj,val)
+            if (~ischar(val) && isscalar(val))
+                obj.vertexVisible=logical(val);
+            else
+                error('ICNA:menaGrid:set:InvalidPropertyValue',...
+                      'Value must be boolean');
+            end
+        end
+        
+        
     end
 
     methods (Abstract=true)

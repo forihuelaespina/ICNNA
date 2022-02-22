@@ -194,7 +194,15 @@
 %
 % 14-Jan-2016 (FOE): Comments improved.
 %
-
+% 13-February-2022 (ESR): Get/Set Methods created in rawData_ETG4000.
+%   + The methods are added with the new structure. All the properties have 
+%   the new structure.
+%   + The new structure enables new MATLAB functions
+%   + We create a dependent property inside the rawData_ETG4000 class.
+%   + The samplingRate, version, nBlocks, nProbes, nProbeSets and nChannels properties dependents are in the
+%   rawData_ETG4000 class.
+%
+%
 
 classdef rawData_ETG4000 < rawData
     properties (SetAccess=private, GetAccess=private)
@@ -240,10 +248,19 @@ classdef rawData_ETG4000 < rawData
             %note that intializing to nan(0,0) is equal to
             %initializing to []. See above
         marks=nan(0,0);%The stimulus marks.
-        timestamps=nan(0,0);%Timestamps.
+        timeStamps=nan(0,0);%Timestamps.
         bodyMovement=nan(0,0);%Body movement artifacts as determined by the ETG-4000
         removalMarks=nan(0,0);%Removal marks
         preScan=nan(0,0);%preScan stamps
+    end
+    
+    properties (Dependent)
+        samplingRate
+        version
+        nBlocks
+        nProbes
+        nProbeSets
+        nChannels
     end
  
     methods    
@@ -274,7 +291,436 @@ classdef rawData_ETG4000 < rawData
             assertInvariants(obj);
 
         end
-  
+        
+        %% Get/Set methods    
+        %Provide struct like access to properties BUT maintaining class
+        %encapsulation.
+        
+        %Analysis information (for presentation only)
+        %analyzeMode
+        function val = get.analyzeMode(obj)
+           % The method is converted and encapsulated. 
+            % obj is the rawData_ETG4000 class
+            % val is the value added in the object
+            % get.analyzeMode(obj) = Get the data from the rawData_ETG4000 class
+            % and look for the analyzeMode object.
+           val = obj.analyzeMode; 
+        end
+        function obj = set.analyzeMode(obj,val)
+            % The method is converted and encapsulated and can be used 
+            % as the example in the constructor method.
+            % This method allows the change of data values.
+            %   obj is the rawData_ETG4000 class
+            %   val = is the provided value, later it is conditioned 
+            %   according to the data type.
+            if (ischar(val))
+                obj.analyzeMode = val;
+            else
+                error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                  'Value must be a string');
+            end
+        end
+        
+        %Analysis information (for presentation only)
+        %baseTime
+        function val = get.baseTime(obj)
+           val = obj.baseTime; 
+        end
+        function obj = set.baseTime(obj,val)
+            if (isscalar(val) && (floor(val)==val) && val>0)
+                obj.baseTime = val;
+            else
+                error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                  'Value must be a positive integer');
+            end
+        end
+        
+        %bodyMovement
+        function val = get.bodyMovement(obj)
+           val = obj.bodyMovement; 
+        end
+        function obj=set.bodyMovement(obj,val)
+            if (all(floor(val)==val) && all(val>=0))
+                obj.bodyMovement = val;
+                %Note that the number of columns is expected to
+                %match the number of probes sets declared.
+                %See assertInvariants
+            else
+                error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                  'Value must be a matrix positive integer.');
+            end 
+        end
+        
+        % fileVersion
+        function val = get.fileVersion(obj)
+           val = obj.fileVersion; 
+        end
+        function obj = set.fileVersion(obj,val)
+            if (ischar(val))
+                obj.fileVersion = val;
+                warning('ICNA:rawData_ETG4000:set:Deprecated',...
+                    ['The use of ''version'' has been deprecated. ' ...
+                    'Please use ''fileVersion'' instead.']);
+            else
+                error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                  'Value must be a string');
+            end
+        end
+        
+        %Analysis information (for presentation only)
+        %fittingDegree
+        function val = get.fittingDegree(obj)
+            val = obj.fittingDegree;
+        end
+        function obj = set.fittingDegree(obj,val)
+           if (isscalar(val) && (floor(val)==val) && val>0)
+                obj.fittingDegree = val;
+           else
+                error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                  'Value must be a positive integer');
+           end
+        end
+        
+        %Analysis information (for presentation only)
+        %hpf
+        function val = get.hpf(obj)
+           val = obj.hpf; 
+        end
+        function obj = set.hpf(obj,val)
+            obj.hpf = val;
+        end
+        
+        %Measure information
+        %wLengths
+        function val = get.wLengths(obj)
+            val = obj.wLengths;
+        end
+        function obj = set.wLengths(obj,val)
+           if (isvector(val) && isreal(val))
+                obj.wLengths = val;
+           else
+                error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                  'Value must be a vector of wavelengths in nm.');
+           end 
+        end
+        
+        %Analysis information (for presentation only)
+        %lpf
+        function val = get.lpf(obj)
+            val = obj.lpf;
+        end
+        function obj = set.lpf(obj,val)
+            obj.lpf = val;
+        end
+        
+        %lightRawData
+        function val = get.lightRawData(obj)
+            val = obj.lightRawData;%The raw light intensity data. 
+        end
+        function obj = set.lightRawData(obj,val)
+            if (isreal(val) && size(val,3)==length(obj.probesetInfo))
+                obj.lightRawData = val;
+                    %Note that the size along the 3rd dimension is expected to
+                    %match the number of probes sets declared.
+                    %See assertInvariants
+            else
+                error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                      'Size of data is expected to match the number of probes sets declared.');
+            end 
+        end
+        
+        %Analysis information (for presentation only)
+        %movingAvg
+        function val = get.movingAvg(obj)
+            val = obj.movingAvg;
+        end
+        function obj = set.movingAvg(obj,val)
+            if (isscalar(val) && val>0)
+                obj.movingAvg = val;
+            else
+                error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                  'Value must be a positive real number in [s].');
+            end
+        end
+        
+        %The data itself!!
+        %marks
+        function val = get.marks(obj)
+           val = obj.marks;%The stimulus marks. 
+        end
+        function obj = set.marks(obj,val)
+            if (all(floor(val)==val) && all(val>=0))
+                obj.marks = val;
+                    %Note that the number of columns is expected to
+                    %match the number of probes sets declared.
+                    %See assertInvariants
+            else
+                error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                      'Value must be a matrix positive integer.');
+            end
+        end
+        
+        %nBlocks
+        function val = get.nBlocks(obj) %DEPRECATED
+            val = obj.repeatCount;
+                warning('ICNA:rawData_ETG4000:get:Deprecated',...
+                ['The use of ''nBlocks'' has been deprecated. ' ...
+                'Please use ''repeatCount'' instead.']); 
+        end
+        function obj = set.nBlocks(obj,val)
+            if (isscalar(val) && (floor(val)==val) && val>0)
+                obj.repeatCount = val;
+                warning('ICNA:rawData_ETG4000:set:Deprecated',...
+                    ['The use of ''nBlocks'' has been deprecated. ' ...
+                    'Please use ''repeatCount'' instead.']);
+            else
+                error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                  'Value must be a positive integer.');
+            end
+        end
+        
+        %nProbes
+        function val = get.nProbes(obj)
+           val = length(obj.probesetInfo);
+                warning('ICNA:rawData_ETG4000:get:Deprecated',...
+                ['The use of ''nProbes'' has been deprecated. ' ...
+                'Please use ''nProbeSets'' instead.']); 
+        end
+        
+        %nProbeSets
+        function val = get.nProbeSets(obj)
+           val = length(obj.probesetInfo); 
+        end
+        
+        %nChannels
+        function val = get.nChannels(obj)
+           %Total number of channels across all probes.
+           %val = sum(obj.nChannels); %DEPRECATED
+            nProbeSets=length(obj.probesetInfo);
+            nCh=0; 
+            for ps=1:nProbeSets
+                if obj.probesetInfo(ps).read %Count only those which have been imported
+                    pMode=obj.probesetInfo(ps).mode;
+                    switch (pMode)
+                        case '3x3'
+                            nCh =nCh+24;
+                        case '4x4'
+                            nCh =nCh+24;
+                        case '3x5'
+                            nCh =nCh+22;
+                        otherwise
+                            error('ICNA:rawData_ETG4000:get:UnexpectedProbeSetMode',...
+                                'Unexpected probe set mode.');
+                    end
+                end
+            end
+               val=nCh;
+        end
+        
+        %preScan
+        function val = get.preScan(obj)
+           val = obj.preScan; 
+        end
+        function obj = set.preScan(obj,val)
+            if (all(floor(val)==val) && all(val>=0))
+                obj.preScan = val;
+                %Note that the number of columns is expected to
+                %match the number of probes sets declared.
+                %See assertInvariants
+            else
+                error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                  'Value must be a matrix positive integer.');
+            end
+        end
+        
+        %Analysis information (for presentation only):------------------>
+        %preTime
+        function val = get.preTime(obj)
+           val = obj.preTime; 
+        end
+        function obj = set.preTime(obj,val)
+           if (isscalar(val) && (floor(val)==val) && val>0)
+                obj.preTime = val;
+           else
+                error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                  'Value must be a positive integer');
+           end 
+        end
+        
+        %postTime
+        function val = get.postTime(obj)
+            val = obj.postTime;
+        end
+        function obj = set.postTime(obj,val)
+            if (isscalar(val) && (floor(val)==val) && val>0)
+                obj.postTime = val;
+            else
+                error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                  'Value must be a positive integer');
+            end
+        end
+        
+        %recoveryTime
+        function val = get.recoveryTime(obj)
+           val = obj.recoveryTime; 
+        end
+        function obj = set.recoveryTime(obj,val)
+           if (isscalar(val) && (floor(val)==val) && val>0)
+                obj.recoveryTime = val;
+           else
+                error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                  'Value must be a positive integer');
+           end
+        end
+        
+        %----------------------------------------------------------------->
+        
+        %Measure information
+        %repeatCount
+        function val = get.repeatCount(obj)
+            val = obj.repeatCount;
+        end
+        function obj = set.repeatCount(obj,val)
+            if (isscalar(val) && (floor(val)==val))
+                obj.repeatCount = val;
+            else
+               error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                  'Value must be a positive integer or 0.');
+            end
+        end
+        
+        %removalMarks
+        function val = get.removalMarks(obj)
+            val = obj.removalMarks;
+        end
+        function obj = set.removalMarks(obj,val)
+            if (all(floor(val)==val) && all(val>=0))
+                obj.removalMarks = val;
+                %Note that the number of columns is expected to
+                %match the number of probes sets declared.
+                %See assertInvariants
+            else
+                error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                  'Value must be a matrix positive integer.');
+            end
+        end
+        
+        %Measure information
+        %samplingPeriod
+        function val = get.samplingPeriod(obj)
+            val = obj.samplingPeriod;
+        end
+        function obj = set.samplingPeriod(obj,val)
+            if (isscalar(val) && isreal(val) && val>0)
+                obj.samplingPeriod = val;
+            else
+                error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                  'Value must be a positive real');
+            end
+        end
+        
+        %samplingRate Dependent samplingPeriod
+        function val = get.samplingRate(obj)
+            val = 1/obj.samplingPeriod;
+        end
+        function obj = set.samplingRate(obj,val)
+            if (isscalar(val) && isreal(val) && val>0)
+                obj.samplingPeriod = 1/val; %como agregar?
+            else
+                error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                  'Value must be a positive real');
+            end
+        end
+        
+        %timesStamps
+        function val = get.timeStamps(obj)
+            val = obj.timestamps;
+        end
+        function obj = set.timeStamps(obj,val)
+            if (all(val>=0))
+                obj.timestamps = val;
+                %Note that the number of columns is expected to
+                %match the number of probes sets declared.
+                %See assertInvariants
+           else
+                error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                  'Value must be a matrix positive integer.');
+           end 
+        end
+        
+        %Patient information: ------------------------------------------->
+        %userName
+        function val = get.userName(obj)
+           val = obj.userName; 
+        end
+        function obj = set.userName(obj,val)
+            if (ischar(val))
+                obj.userName = val;
+            else
+                error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                  'Value must be a string');
+            end
+        end
+        
+        %userSex
+        function val = get.userSex(obj)
+           val = obj.userSex; 
+        end
+        function obj = set.userSex(obj,val)
+            if (ischar(val))
+                obj.userSex = val;
+            else
+                error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                  'Value must be a string');
+            end
+        end
+        
+        %userBirthDate
+        function val = get.userBirthDate(obj)
+           val = obj.userBirthDate; 
+        end
+        function obj = set.userBirthDate(obj,val)
+           if (ischar(val) || isvector(val) || isscalar(val))
+                obj.userBirthDate = datenum(val);
+           else
+                error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                  'Value must be a date (whether a string, datevec or datenum).');
+           end 
+        end
+        
+        %userAge
+        function val = get.userAge(obj)
+           val = obj.userAge; 
+        end
+        function obj = set.userAge(obj,val)
+           if (isscalar(val) && isreal(val))
+                obj.userAge = val;
+           else
+                error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                  'Value must be numeric');
+           end 
+        end
+        %---------------------------------------------------------------->
+        
+        %version
+        function val = get.version(obj)
+           val = obj.fileVersion; %DEPRECATED
+                warning('ICNA:rawData_ETG4000:get:Deprecated',...
+                ['The use of ''version'' has been deprecated. ' ...
+                'Please use ''fileVersion'' instead.']); 
+        end
+        function obj = set.version(obj,val)%DEPRECATED
+            if (ischar(val))
+                obj.fileVersion = val;
+                warning('ICNA:rawData_ETG4000:set:Deprecated',...
+                        ['The use of ''version'' has been deprecated. ' ...
+                        'Please use ''fileVersion'' instead.']);
+            else
+                error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+                      'Value must be a string');
+            end
+        end
+        
     end
 
     methods (Access=protected)

@@ -19,15 +19,16 @@ function val = get(obj, propName)
 % See also grid.get
 %
 
-switch propName
-case 'MinimumRadius'
-   val = obj.minR;
-case 'MaximumRadius'
-   val = obj.maxR;
-case 'NRings'
-   val = obj.nRings;
-case 'NAngles'
-   val = obj.nAngles;
-otherwise
-   val = get@menaGrid(obj, propName);
+%% Log
+%
+% 3-Apr-2019: FOE.
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
+%
+% 20-February-2022 (ESR): We simplify the code
+%   + We simplify the code. All cases are in the lagarithmicRadialGrid class.
+%
+    val = obj.(lower(propName)); %Ignore case
 end
