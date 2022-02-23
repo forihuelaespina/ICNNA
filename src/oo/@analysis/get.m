@@ -35,41 +35,20 @@ function val = get(obj, propName)
 % See also analysis, set
 %
 
-switch propName
-case 'ID'
-   val = obj.id;
-case 'Name'
-   val = obj.name;
-case 'Description'
-   val = obj.description;
-case 'Metric'
-   val = obj.metric;
-case 'Embedding'
-   val = obj.embedding;
-case 'ExperimentSpace'
-   val = obj.F;
-case 'FeatureSpace'
-   val = obj.H;
-case 'ProjectionSpace'
-   val = obj.Y;
-case 'PatternDistances'
-   val = obj.D;
-case 'PatternIndexes'
-   val = obj.I;
-case 'NPatterns'
-   val = size(obj.H,1);
-case 'RunStatus'
-   val = obj.runStatus;
-case 'ProjectionDimensionality'
-   val = obj.projectionDimensionality;
-case 'SubjectsIncluded'
-   val = obj.subjectsIncluded;
-case 'SessionsIncluded'
-   val = obj.sessionsIncluded;
-case 'ChannelGroups'
-   val = obj.channelGrouping;
-case 'SignalDescriptors'
-   val = obj.signalDescriptors;
-otherwise
-   error([propName,' is not a valid property'])
+
+%% Log
+%
+% 3-Apr-2019: FOE.
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
+%
+% 23-February-2022 (ESR): We simplify the code
+%   + We simplify the code. All cases are in the analysis class.
+%   + We create a dependent property inside of the analysis class 
+%
+%
+     val = obj.(lower(propName)); %Ignore case
+
 end

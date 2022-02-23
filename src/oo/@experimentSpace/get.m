@@ -63,68 +63,12 @@ function val = get(obj, propName)
 % See also experimentSpace, set
 %
 
-switch lower(propName)
-    case 'id'
-        val = obj.id;
-    case 'name'
-        val = obj.name;
-    case 'description'
-        val = obj.description;
-    case 'sessionnames'
-        val = obj.sessionNames;
-    case 'runstatus'
-        val = obj.runStatus;
-    case 'averaged'
-        val = obj.performAveraging;
-    case 'resampled'
-        val = obj.performResampling;
-    case 'windowed'
-        val = obj.performFixWindow;
-        warning('ICNA:experimentSpace:set',...
-                  ['This has been DEPRECATED. ' ...
-                  'Please refer to experimentSpace class ' ...
-                  'documentation.']);
-    case 'normalized'
-        val = obj.performNormalization;
-    case 'baselinesamples'
-        val = obj.baselineSamples;
-    case 'restsamples'
-        val = obj.restSamples;
-    case 'rs_baseline'
-        val = obj.rsBaseline;
-    case 'rs_task'
-        val = obj.rsTask;
-    case 'rs_rest'
-        val = obj.rsRest;
-    case 'ws_onset'
-        val = obj.fwOnset;
-    case 'ws_duration'
-        val = obj.fwDuration;
-    case 'ws_breakdelay'
-        val = obj.fwBreakDelay;
-    case 'normalizationmethod'
-        val = obj.normalizationMethod;
-    case 'normalizationmean'
-        val = obj.normalizationMean;
-    case 'normalizationvar'
-        val = obj.normalizationVar;
-    case 'normalizationmin'
-        val = obj.normalizationMin;
-    case 'normalizationmax'
-        val = obj.normalizationMax;
-    case 'normalizationscope'
-        val = obj.normalizationScope;
-    case 'normalizationdimension'
-        val = obj.normalizationDimension;
-% ==Derived attributes
-    case 'numpoints'
-        warning('ICNA:experimentSpace:get:Deprecated',...
-            ['The use of numPoints has now been deprecated. ' ...
-            'Please use get(obj,''nPoints'') instead.']);
-        val = size(obj.Findex,1);
-    case 'npoints'
-        val = size(obj.Findex,1);
-    otherwise
-        error('ICNA:experimentSpace:get',...
-            [propName,' is not a valid property']);
+%% Log
+%
+% 20-February-2022 (ESR): We simplify the code
+%   + We simplify the code. All cases are in the experimentSpace class.
+%   + We create a dependent property inside the experimentSpace class 
+%
+%
+     val = obj.(lower(propName)); %Ignore case
 end

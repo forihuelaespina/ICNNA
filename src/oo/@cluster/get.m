@@ -70,92 +70,18 @@ function val = get(obj, propName)
 % See also cluster, set
 %
 
-switch propName
-case 'ID'
-   val = obj.id;
-case 'Tag'
-   val = obj.tag;
-case 'Description'
-   val = obj.description;
-case 'NPatterns'
-   val = length(obj.patternIdxs);
-case 'PatternIndexes'
-   val = obj.patternIdxs;
-case 'Visible'
-   val = obj.visible;
-    
-% ==Cluster generating IDs
-case 'SubjectsIDs'
-    val = obj.subjectIDs;
-case 'SessionsIDs'
-    val = obj.sessionIDs;
-case 'StimuliIDs'
-    val = obj.stimulusIDs;
-case 'BlocksIDs'
-    val = obj.blockIDs;
-case 'ChannelGroupsIDs'
-    val = obj.channelGroupIDs;
-
-% ==Cluster descriptors
-case 'Centroid'
-    val = obj.centroid;
-case 'CentroidCriteria'
-    val = obj.centroidCriteria;
-case 'FurthestPoint'
-    val = obj.furthestPoint;
-case 'AverageDistance'
-    val = obj.avgDistance;
-case 'MaximumDistance'
-    val = obj.maxDistance;
-
-
-% ==Visualization attributes
-case 'ShowPatternPoints'
-    val = obj.displayPatternPoints;
-case 'ShowCentroid'
-    val = obj.displayCentroid;
-case 'ShowFurthestPoint'
-    val = obj.displayFurthestPoint;
-case 'ShowLink'
-    val = obj.displayLink;
-case 'ShowAverageDistance'
-    val = obj.displayAvgDCircle;
-
-% ==== Patterns (data) visualization properties
-case 'DataMarker'
-   val = obj.dMarker;
-case 'DataMarkerSize'
-   val = obj.dMarkerSize;
-case 'DataColor'
-   val = obj.dColor;
-
-% ==== Centroid visualization properties
-case 'CentroidMarker'
-   val = obj.cMarker;
-case 'CentroidMarkerSize'
-   val = obj.cMarkerSize;
-case 'CentroidColor'
-   val = obj.cColor;
-
-% ==== Furthest Point and link visualization properties
-case 'FurthestPointMarker'
-   val = obj.fpMarker;
-case 'FurthestPointMarkerSize'
-   val = obj.fpMarkerSize;
-case 'FurthestPointColor'
-   val = obj.fpColor;
-
-case 'LinkColor'
-   val = obj.linkColor;
-case 'LinkLineWidth'
-   val = obj.linkLineWidth;
-
-% ====Average distance circle visualization properties
-case 'AverageDistanceColor'
-   val = obj.avgcColor;
-case 'AverageDistanceLineWidth'
-   val = obj.avgcLineWidth;
-   
-otherwise
-   error([propName,' is not a valid property'])
+%% Log
+%
+% 3-Apr-2019: FOE.
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
+%
+% 20-February-2022 (ESR): We simplify the code
+%   + We simplify the code. All cases are in the cluster class.
+%   + We create a dependent property inside of the cluster class 
+%
+%
+     val = obj.(lower(propName)); %Ignore case
 end

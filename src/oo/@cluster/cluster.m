@@ -182,6 +182,17 @@
 %
 % See also analysis
 %
+
+%% Log
+%
+% 1-Sep-2016 (FOE): Class created.
+%
+% 20-February-2022 (ESR): Get/Set Methods created in cluster class
+%   + The methods are added with the new structure. All the properties have 
+%   the new structure.
+%   + The new structure enables new MATLAB functions
+%   + We create a dependent property inside of the cluster class.
+
 classdef cluster
     properties (SetAccess=private, GetAccess=private)
         id=1;
@@ -234,6 +245,11 @@ classdef cluster
         
     end
     
+    properties (Dependent)
+       NPatterns
+       Color
+    end
+    
     methods
         function obj=cluster(varargin)
         %CLUSTER Cluster class constructor
@@ -262,5 +278,596 @@ classdef cluster
         end
         %assertInvariants(obj);
         end
+        %% Get/Set methods
+        %Provide struct like access to properties BUT maintaining class
+        %encapsulation.
+        
+        %id
+        function val = get.id(obj)
+            % The method is converted and encapsulated. 
+            % obj is the cluster class
+            % val is the value added in the object
+            % get.id(obj) = Get the data from the cluster class
+            % and look for the id object.
+            val = obj.id;
+        end
+        function obj = set.id(obj,val)
+            % The method is converted and encapsulated and can be used 
+            % as the example in the constructor method.
+            % This method allows the change of data values.
+            %   obj is the cluster class
+            %   val = is the provided value, later it is conditioned 
+            %   according to the data type
+            if (isscalar(val) && isreal(val) && ~ischar(val) ...
+                && (val==floor(val)) && (val>0))
+                %Note that a char which can be converted to scalar
+                %e.g. will pass all of the above (except the ~ischar)
+                    obj.id = val;
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Value must be a scalar natural/integer');
+            end
+        end
+        
+        %tag
+        function val = get.tag(obj)
+            val = obj.tag;
+        end
+        function obj = set.tag(obj,val)
+            if (ischar(val))
+                obj.tag = val;
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Value must be a string');
+            end
+        end
+        
+        %description
+        function val = get.description(obj)
+            val = obj.description;
+        end
+        function obj = set.description(obj,val)
+            if (ischar(val))
+                obj.description = val;
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Value must be a string');
+            end
+        end
+        
+        %patternIdxs
+        function val = get.patternIdxs(obj)
+            val = obj.patternIdxs;
+        end
+        function obj = set.patternIdxs(obj,val)
+            if isempty(val)
+                obj.patternIdxs=[];
+            else
+                val=unique(reshape(val,1,numel(val)));
+                if (isreal(val) && all(floor(val)==val) && all(val>=0))
+                    obj.patternIdxs=val;
+                else
+                    error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Pattern indexes must be positive integers.');
+                end
+            end
+        end
+        
+        %visible
+        function val = get.visible(obj)
+            val = obj.visible;
+        end
+        function obj = set.visible(obj,val)
+            if (~ischar(val) && isscalar(val))
+                obj.visible=logical(val);
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Value must be boolean');
+            end
+        end
+        
+        % ==Cluster generating IDs -------------------------------------->
+
+        %subjectIDs
+        function val = get.subjectIDs(obj)
+            val = obj.subjectIDs;
+        end
+        function obj = set.subjectIDs(obj,val)
+            if (ischar(val))
+                val=str2num(val);
+            end
+                val=reshape(val,1,numel(val));
+            if (all(isreal(val)) && all(floor(val)==val))
+                obj.subjectIDs=val;
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Unrecognised value');
+            end
+        end
+        
+        %sessionIDs
+        function val = get.sessionIDs(obj)
+            val = obj.sessionIDs;
+        end
+        function obj = set.sessionIDs(obj,val)
+            if (ischar(val))
+                val=str2num(val);
+            end
+                val=reshape(val,1,numel(val));
+            if (all(isreal(val)) && all(floor(val)==val))
+                obj.sessionIDs=val;
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Unrecognised value');
+            end
+        end
+        
+        %stimulusIDs
+        function val = get.stimulusIDs(obj)
+            val = obj.stimulusIDs;
+        end
+        function obj = set.stimulusIDs(obj,val)
+            if (ischar(val))
+                val=str2num(val);
+            end
+                val=reshape(val,1,numel(val));
+            if (all(isreal(val)) && all(floor(val)==val))
+                obj.stimulusIDs=val;
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Unrecognised value');
+            end
+        end
+        
+        %blockIDs
+        function val = get.blockIDs(obj)
+            val = obj.blockIDs;
+        end
+        function obj = set.blockIDs(obj,val)
+            if (ischar(val))
+                val=str2num(val);
+            end
+                val=reshape(val,1,numel(val));
+            if (all(isreal(val)) && all(floor(val)==val))
+                obj.blockIDs=val;
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Unrecognised value');
+            end
+        end
+        
+        %channelGroupIDs
+        function val = get.channelGroupIDs(obj)
+            val = obj.channelGroupIDs;
+        end
+        function obj = set.channelGroupIDs(obj,val)
+            if (ischar(val))
+                val=str2num(val);
+            end
+                val=reshape(val,1,numel(val));
+            if (all(isreal(val)) && all(floor(val)==val))
+                obj.channelGroupIDs=val;
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Unrecognised value');
+            end
+        end
+        
+        % ==Cluster descriptors ----------------------------------------->
+        
+        %centroid
+        function val = get.centroid(obj)
+             val = obj.centroid;
+        end
+        function obj = set.centroid(obj,val)
+                val=reshape(val,1,numel(val));
+            if (all(isreal(val)))
+                obj.centroid=val;
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Unrecognised value');
+            end
+        end
+        
+        %centroidCriteria
+        function val = get.centroidCriteria(obj)
+            val = obj.centroidCriteria;
+        end
+        function obj = set.centroidCriteria(obj,val)
+             if (ischar(val))
+                obj.centroidCriteria = val;
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Value must be a string');
+            end
+        end
+        
+        %furthestPoint
+        function val = get.furthestPoint(obj)
+            val = obj.furthestPoint;
+        end
+        function obj = set.furthestPoint(obj,val)
+            if (isscalar(val) && isreal(val) && ~ischar(val) ...
+                && (val==floor(val)) && (val>0))
+                %Note that a char which can be converted to scalar
+                %e.g. will pass all of the above (except the ~ischar)
+                obj.furthestPoint = val;
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Value must be a positive scalar natural/integer.');
+            end
+        end
+        
+        %avgDistance
+        function val = get.avgDistance(obj)
+            val = obj.avgDistance;
+        end
+        function obj = set.avgDistance(obj,val)
+            if (isscalar(val) && isreal(val) && ~ischar(val) ...
+                && (val>=0))
+                %Note that a char which can be converted to scalar
+                %e.g. will pass all of the above (except the ~ischar)
+                obj.avgDistance = val;
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Value must be a scalar natural/integer.');
+            end
+        end
+        
+        %maxDistance
+        function val = get.maxDistance(obj)
+            val = obj.maxDistance;
+        end
+        function obj = set.maxDistance(obj,val)
+            if (isscalar(val) && isreal(val) && ~ischar(val) ...
+                && (val>=0))
+                %Note that a char which can be converted to scalar
+                %e.g. will pass all of the above (except the ~ischar)
+                obj.maxDistance = val;
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Value must be a scalar natural/integer.');
+            end
+        end
+        
+        % ==Visualization attributes ------------------------------------>
+        
+        %displayPatternPoints
+        function val = get.displayPatternPoints(obj)
+            val = obj.displayPatternPoints;
+        end
+        function obj = set.displayPatternPoints(obj,val)
+            if (~ischar(val) && isscalar(val))
+                obj.displayPatternPoints=logical(val);
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Value must be boolean');
+            end
+        end
+        
+        %displayCentroid
+        function val = get.displayCentroid(obj)
+            val = obj.displayCentroid;
+        end
+        function obj = set.displayCentroid(obj,val)
+            if (~ischar(val) && isscalar(val))
+                obj.displayCentroid=logical(val);
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Value must be boolean');
+            end
+        end
+        
+        %displayFurthestPoint
+        function val = get.displayFurthestPoint(obj)
+            val = obj.displayFurthestPoint;
+        end
+        function obj = set.displayFurthestPoint(obj,val)
+            if (~ischar(val) && isscalar(val))
+                obj.displayFurthestPoint=logical(val);
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Value must be boolean');
+            end
+        end
+        
+        %displayLink
+        function val = get.displayLink(obj)
+            val = obj.displayLink;
+        end
+        function obj = set.displayLink(obj,val)
+            if (~ischar(val) && isscalar(val))
+                obj.displayLink=logical(val);
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Value must be boolean');
+            end
+        end
+        
+        %displayAvgDCircle
+        function val = get.displayAvgDCircle(obj)
+            val = obj.displayAvgDCircle;
+        end
+        function obj = set.displayAvgDCircle(obj,val)
+            if (~ischar(val) && isscalar(val))
+                obj.displayAvgDCircle=logical(val);
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Value must be boolean');
+            end
+        end
+        
+        % ==== Patterns (data) visualization properties ------------------>
+        
+        %dMarker
+        function val = get.dMarker(obj)
+           val = obj.dMarker;
+        end
+        function obj = set.dMarker(obj,val)
+            if (ischar(val) && length(val)==1)
+                if (ismember(val,'+o*.xsv^d><ph'))
+                    obj.dMarker = val;
+                else
+                    error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Invalid marker');
+                end
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                        'Value must be a char');
+            end
+        end
+        
+        %dMarkerSize
+        function val = get.dMarkerSize(obj)
+           val = obj.dMarkerSize;
+        end
+        function obj = set.dMarkerSize(obj,val)
+           if (isscalar(val) && isreal(val) && floor(val)==val && val>=0)
+                obj.dMarkerSize = val;
+           else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                        'Invalid markerSize. Must be a positive integer.');
+           end
+        end
+        
+        %dColor
+        function val = get.dColor(obj)
+           val = obj.dColor;
+        end
+        function obj = set.dColor(obj,val)
+            if (ischar(val) && length(val)==1)
+                rgb=getColorVector(val);
+                if isempty(rgb)
+                    error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Invalid color descriptor.');
+                else
+                    obj.dColor=rgb;
+                end
+            elseif (isreal(val) && all([1 3]==size(val)) && ...
+                    all(val<=1) &&  all(val>=0))
+                obj.dColor=val;
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                        'Value must be a char');
+            end
+        end
+
+        % ==== Centroid visualization properties ------------------------->
+        
+        %cMarker
+        function val = get.cMarker(obj)
+           val = obj.cMarker;
+        end
+        function obj = set.cMarker(obj,val)
+            if (ischar(val) && length(val)==1)
+                if (ismember(val,'+o*.xsv^d><ph'))
+                    obj.cMarker = val;
+                else
+                    error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Invalid marker');
+                end
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                        'Value must be a char');
+            end
+        end
+        
+        %cMarkerSize
+        function val = get.cMarkerSize(obj)
+           val = obj.cMarkerSize;
+        end
+        function obj = set.cMarkerSize(obj,val)
+             if (isscalar(val) && isreal(val) && floor(val)==val && val>=0)
+                obj.cMarkerSize = val;
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                        'Invalid markerSize. Must be a positive integer.');
+            end
+        end
+        
+        %cColor
+        function val = get.cColor(obj)
+           val = obj.cColor;
+        end
+        function obj = set.cColor(obj,val)
+            if (ischar(val) && length(val)==1)
+                rgb=getColorVector(val);
+                if isempty(rgb)
+                    error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Invalid color descriptor.');
+                else
+                    obj.cColor=rgb;
+                end
+            elseif (isreal(val) && all([1 3]==size(val)) && ...
+                    all(val<=1) &&  all(val>=0))
+                obj.cColor=val;
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                        'Value must be a char');
+            end
+        end
+        
+        % ==== Furthest Point and link visualization properties----------->
+        
+        %fpMarker
+        function val = get.fpMarker(obj)
+           val = obj.fpMarker;
+        end
+        function obj = set.fpMarker(obj,val)
+            if (ischar(val) && length(val)==1)
+                if (ismember(val,'+o*.xsv^d><ph'))
+                    obj.fpMarker = val;
+                else
+                    error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Invalid marker');
+                end
+            else
+                error('ICNA:cluster:set:FurthestPointMarker',...
+                        'Value must be a char');
+            end
+        end
+        
+        %fpMarkerSize
+        function val = get.fpMarkerSize(obj)
+           val = obj.fpMarkerSize;
+        end
+        function obj = set.fpMarkerSize(obj,val)
+            if (isscalar(val) && isreal(val) && floor(val)==val && val>=0)
+                obj.fpMarkerSize = val;
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                        'Invalid markerSize. Must be a positive integer.');
+            end
+        end
+        
+        %fpColor
+        function val = get.fpColor(obj)
+           val = obj.fpColor;
+        end
+        function obj = set.fpColor(obj,val)
+            if (ischar(val) && length(val)==1)
+                rgb=getColorVector(val);
+                if isempty(rgb)
+                    error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Invalid color descriptor.');
+                else
+                    obj.fpColor=rgb;
+                end
+            elseif (isreal(val) && all([1 3]==size(val)) && ...
+                    all(val<=1) &&  all(val>=0))
+                obj.fpColor=val;
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                        'Value must be a char');
+            end
+        end
+        
+        %linkColor
+        function val = get.linkColor(obj)
+           val = obj.linkColor;
+        end
+        function obj = set.linkColor(obj,val)
+             if (ischar(val) && length(val)==1)
+                rgb=getColorVector(val);
+                if isempty(rgb)
+                    error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Invalid color descriptor.');
+                else
+                    obj.linkColor=rgb;
+                end
+            elseif (isreal(val) && all([1 3]==size(val)) && ...
+                    all(val<=1) &&  all(val>=0))
+                obj.linkColor=val;
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                        'Value must be a char');
+            end
+        end
+        
+        %linkLineWidth
+        function val = get.linkLineWidth(obj)
+           val = obj.linkLineWidth;
+        end
+        function obj = set.linkLineWidth(obj,val)
+            if (isscalar(val) && isreal(val) && ~ischar(val) ...
+                && (val>0))
+            %Note that a char which can be converted to scalar
+            %e.g. will pass all of the above (except the ~ischar)
+                obj.linkLineWidth = val;
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Value must be a scalar natural/integer');
+            end
+        end
+      
+        % ====Average distance circle visualization properties------------>
+        
+        %avgcLineWidth
+        function val = get.avgcLineWidth(obj)
+           val = obj.avgcLineWidth;
+        end
+        function obj = set.avgcLineWidth(obj,val)
+            if (isscalar(val) && isreal(val) && ~ischar(val) ...
+                && (val>0))
+            %Note that a char which can be converted to scalar
+            %e.g. will pass all of the above (except the ~ischar)
+                obj.avgcLineWidth = val;
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Value must be a scalar natural/integer');
+            end
+        end
+        
+        %avgcColor
+        function val = get.avgcColor(obj)
+           val = obj.avgcColor;
+        end
+        function obj = set.avgcColor(obj,val)
+            if (ischar(val) && length(val)==1)
+                rgb=getColorVector(val);
+                if isempty(rgb)
+                    error('ICNA:cluster:set:InvalidPropertyValue',...
+                      'Invalid color descriptor.');
+                else
+                    obj.avgcColor=rgb;
+                end
+            elseif (isreal(val) && all([1 3]==size(val)) && ...
+                    all(val<=1) &&  all(val>=0))
+                obj.avgcColor=val;
+            else
+                error('ICNA:cluster:set:InvalidPropertyValue',...
+                        'Value must be a char');
+            end
+        end
+
+        %---------------------------------------------------------------->
+        %Dependent
+        %Dependent properties do not store data. 
+        %The value of a dependent property depends on some other value, 
+        %such as the value of a nondependent property.
+        
+        %Dependent properties must define get-access methods () to 
+        %determine a value for the property when the property is queried: 
+        %get.Color
+        
+        %We create a dependent property.
+        %---------------------------------------------------------------->
+        
+        %Color
+        function obj = set.Color(obj,val)
+            obj=set(obj,'DataColor',val,...
+                        'CentroidColor',val,...
+                        'FurthestPointColor',val,...
+                        'LinkColor',val,...
+                        'AverageDistanceColor',val);
+        end
+        
+        %NPatterns
+        function val = get.NPatterns(obj)
+            val = length(obj.patternIdxs);
+        end
+        
+
+        
     end
 end

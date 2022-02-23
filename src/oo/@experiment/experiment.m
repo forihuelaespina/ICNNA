@@ -40,6 +40,19 @@
 %
 % See also subject
 %
+
+%% Log
+%
+% 1-Sep-2016 (FOE): Class created.
+%
+% 20-February-2022 (ESR): Get/Set Methods created in experiment class.
+%   + The methods are added with the new structure. All the properties have 
+%   the new structure.
+%   + The new structure enables new MATLAB functions
+%   + We create a dependent property inside of the experiment class.
+%   + The dataSet property dependent are in the
+%   experiment class.
+
 classdef experiment
     properties (SetAccess=private, GetAccess=private)
         name='NewExperiment';
@@ -49,6 +62,10 @@ classdef experiment
         dataSourceDefinitions=cell(1,0);
         sessionDefinitions=cell(1,0);
         subjects=cell(1,0);
+    end
+    
+    properties (Dependent)
+       dataSet 
     end
     
     methods
@@ -99,5 +116,52 @@ classdef experiment
             end
             assertInvariants(obj);
         end
+        %% Get/Set methods
+        %Provide struct like access to properties BUT maintaining class
+        %encapsulation. 
+        
+        %dataset
+        function val = get.dataSet(obj)
+            val = obj.dataset;
+        end
+        
+        %date
+        function val = get.date(obj)
+            val = obj.date;
+        end
+        function obj = set.date(obj,val)
+            obj.date=val;
+        end
+        
+        %description 
+        function val = get.description (obj)
+            val = obj.description;
+        end
+        function obj = set.description (obj,val)
+            if (ischar(val))
+                obj.description = val;
+            else
+                error('Value must be a string');
+            end
+        end
+        
+        %name
+        function val = get.name(obj)
+            val = obj.name;
+        end
+        function obj = set.name(obj,val)
+            if (ischar(val))
+                obj.name = val;
+            else
+                error('Value must be a string');
+            end
+        end
+        
+        %version
+        function val = get.version(obj)
+            val = obj.version;
+        end
+        
+        
     end
 end

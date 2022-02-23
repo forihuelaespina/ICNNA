@@ -42,6 +42,18 @@
 %
 % See also experiment, sessionDefinition, session, subject
 %
+
+%% Log
+%
+% 1-Sep-2016 (FOE): Class created.
+%
+% 20-February-2022 (ESR): Get/Set Methods created in dataSourceDefinition
+%   + The methods are added with the new structure. All the properties have 
+%   the new structure.
+%   + The new structure enables new MATLAB functions
+%   + We create a dependent property inside of the dataSourceDefinition class.
+%
+
 classdef dataSourceDefinition
     properties (SetAccess=private, GetAccess=private)
         id=1;
@@ -93,6 +105,61 @@ classdef dataSourceDefinition
         end
         %assertInvariants(obj);
         end
+    
+        %% Get/Set methods
+        %Provide struct like access to properties BUT maintaining class
+        %encapsulation.
+        
+        function val = get.id(obj)
+            % The method is converted and encapsulated. 
+            % obj is the dataSourceDefinition class
+            % val is the value added in the object
+            % get.id(obj) = Get the data from the dataSourceDefinition class
+            % and look for the id object.
+            val = obj.id;
+        end
+        function obj = set.id(obj,val)
+            % The method is converted and encapsulated and can be used 
+            % as the example in the constructor method.
+            % This method allows the change of data values.
+            %   obj is the dataSourceDefinition class
+            %   val = is the provided value, later it is conditioned 
+            %   according to the data type
+            if (isscalar(val) && isreal(val) && ~ischar(val) ...
+                && (val==floor(val)) && (val>0))
+                %Note that a char which can be converted to scalar
+                %e.g. will pass all of the above (except the ~ischar
+                obj.id = val;
+            else
+                error('Value must be a positive scalar natural/integer');
+            end
+        end
+        
+        function val = get.type(obj)
+            val = obj.type;
+        end
+        function obj = set.type(obj,val)
+            if (ischar(val))
+                obj.type = val;
+            else
+                error('Value must be a string');
+            end
+        end
+        
+        function val = get.deviceNumber(obj)
+            val = obj.deviceNumber;
+        end
+        function obj = set.deviceNumber(obj,val)
+            if (isscalar(val) && isreal(val) && ~ischar(val) ...
+                && (val==floor(val)) && (val>0))
+                %Note that a char which can be converted to scalar
+                %e.g. will pass all of the above (except the ~ischar
+                obj.deviceNumber = val;
+            else
+                error('Value must be a positive scalar natural/integer');
+            end
+        end
+        
     end
 
 end

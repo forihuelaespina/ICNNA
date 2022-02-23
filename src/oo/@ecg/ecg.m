@@ -73,6 +73,13 @@
 %   + Added property rPeaksAlgo to keep arecord of the algorithm used
 %   for detecting the rPeaks
 %
+% 20-February-2022 (ESR): Get/Set Methods created in ecg class
+%   + The methods are added with the new structure. All the properties have 
+%   the new structure.
+%   + The new structure enables new MATLAB functions
+%   + We create a dependent property inside of the ecg class.
+%   + The RR, NN, timestamps and data properties dependents are in the
+%   ecg class.
 
 
 
@@ -90,6 +97,11 @@ classdef ecg < structuredData
         timestamps;
     end
     
+    properties (Dependent)
+        RR
+        NN
+        data
+    end
     methods
         function obj=ecg(varargin)
             %ECG ECG class constructor
@@ -138,6 +150,198 @@ classdef ecg < structuredData
                 timestamps=timestamps-timestamps(1);
             end
         end % timestamps get method
+        
+        
+        %% Get/Set methods
+        %Provide struct like access to properties BUT maintaining class
+        %encapsulation.
+        
+        %data
+        function obj = set.data(obj,val)
+            try
+                obj=set@structuredData(obj,'Data',val);
+                %The data must be set before calling getRR, otherwise
+                %we will be operating on old data
+                switch(get(obj,'RPeaksMode'))
+                    case 'manual'
+                        obj.rPeaks=zeros(0,1); %Clear existing ones
+                    case 'auto'
+                        %Automatic update
+                        switch lower(obj.rPeaksAlgo)
+                            case 'log'
+                                tmpOptions.algo = 'LoG';
+                                tmpOptions.threshold = obj.threshold;
+                            case 'chen2017'
+                                tmpOptions.algo = 'Chen2017';
+                            otherwise
+                                error('ICAF:ecg:set',...
+                                    'Unexpected R Peaks detection algorithm.');
+                        end
+                        tmpData = getSignal(obj,1);
+                        [obj.rPeaks,obj.threshold] = ...
+                            ecg.getRPeaks(tmpData,tmpOptions);
+                    otherwise
+                        error('ICAF:ecg:set',...
+                            'Unexpected R Peaks Maintenance Mode.');
+                end
+                obj.rr = getRR(obj);
+            catch ME
+                %Rethrow the error
+                rethrow(ME);
+            end
+        end
+
+        %RR
+        function val = get.RR(obj)
+           val = obj.rr; 
+        end
+        
+        %rPeaksMode
+        function val = get.rPeaksMode(obj)
+            val = obj.rPeaksMode;
+        end
+        function obj = set.rPeaksMode(obj,val)
+            if ischar(val)
+              switch(val)
+                  case 'manual'
+                      obj.rPeaksMode=val;
+                  case 'auto'
+                      obj.rPeaksMode = val;
+                      tmpOptions.logthreshold = obj.threshold;
+                      tmpData = getSignal(obj,1);
+                      [obj.rPeaks,obj.threshold] = ...
+                            ecg.getRPeaks(tmpData,tmpOptions);
+                      obj.rr = getRR(obj);
+                  otherwise
+                      error('ICAF:ecg:set',...
+                          'Unexpected R Peaks Maintenance Mode.');
+              end
+            end
+        end
+        
+        %rPeaksAlgo
+        function val = get.rPeaksAlgo(obj)
+            val = obj.rPeaksAlgo;
+        end
+        function obj = set.rPeaksAlgo(obj,val)
+            if ischar(val)
+                if ismember(lower(val),{'log','chen2017'})
+                    obj.rPeaksAlgo=val;
+                    if strcmp(get(obj,'RPeaksMode'),'auto')
+                        switch lower(obj.rPeaksAlgo)
+                            case 'log'
+                                tmpOptions.algo = 'LoG';
+                                tmpOptions.threshold = obj.threshold;
+                            case 'chen2017'
+                                tmpOptions.algo = 'Chen2017';
+                            otherwise
+                                error('ICAF:ecg:set',...
+                                    'Unexpected R Peaks detection algorithm.');
+                        end
+                        tmpData = getSignal(obj,1);
+                        [obj.rPeaks,obj.threshold] = ...
+                            ecg.getRPeaks(tmpData,tmpOptions);
+                        obj.rr = getRR(obj);
+                    end
+                else
+                    error('ICAF:ecg:set',...
+                        'Unexpected R peaks detection algorithm.');
+                end
+            else
+                error('ICAF:ecg:set',...
+                    'R peaks detection algorithm must be a string or char array.');
+            end
+        end
+        
+        %rPeaks
+        function val = get.rPeaks(obj)
+            val = obj.rPeaks;
+        end
+        function obj = set.rPeaks(obj,val)
+            switch(get(obj,'RPeaksMode'))
+                case 'manual'
+                    if isreal(val) && all(floor(val)==val) ...
+			&& all(val>0) && ~ischar(val)
+                        obj.rPeaks=unique(val);
+                        obj.rr = getRR(obj);
+                    end
+                case 'auto'
+                    warning('ICAF:ecg:set',...
+                        ['Unable to update RPeaks because RPeaksMode is set to auto. ' ...
+                        'Set RPeaksMode to manual before updating the R Peaks intervals.']);
+                otherwise
+                    error('ICAF:ecg:set',...
+                        'Unexpected R peaks maintenance mode.');
+            end
+        end
+        
+        %samplingRate
+        function val = get.samplingRate(obj)
+            val = obj.samplingRate;
+        end
+        function obj = set.samplingRate(obj,val)
+            if (isscalar(val) && isreal(val) && val>0)
+                obj.samplingRate = val;
+            else
+                error('ICAF:ecg:set',...
+                'Value must be a positive real');
+            end
+        end
+        
+        %startTime
+        function val = get.startTime(obj)
+           val = obj.startTime; 
+        end
+        function obj = set.startTime(obj,val)
+            tmpVal=datenum(val);
+            if all(tmpVal==val)
+                error('Value must be a date vector; [YY, MM, DD, HH, MN, SS]');
+            else
+                obj.startTime = datevec(tmpVal);
+            end
+
+        end
+        
+        %threshold
+        function val = get.threshold(obj)
+            val = obj.threshold;
+        end
+        function obj = set.threshold(obj,val)
+            switch(get(obj,'RPeaksMode'))
+                case 'manual'
+                    if isscalar(val) && isreal(val) ...
+                            && val>0 && ~ischar(val)
+                        switch lower(obj.rPeaksAlgo)
+                            case 'log'
+                                tmpOptions.algo = 'LoG';
+                                tmpOptions.threshold = obj.threshold;
+                            case 'chen2017'
+                                tmpOptions.algo = 'Chen2017';
+                            otherwise
+                                error('ICAF:ecg:set',...
+                                    'Unexpected R Peaks detection algorithm.');
+                        end
+                        tmpData = getSignal(obj,1);
+                        [obj.rPeaks,obj.threshold] = ...
+                                ecg.getRPeaks(tmpData,tmpOptions);
+				        obj.rr = getRR(obj);
+                    end
+                case 'auto'
+                    warning('ICAF:ecg:set',...
+                        ['Unable to update Threshold because RPeaksMode is set to auto. ' ...
+                        'Set RPeaksMode to manual before updating the threhsold.']);
+                otherwise
+                    error('ICAF:ecg:set',...
+                        'Unexpected R peaks maintenance mode.');
+            end
+        end
+        
+        %NN
+        function val = get.NN(obj)
+           val = obj.rr; 
+        end
+        
+        
     end
 
     methods (Access=private)

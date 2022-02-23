@@ -356,6 +356,17 @@
 % See also structuredData.getBlock, compute, analysis, generateDB
 %
 
+%% Log
+%
+% 1-Sep-2016 (FOE): Class created.
+%
+% 20-February-2022 (ESR): Get/Set Methods created in experimentSpace
+%   + The methods are added with the new structure. All the properties have 
+%   the new structure.
+%   + The new structure enables new MATLAB functions
+%   + We create a dependent property inside of the experimentSpace class.
+%   
+
 classdef experimentSpace
     properties (SetAccess=private, GetAccess=private)
         id=1;
@@ -403,6 +414,11 @@ classdef experimentSpace
         DIM_BLOCK=8;
     end
         
+    properties(Dependent)
+        numPoints
+        nPoints
+    end
+    
     methods
         function obj=experimentSpace(varargin)
             %EXPERIMENTSPACE experimentSpace class constructor
@@ -427,6 +443,419 @@ classdef experimentSpace
             end
             assertInvariants(obj);
         end
+        
+        %% Get/Set methods
+        %Provide struct like access to properties BUT maintaining class
+        %encapsulation.
+        
+        %Block splitting stage parameters
+        %baselineSamples
+        function val = get.baselineSamples(obj)
+            % The method is converted and encapsulated. 
+            % obj is the experimentSpace class
+            % val is the value added in the object
+            % get.baselineSamples(obj) = Get the data from the experimentSpace class
+            % and look for the baselineSamples object.
+            val = obj.baselineSamples;
+        end
+        function obj = set.baselineSamples(obj,val)
+            % The method is converted and encapsulated and can be used 
+            % as the example in the constructor method.
+            % This method allows the change of data values.
+            %   obj is experimentSpace class
+            %   val = is the provided value, later it is conditioned 
+            %   according to the data type.
+            if (isscalar(val) && isreal(val) ...
+                && (floor(val)==val) && val>0)
+                obj.baselineSamples = val;
+                obj.runStatus = false;
+            else
+                error('ICNA:experimentSpace:set',...
+                  'Value must be a positive integer or 0.');
+            end
+        end
+        
+        %description
+        function val = get.description(obj)
+            val = obj.description;
+        end
+        function obj = setdescription(obj,val)
+            if (ischar(val))
+                obj.description = val;
+            else
+                error('ICNA:experimentSpace:set',...
+                  'Value must be a string');
+            end
+        end
+        
+        %fwOnset
+        function val = get.fwOnset(obj)
+            val = obj.fwOnset;
+        end
+        function obj = set.fwOnset(obj,val)
+            if (isscalar(val) && isreal(val) ...
+                && (floor(val)==val)  && ~ischar(val))
+                obj.fwOnset = val;
+                obj.runStatus = false;
+            else
+                error('ICNA:experimentSpace:set',...
+                  'Value must be an integer scalar.');
+            end
+        end
+        
+        %fwDuration
+        function val = get.fwDuration(obj)
+            val = obj.fwDuration;
+        end
+        function obj = set.fwDuration(obj,val)
+            if (isscalar(val) && isreal(val) ...
+                && (floor(val)==val) && val>=0 && ~ischar(val))
+                obj.fwDuration = val;
+                obj.runStatus = false;
+            else
+                error('ICNA:experimentSpace:set',...
+                  'Value must be a positive integer or 0.');
+            end
+        end
+        
+        %fwBreakDelay
+        function val = get.fwBreakDelay(obj)
+            val = obj.fwBreakDelay;
+        end
+        function obj = set.fwBreakDelay(obj,val)
+            if (isscalar(val) && isreal(val) && val>=0 ...
+                && (floor(val)==val) && ~ischar(val))
+                obj.fwBreakDelay = val;
+                obj.runStatus = false;
+            else
+                error('ICNA:experimentSpace:set',...
+                  'Value must be a positive integer or 0.');
+            end
+        end
+        
+        %id
+        function val = get.id(obj)
+            val = obj.id;
+        end
+        function obj = set.id(obj,val)
+            if (isscalar(val) && isreal(val) && ~ischar(val) ...
+                && (val==floor(val)) && (val>0))
+                %Note that a char which can be converted to scalar
+                %e.g. will pass all of the above (except the ~ischar)
+                obj.id = val;
+            else
+                error('ICNA:experimentSpace:set',...
+                  'Value must be a positive integer.');
+            end
+        end
+        
+        %name
+        function val = get.name(obj)
+            val = obj.name;
+        end
+        function obj = set.name(obj,val)
+            if (ischar(val))
+                obj.name = val;
+            else
+                error('ICNA:experimentSpace:set',...
+                  'Value must be a string');
+            end
+        end
+        
+        %normalizationDimension
+        function val = get.normalizationDimension(obj)
+            val = obj.normalizationDimension;
+        end
+        function obj = set.normalizationDimension(obj,val)
+            switch(lower(val))
+                case 'channel'
+                    obj.normalizationDimension = 'channel';
+                case 'signal'
+                    obj.normalizationDimension = 'signal';
+                case 'combined'
+                    obj.normalizationDimension = 'combined';
+                otherwise
+                    error('ICNA:experimentSpace:set',...
+                      ['Valid normalization scope are ' ...
+                      '''individual'' or ''collective''.']);
+            end
+                obj.runStatus = false;
+        end
+        
+        %normalizationMethod
+        function val = get.normalizationMethod(obj)
+            val = obj.normalizationMethod;
+        end
+        function obj= set.normalizationMethod(obj,val)
+            switch(lower(val))
+                case 'normal'
+                    obj.normalizationMethod = 'normal';
+                case 'range'
+                    obj.normalizationMethod = 'range';
+                otherwise
+                    error('ICNA:experimentSpace:set',...
+                      ['Valid normalization methods are ' ...
+                      '''normal'' or ''range''.']);
+            end
+                obj.runStatus = false;
+        end
+        
+        %normalizationMean
+        function val = get.normalizationMean(obj)
+            val = obj.normalizationMean;
+        end
+        function obj = set.normalizationMean(obj,val)
+            if (isscalar(val) && isreal(val) && ~ischar(val))
+                obj.normalizationMean = val;
+                obj.runStatus = false;
+            else
+                error('ICNA:experimentSpace:set',...
+                  'Value must be an integer.');
+            end
+        end
+        
+        %normalizationMin
+        function val = get.normalizationMin(obj)
+            val = obj.normalizationMin;
+        end
+        function obj = set.normalizationMin(obj,val)
+            if (isscalar(val) && isreal(val) && ~ischar(val) ...
+                && val<obj.normalizationMax)
+                obj.normalizationMin = val;
+                obj.runStatus = false;
+            else
+                error('ICNA:experimentSpace:set',...
+                  ['Value must be an integer and greater than ' ...
+                  'the NormalizationMax.']);
+            end
+        end
+        
+        %normalizationMax
+        function val = get.normalizationMax(obj)
+            val = obj.normalizationMax;
+        end
+        function obj = set.normalizationMax(obj,val)
+            if (isscalar(val) && isreal(val) && ~ischar(val) ...
+                && val>obj.normalizationMin)
+                obj.normalizationMax = val;
+                obj.runStatus = false;
+            else
+                error('ICNA:experimentSpace:set',...
+                  ['Value must be an integer and greater than ' ...
+                  'the NormalizationMin.']);
+            end
+        end
+        
+        %---------------------------------------------------------------->
+        %Findex Dependent
+        %Dependent properties do not store data. 
+        %The value of a dependent property depends on some other value, 
+        %such as the value of a nondependent property.
+        
+        %Dependent properties must define get-access methods () to 
+        %determine a value for the property when the property is queried: 
+        %get.nPoints
+        %For example: The nPoints and numPoints are properties
+        %dependent of data property.
+        
+        %We create a dependent property.
+        %---------------------------------------------------------------->
+        
+        %numPoints
+        function val = get.numPoints(obj)
+            warning('ICNA:experimentSpace:get:Deprecated',...
+            ['The use of numPoints has now been deprecated. ' ...
+            'Please use get(obj,''nPoints'') instead.']);
+            val = size(obj.Findex,1);
+        end
+        
+        %nPoints
+        function val = get.nPoints(obj)
+            val = size(obj.Findex,1);
+        end
+        
+        %normalizationScope
+        function val = get.normalizationScope(obj)
+            val = obj.normalizationScope;
+        end
+        function obj = set.normalizationScope(obj,val)
+            switch(lower(val))
+            case 'blockindividual'
+                obj.normalizationScope = 'blockindividual';
+            case 'individual'
+                obj.normalizationScope = 'individual';
+            case 'collective'
+                obj.normalizationScope = 'collective';
+            otherwise
+                error('ICNA:experimentSpace:set',...
+                  ['Valid normalization scope are ' ...
+                  '''individual'' or ''collective''.']);
+            end
+                obj.runStatus = false;
+        end
+        
+        %normalizationVar
+        function val = get.normalizationVar(obj)
+            val = obj.normalizationVar;
+        end
+        function obj = set.normalizationVar(obj,val)
+            if (isscalar(val) && isreal(val) && val>=0 ...
+                && ~ischar(val))
+                obj.normalizationVar = val;
+                obj.runStatus = false;
+            else
+                error('ICNA:experimentSpace:set',...
+                  'Value must be a positive integer or 0.');
+            end
+        end
+        
+        %experimentSpace parameters
+        %performAveraging
+        function val = get.performAveraging(obj)
+            val = obj.performAveraging;
+        end
+        function obj = set.performAveraging(obj,val)
+            if (isscalar(val))
+                obj.performAveraging = logical(val);
+                obj.runStatus = false;
+            else
+                error('ICNA:experimentSpace:set',...
+                  'Value must be a logical scalar.');
+            end
+        end
+        
+        %experimentSpace parameters
+        %performResampling
+        function val = get.performResampling(obj)
+            val = obj.performResampling;
+        end
+        function obj = set.performResampling(obj,val)
+            if (isscalar(val))
+                obj.performResampling = logical(val);
+                obj.runStatus = false;
+            else
+                error('ICNA:experimentSpace:set',...
+                  'Value must be a logical scalar.');
+            end
+        end
+        
+        %experimentSpace parameters
+        %performFixWindow
+        function val = get.performFixWindow(obj)
+            val = obj.performFixWindow;
+            warning('ICNA:experimentSpace:set',...
+                  ['This has been DEPRECATED. ' ...
+                  'Please refer to experimentSpace class ' ...
+                  'documentation.']);
+        end
+        function obj = set.performFixWindow(obj,val)
+            warning('ICNA:experimentSpace:set',...
+                  ['This has been DEPRECATED. ' ...
+                  '''Windowed'' parameter can no longer ' ...
+                  'be set. Please refer to experimentSpace class' ...
+                  'documentation.']);
+        end
+        
+        %experimentSpace parameters
+        %performNormalization
+        function val = get.performNormalization(obj)
+            val = obj.performNormalization;
+        end
+        function obj = set.performNormalization(obj,val)
+            if (isscalar(val))
+                obj.performNormalization = logical(val);
+                obj.runStatus = false;
+            else
+                error('ICNA:experimentSpace:set',...
+                  'Value must be a logical scalar.');
+            end
+        end
+        
+        %restSamples
+        function val = get.restSamples(obj)
+            val = obj.restSamples;
+        end
+        function obj = set.restSamples(obj,val)
+            if (isscalar(val) && isreal(val) ...
+                    && (floor(val)==val))
+                %Rest samples can be negative; meaning that all samples
+                %will be collected until the next onset
+                obj.restSamples = val;
+                obj.runStatus = false;
+            else
+                error('ICNA:experimentSpace:set',...
+                  'Value must be a positive integer or 0.');
+            end
+        end
+        
+        %rsBaseline
+        function val = get.rsBaseline(obj)
+            val = obj.rsBaseline;
+        end
+        function obj = set.rsBaseline(obj,val)
+            if (isscalar(val) && isreal(val) ...
+                && (floor(val)==val) && val>=0)
+                obj.rsBaseline = val;
+                obj.runStatus = false;
+            else
+                error('ICNA:experimentSpace:set',...
+                  'Value must be a positive integer.');
+            end
+        end
+        
+        %rsTask
+        function val = get.rsTask(obj)
+            val = obj.rsTask;
+        end
+        function obj = set.rsTask(obj,val)
+            if (isscalar(val) && isreal(val) ...
+                && (floor(val)==val) && val>=0)
+                obj.rsTask = val;
+                obj.runStatus = false;
+            else
+                error('ICNA:experimentSpace:set',...
+                  'Value must be a positive integer or 0.');
+            end
+        end
+        
+        %rsRest
+        function val = get.rsRest(obj)
+            val = obj.rsRest;
+        end
+        function obj = set.rsRest(obj,val)
+            if (isscalar(val) && isreal(val) ...
+                && (floor(val)==val) && val>=0)
+                obj.rsRest = val;
+                obj.runStatus = false;
+            else
+                error('ICNA:experimentSpace:set',...
+                  'Value must be a positive integer or 0.');
+            end
+        end
+        
+        %experimentSpace parameters
+        %runStatus
+        function val = get.runStatus(obj)
+            val = obj.runStatus;
+        end
+        
+        %sessionNames
+        function val = get.sessionNames(obj)
+            val = obj.sessionNames;
+        end
+        function obj = set.sessionNames(obj,val)
+            if (isstruct(val) && isfield(val,'sessID') && isfield(val,'name'))
+                obj.sessionNames = val;
+            else
+                error('ICNA:experimentSpace:set',...
+                  'Value must be a struct with fields .sessID and .name');
+            end
+        end
+        
+        
+        
+        
+            
     end
     
     methods (Access=private)

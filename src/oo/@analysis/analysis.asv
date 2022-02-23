@@ -325,7 +325,7 @@
 %
 % 1-Sep-2016 (FOE): Class created.
 %
-% 22-February-2022 (ESR): Get/Set Methods created in analysis class
+% 20-February-2022 (ESR): Get/Set Methods created in analysis class
 %   + The methods are added with the new structure. All the properties have 
 %   the new structure.
 %   + The new structure enables new MATLAB functions

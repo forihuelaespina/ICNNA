@@ -42,129 +42,27 @@ function obj = set(obj,varargin)
 %       conforming the channels now automatically updates thenselves
 %       when updating the number of channels.
 %
+% 3-Apr-2019 (FOE):
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
+% 
 % 29-Apr-2020: Bug fixed. Setting the number of optodes, was
 %       checking on the number of channels. It now checks for the number of
 %       optodes correctly.
 %
-
+% 20-February-2022 (ESR): We simplify the code
+%   + All cases are in the chennelLocationMap class.
+%   
 
 propertyArgIn = varargin;
-while length(propertyArgIn) >= 2,
-   prop = propertyArgIn{1};
-   val = propertyArgIn{2};
-   propertyArgIn = propertyArgIn(3:end);
-   switch lower(prop)
-
-       case 'id'
-           if (isscalar(val) && isreal(val) && ~ischar(val) ...
-            && (val==floor(val)) && (val>0))
-            %Note that a char which can be converted to scalar
-            %e.g. will pass all of the above (except the ~ischar)
-                obj.id = val;
-           else
-               error('ICNA:channelLocationMap:set:InvalidID',...
-                     'Value must be a scalar natural/integer');
-           end
-
-       case 'description'
-           if (ischar(val))
-               obj.description = val;
-           else
-               error('ICNA:channelLocationMap:set:InvalidPropertyValue',...
-                     'Value must be a string');
-           end
-           
-       case 'nchannels'
-        if (isscalar(val) && (floor(val)==val) ...
-                && val>=0)
-            if val > obj.nChannels
-                %Add new channels
-                obj.chLocations(end+1:val,:) = nan(val-obj.nChannels,3);
-                obj.pairings(end+1:val,:) = nan(val-obj.nChannels,2);
-                obj.chSurfacePositions(end+1:val) = {''};
-                obj.chStereotacticPositions(end+1:val,:) = ...
-                                             nan(val-obj.nChannels,3);
-                obj.chOptodeArrays(end+1:val) = nan(val-obj.nChannels,1);
-                obj.chProbeSets(end+1:val) = nan(val-obj.nChannels,1);
-            elseif val < obj.nChannels
-                %Discard the latter channels
-                obj.chLocations = obj.chLocations(1:val,:);
-                obj.pairings = obj.pairings(1:val,:);
-                obj.chSurfacePositions = obj.chSurfacePositions(1:val);
-                obj.chStereotacticPositions = ...
-                                obj.chStereotacticPositions(1:val,:);
-                obj.chOptodeArrays = obj.chOptodeArrays(1:val);
-                obj.chProbeSets = obj.chProbeSets(1:val);
-            end
-            obj.nChannels = val;
-        else
-            error('ICNA:channelLocationMap:set:InvalidParameterValue',...
-                    'Value must be a positive integer or 0.');
-        end
-
-       case 'noptodes'
-        if (isscalar(val) && (floor(val)==val) ...
-                && val>=0)
-            if val > obj.nOptodes
-                %Add new optodes
-                obj.optodesLocations(end+1:val,:) = nan(val-obj.nOptodes,3);
-                obj.optodesSurfacePositions(end+1:val) = {''};
-                obj.optodesOptodeArrays(end+1:val) = nan(val-obj.nOptodes,1);
-                obj.optodesProbeSets(end+1:val) = nan(val-obj.nOptodes,1);
-            elseif val < obj.nOptodes
-                %Discard the latter optodes
-                obj.optodesLocations = obj.optodesLocations(1:val,:);
-                obj.optodesSurfacePositions = obj.optodesSurfacePositions(1:val);
-                obj.optodesOptodeArrays = obj.optodesOptodeArrays(1:val);
-                obj.optodesProbeSets = obj.optodesProbeSets(1:val);
-            end
-            obj.nOptodes = val;
-        else
-            error('ICNA:channelLocationMap:set:InvalidParameterValue',...
-                    'Value must be a positive integer or 0.');
-        end
-
-    case 'surfacepositioningsystem'
-        if (ischar(val))
-            if (strcmpi(val,'10/20') ...
-               || strcmpi(val,'UI 10/10'))
-                obj.surfacePositioningSystem=val;
-                %Unset those positions which are not part of the
-                %positioning system
-                [valid]=channelLocationMap.isValidSurfacePosition(...
-                                            obj.surfacePositions,...
-                                            obj.surfacePositioningSystem);
-                obj.surfacePositions(~valid)={''};
-            else
-            error('ICNA:channelLocationMap:set:InvalidParameterValue',...
-                    ['Currently valid surface positioning systems are: ' ...
-                    '''10/20'' and ''UI 10/10''.']);
-            end
-        else
-            error('ICNA:channelLocationMap:set:InvalidParameterValue',...
-                    'Value must be a string indicating a positioning system.');
-        end
-
-
-    case 'stereotacticpositioningsystem'
-        if (ischar(val))
-            if (strcmpi(val,'MNI') ...
-               || strcmpi(val,'Talairach'))
-                obj.stereotacticPositioningSystem=val;
-            else
-            error('ICNA:channelLocationMap:set:InvalidParameterValue',...
-                    ['Currently valid stereotactic positioning systems are: ' ...
-                    '''MNI'' and ''Talairach''.']);
-            end
-        else
-            error('ICNA:channelLocationMap:set:InvalidParameterValue',...
-                    'Value must be a string indicating a positioning system.');
-        end
-
-
-   otherwise
-      error('ICNA:optodeArray:set:InvalidPropertyName',...
-            ['Property ' prop ' not valid.'])
-   end
+    while (length(propertyArgIn) >= 2)
+       prop = propertyArgIn{1};
+       val = propertyArgIn{2};
+       propertyArgIn = propertyArgIn(3:end);
+       
+       obj.(lower(prop)) = val; %Ignore case
+    end
+    assertInvariants(obj);
 end
-assertInvariants(obj);

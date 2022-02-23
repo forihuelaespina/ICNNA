@@ -55,156 +55,26 @@ function obj = set(obj,varargin)
 %   + Added support for property rPeaksAlgo
 %
 
+%% Log
+% 3-Apr-2019 (FOE):
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
+%
+% 20-February-2022 (ESR): We simplify the code
+%   + All cases are in the ecg class.
+%   + We create a dependent property inside the ecg class.
+%   + The data, NN and RR properties are in the
+%   ecg class.
+
 propertyArgIn = varargin;
-while length(propertyArgIn) >= 2,
-    prop = propertyArgIn{1};
-    val = propertyArgIn{2};
-    propertyArgIn = propertyArgIn(3:end);
-    switch prop
-        case 'StartTime'
-            tmpVal=datenum(val);
-            if all(tmpVal==val)
-                error('Value must be a date vector; [YY, MM, DD, HH, MN, SS]');
-            else
-                obj.startTime = datevec(tmpVal);
-            end
-
-        case 'SamplingRate'
-            if (isscalar(val) && isreal(val) && val>0)
-                obj.samplingRate = val;
-            else
-                error('ICAF:ecg:set',...
-			'Value must be a positive real');
-            end
-
-        case 'Data'
-            try
-                obj=set@structuredData(obj,'Data',val);
-                %The data must be set before calling getRR, otherwise
-                %we will be operating on old data
-                switch(get(obj,'RPeaksMode'))
-                    case 'manual'
-                        obj.rPeaks=zeros(0,1); %Clear existing ones
-                    case 'auto'
-                        %Automatic update
-                        switch lower(obj.rPeaksAlgo)
-                            case 'log'
-                                tmpOptions.algo = 'LoG';
-                                tmpOptions.threshold = obj.threshold;
-                            case 'chen2017'
-                                tmpOptions.algo = 'Chen2017';
-                            otherwise
-                                error('ICAF:ecg:set',...
-                                    'Unexpected R Peaks detection algorithm.');
-                        end
-                        tmpData = getSignal(obj,1);
-                        [obj.rPeaks,obj.threshold] = ...
-                            ecg.getRPeaks(tmpData,tmpOptions);
-                    otherwise
-                        error('ICAF:ecg:set',...
-                            'Unexpected R Peaks Maintenance Mode.');
-                end
-                obj.rr = getRR(obj);
-            catch ME
-                %Rethrow the error
-                rethrow(ME);
-            end
-            
-        case 'RPeaksMode'
-          if ischar(val)
-              switch(val)
-                  case 'manual'
-                      obj.rPeaksMode=val;
-                  case 'auto'
-                      obj.rPeaksMode = val;
-                      tmpOptions.logthreshold = obj.threshold;
-                      tmpData = getSignal(obj,1);
-                      [obj.rPeaks,obj.threshold] = ...
-                            ecg.getRPeaks(tmpData,tmpOptions);
-                      obj.rr = getRR(obj);
-                  otherwise
-                      error('ICAF:ecg:set',...
-                          'Unexpected R Peaks Maintenance Mode.');
-              end
-          end
-
-        case 'RPeaksAlgo'
-            if ischar(val)
-                if ismember(lower(val),{'log','chen2017'})
-                    obj.rPeaksAlgo=val;
-                    if strcmp(get(obj,'RPeaksMode'),'auto')
-                        switch lower(obj.rPeaksAlgo)
-                            case 'log'
-                                tmpOptions.algo = 'LoG';
-                                tmpOptions.threshold = obj.threshold;
-                            case 'chen2017'
-                                tmpOptions.algo = 'Chen2017';
-                            otherwise
-                                error('ICAF:ecg:set',...
-                                    'Unexpected R Peaks detection algorithm.');
-                        end
-                        tmpData = getSignal(obj,1);
-                        [obj.rPeaks,obj.threshold] = ...
-                            ecg.getRPeaks(tmpData,tmpOptions);
-                        obj.rr = getRR(obj);
-                    end
-                else
-                    error('ICAF:ecg:set',...
-                        'Unexpected R peaks detection algorithm.');
-                end
-            else
-                error('ICAF:ecg:set',...
-                    'R peaks detection algorithm must be a string or char array.');
-            end
-
-        case 'Threshold'
-            switch(get(obj,'RPeaksMode'))
-                case 'manual'
-                    if isscalar(val) && isreal(val) ...
-                            && val>0 && ~ischar(val)
-                        switch lower(obj.rPeaksAlgo)
-                            case 'log'
-                                tmpOptions.algo = 'LoG';
-                                tmpOptions.threshold = obj.threshold;
-                            case 'chen2017'
-                                tmpOptions.algo = 'Chen2017';
-                            otherwise
-                                error('ICAF:ecg:set',...
-                                    'Unexpected R Peaks detection algorithm.');
-                        end
-                        tmpData = getSignal(obj,1);
-                        [obj.rPeaks,obj.threshold] = ...
-                                ecg.getRPeaks(tmpData,tmpOptions);
-				        obj.rr = getRR(obj);
-                    end
-                case 'auto'
-                    warning('ICAF:ecg:set',...
-                        ['Unable to update Threshold because RPeaksMode is set to auto. ' ...
-                        'Set RPeaksMode to manual before updating the threhsold.']);
-                otherwise
-                    error('ICAF:ecg:set',...
-                        'Unexpected R peaks maintenance mode.');
-            end
-
-        case 'RPeaks'
-            switch(get(obj,'RPeaksMode'))
-                case 'manual'
-                    if isreal(val) && all(floor(val)==val) ...
-			&& all(val>0) && ~ischar(val)
-                        obj.rPeaks=unique(val);
-                        obj.rr = getRR(obj);
-                    end
-                case 'auto'
-                    warning('ICAF:ecg:set',...
-                        ['Unable to update RPeaks because RPeaksMode is set to auto. ' ...
-                        'Set RPeaksMode to manual before updating the R Peaks intervals.']);
-                otherwise
-                    error('ICAF:ecg:set',...
-                        'Unexpected R peaks maintenance mode.');
-            end
-
-        otherwise
-            obj=set@structuredData(obj,prop,val);
-    end
+   while (length(propertyArgIn) >= 2)
+       prop = propertyArgIn{1};
+       val = propertyArgIn{2};
+       propertyArgIn = propertyArgIn(3:end);
+       
+       obj.(lower(prop)) = val; %Ignore case
+   end
 end
 %assertInvariants(obj);

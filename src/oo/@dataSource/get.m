@@ -33,37 +33,16 @@ function val = get(obj, propName)
 % 23-Jan-2014: In guessing/getting the type from a raw data, conversion
 %   does now allow for overlapping conditions.
 %
-
-
-switch propName
-case 'ID'
-   val = obj.id;
-case 'Name'
-   val = obj.name;
-case 'DeviceNumber'
-   val = obj.deviceNumber;
-case 'Type'
-    %Find the type on the fly
-    val='';
-    if ~(isempty(obj.structured))
-        val=class(obj.structured{obj.activeStructured});
-    else
-        %Try to guess it from the rawData if it has been defined.
-        r=getRawData(obj);
-        if ~isempty(r)
-            %fprintf(1,['Unable to establish dataSource type from structuredData. ' ...
-            %           'Trying\nto guess it from rawData.\n']);
-            val=class(convert(r,'AllowOverlappingConditions',0));
-                %Temporally allow for overlapping conditions to make less
-                %restrictive.
-        end
-    end
-case 'Lock'
-   val = obj.lock;
-case 'RawData'
-   val = obj.rawData;
-case 'ActiveStructured'
-   val = obj.activeStructured;
-otherwise
-   error([propName,' is not a valid property'])
+% 3-Apr-2019: FOE.
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
+%
+% 20-February-2022 (ESR): We simplify the code
+%   + We simplify the code. All cases are in the dataSource class.
+%   + We create a dependent property inside of the dataSource class 
+%
+%
+     val = obj.(lower(propName)); %Ignore case
 end

@@ -49,29 +49,15 @@ function val = get(obj, propName)
 % 29-May-2019: FOE:
 %   + Log started
 %   + Added support for property rPeaksAlgo
+%   + Updated following the definition of get/set.property methods in
+%   the class main file. This is now a simple wrapper to ignore case.
+%   Further, note that MATLAB automatically takes care of yielding
+%   an error message if the property does not exist.
 %
-
-
-switch propName
-case 'StartTime'
-   val = obj.startTime;
-case 'SamplingRate'
-   val = obj.samplingRate;
-case 'Timestamps'
-   val = obj.timestamps;
-case 'NN'
-   val = obj.rr;
-case 'RPeaksMode'
-   val = obj.rPeaksMode;
-case 'RPeaksAlgo'
-   val = obj.rPeaksAlgo;
-case 'Threshold'
-   val = obj.threshold;
-case 'RPeaks'
-   val = obj.rPeaks;
-case 'RR'
-   val = obj.rr;
-
-otherwise
-   val = get@structuredData(obj, propName);
+% 20-February-2022 (ESR): We simplify the code
+%   + We simplify the code. All cases are in the ecg class.
+%   + We create a dependent property inside the ecg class 
+%
+%
+     val = obj.(lower(propName)); %Ignore case
 end

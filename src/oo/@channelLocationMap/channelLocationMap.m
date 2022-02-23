@@ -288,7 +288,11 @@
 %       and probe sets to which they are associated and the pairings
 %       conforming the channels.
 %
-
+% 20-February-2022 (ESR): Get/Set Methods created in channelLocationMap
+% class
+%   + The methods are added with the new structure. All the properties have 
+%   the new structure.
+%   + The new structure enables new MATLAB functions
 
 classdef channelLocationMap
     properties (SetAccess=private, GetAccess=private)
@@ -366,6 +370,153 @@ classdef channelLocationMap
 
         end
   
+        
+        %% Get/Set methods
+        %Provide struct like access to properties BUT maintaining class
+        %encapsulation.
+       
+        %id
+        function val = get.id(obj)
+            val = obj.id;
+        end
+        function obj = set.id(obj,val)
+            if (isscalar(val) && isreal(val) && ~ischar(val) ...
+                && (val==floor(val)) && (val>0))
+                %Note that a char which can be converted to scalar
+                %e.g. will pass all of the above (except the ~ischar)
+                    obj.id = val;
+            else
+               error('ICNA:channelLocationMap:set:InvalidID',...
+                     'Value must be a scalar natural/integer');
+            end
+        end
+        
+        %description
+        function val = get.description(obj)
+            val = obj.description;
+        end
+        function obj = set.description(obj,val)
+             if (ischar(val))
+               obj.description = val;
+             else
+               error('ICNA:channelLocationMap:set:InvalidPropertyValue',...
+                     'Value must be a string');
+             end
+        end
+        
+        %nChannels
+        function val = get.nChannels(obj)
+            val = obj.nChannels;
+        end
+        function obj = set.nChannels(obj,val)
+            if (isscalar(val) && (floor(val)==val) ...
+                && val>=0)
+                if val > obj.nChannels
+                    %Add new channels
+                    obj.chLocations(end+1:val,:) = nan(val-obj.nChannels,3);
+                    obj.pairings(end+1:val,:) = nan(val-obj.nChannels,2);
+                    obj.chSurfacePositions(end+1:val) = {''};
+                    obj.chStereotacticPositions(end+1:val,:) = ...
+                                                 nan(val-obj.nChannels,3);
+                    obj.chOptodeArrays(end+1:val) = nan(val-obj.nChannels,1);
+                    obj.chProbeSets(end+1:val) = nan(val-obj.nChannels,1);
+                elseif val < obj.nChannels
+                    %Discard the latter channels
+                    obj.chLocations = obj.chLocations(1:val,:);
+                    obj.pairings = obj.pairings(1:val,:);
+                    obj.chSurfacePositions = obj.chSurfacePositions(1:val);
+                    obj.chStereotacticPositions = ...
+                                    obj.chStereotacticPositions(1:val,:);
+                    obj.chOptodeArrays = obj.chOptodeArrays(1:val);
+                    obj.chProbeSets = obj.chProbeSets(1:val);
+                end
+                    obj.nChannels = val;
+            else
+                error('ICNA:channelLocationMap:set:InvalidParameterValue',...
+                    'Value must be a positive integer or 0.');
+            end
+        end
+        
+        %nOptodes
+        function val = get.nOptodes(obj)
+            val = obj.nOptodes;
+        end
+        function obj = set.nOptodes(obj,val)
+            if (isscalar(val) && (floor(val)==val) ...
+                && val>=0)
+                if val > obj.nOptodes
+                    %Add new optodes
+                    obj.optodesLocations(end+1:val,:) = nan(val-obj.nOptodes,3);
+                    obj.optodesSurfacePositions(end+1:val) = {''};
+                    obj.optodesOptodeArrays(end+1:val) = nan(val-obj.nOptodes,1);
+                    obj.optodesProbeSets(end+1:val) = nan(val-obj.nOptodes,1);
+                elseif val < obj.nOptodes
+                    %Discard the latter optodes
+                    obj.optodesLocations = obj.optodesLocations(1:val,:);
+                    obj.optodesSurfacePositions = obj.optodesSurfacePositions(1:val);
+                    obj.optodesOptodeArrays = obj.optodesOptodeArrays(1:val);
+                    obj.optodesProbeSets = obj.optodesProbeSets(1:val);
+                end
+                    obj.nOptodes = val;
+            else
+                error('ICNA:channelLocationMap:set:InvalidParameterValue',...
+                    'Value must be a positive integer or 0.');
+            end
+        end
+        
+        %surfacePositioningSystem
+        function val = get.surfacePositioningSystem(obj)
+            val = obj.surfacePositioningSystem;
+        end
+        function obj = set.surfacePositioningSystem(obj,val)
+            if (ischar(val))
+                if (strcmpi(val,'10/20') ...
+                   || strcmpi(val,'UI 10/10'))
+                    obj.surfacePositioningSystem=val;
+                    %Unset those positions which are not part of the
+                    %positioning system
+                    [valid]=channelLocationMap.isValidSurfacePosition(...
+                                                obj.surfacePositions,...
+                                                obj.surfacePositioningSystem);
+                    obj.surfacePositions(~valid)={''};
+                else
+                    error('ICNA:channelLocationMap:set:InvalidParameterValue',...
+                    ['Currently valid surface positioning systems are: ' ...
+                    '''10/20'' and ''UI 10/10''.']);
+                end
+            else
+                error('ICNA:channelLocationMap:set:InvalidParameterValue',...
+                    'Value must be a string indicating a positioning system.');
+            end
+        end
+        
+        %stereotacticPositioningSystem
+        function val = get.stereotacticPositioningSystem(obj)
+            val = obj.stereotacticPositioningSystem; 
+        end
+        function obj = set.stereotacticPositioningSystem(obj,val)
+            if (ischar(val))
+                if (strcmpi(val,'MNI') ...
+                    || strcmpi(val,'Talairach'))
+                    obj.stereotacticPositioningSystem=val;
+                else
+                    error('ICNA:channelLocationMap:set:InvalidParameterValue',...
+                    ['Currently valid stereotactic positioning systems are: ' ...
+                    '''MNI'' and ''Talairach''.']);
+                end
+            else
+                error('ICNA:channelLocationMap:set:InvalidParameterValue',...
+                    'Value must be a string indicating a positioning system.');
+            end
+        end
+        
+        %referencePoints
+        function val = get.referencePoints(obj)
+            val = length(obj.referencePoints);
+        end
+        
+        
+        
     end
 
     methods (Access=protected)
