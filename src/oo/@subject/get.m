@@ -31,5 +31,24 @@ function val = get(obj, propName)
 % 31-January-2022 (ESR): We simplify the code
 %   + We simplify the code. All cases are in the subject class.
 %
-   val = obj.(lower(propName)); %Ignore case
+   %val = obj.(lower(propName)); %Ignore case
+   
+   tmp = lower(propName);
+    
+    switch (tmp)
+
+            case 'age'
+                val = obj.age;
+            case 'hand'
+                val = obj.hand;
+            case 'id'
+                val = obj.id;  
+            case 'name'
+                val = obj.name;
+            case 'sex'
+                val = obj.sex;
+
+        otherwise 
+            error([propName,' is not a valid property'])
+    end
 end

@@ -38,7 +38,27 @@ while (length(propertyArgIn) >= 2)
    val = propertyArgIn{2};
    propertyArgIn = propertyArgIn(3:end);
    
-   obj.(lower(prop)) = val; %Ignore case
+   %obj.(lower(prop)) = val; %Ignore case
+   
+    tmp = lower(prop);
+    
+    switch (tmp)
+
+        case 'age'
+           obj.age = val;
+        case 'hand'
+            obj.hand = val;
+        case 'id'
+            obj.id = val;
+        case 'name'
+            obj.name = val;
+        case 'sex'
+            obj.sex = val;
+
+        otherwise
+            error('ICNA:subject:set:InvalidPropertyName',...
+            ['Property ' prop ' not valid.'])
+    end
 end
     assertInvariants(obj);
 end
