@@ -35,5 +35,32 @@ function val = get(obj, propName)
 %   + We simplify the code. All cases are in the structuredData class.
 %   + We create a dependent property inside the structuredData.
 
-    val = obj.(lower(propName)); %Ignore case
+    %val = obj.(lower(propName)); %Ignore case
+    
+    tmp = lower(propName);
+    
+    switch (tmp)
+
+           case 'description'
+                val = obj.description;
+           case 'data'
+                val = obj.data;
+           case 'id'
+                val = obj.id;  
+           case 'integrity'
+                val = obj.integrity;
+           case 'nsamples'
+                val = obj.nSamples;
+           case 'nchannels'
+                val = obj.nChannels;
+           case 'nsignals'
+                val = obj.nSignals;
+           case 'signaltags'
+                val = obj.signalTags;
+           case 'timeline'
+                val = obj.timeline;     
+        
+        otherwise 
+            error([propName,' is not a valid property'])
+    end
 end

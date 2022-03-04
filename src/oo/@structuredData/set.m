@@ -49,7 +49,34 @@ while (length(propertyArgIn) >= 2)
    val = propertyArgIn{2};
    propertyArgIn = propertyArgIn(3:end);
    
-   obj.(lower(prop)) = val; %Ignore case
+   %obj.(lower(prop)) = val; %Ignore case
+   
+   tmp = lower(prop);
+    
+    switch (tmp)
+
+        case 'description'
+           obj.description = val;
+        case 'data'
+            obj.data = val;
+        case 'id'
+            obj.id = val;
+        case 'integrity'
+            obj.integrity = val;
+        case 'nsamples'
+            obj.nSamples = val;
+        case 'nchannels'
+            obj.nChannels = val;
+        case 'nsignals'
+            obj.nSignals = val;
+        case 'timeline'
+            obj.timeline = val;
+            
+
+        otherwise
+            error('ICNA:structuredData:set:InvalidProperty',...
+            ['Property ' prop ' not valid.'])
+    end
   
 end
     assertInvariants(obj);
