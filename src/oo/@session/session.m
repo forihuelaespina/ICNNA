@@ -48,9 +48,9 @@ classdef session
     end
     
     properties (Dependent)
-        ID
-        Name
-        Description
+        id
+        name
+        description
     end
     
     methods
@@ -169,26 +169,26 @@ classdef session
         %---------------------------------------------------------------->
         
         %Decription
-        function val = get.Description (obj)
+        function val = get.description (obj)
            val = get(obj.definition,'Description'); 
         end
-        function obj = set.Description(obj,val)
+        function obj = set.description(obj,val)
             obj.definition = set(obj.definition,'Description',val);
         end
         
         %ID
-        function val = get.ID(obj)
+        function val = get.id(obj)
             val = get(obj.definition,'ID');
         end
-        function obj = set.ID(obj,val)
+        function obj = set.id(obj,val)
             obj.definition = set(obj.definition,'ID',val);
         end
         
         %Name
-        function val = get.Name(obj)
+        function val = get.name(obj)
            val = get(obj.definition,'Name'); 
         end
-        function obj = set.Name(obj,val)
+        function obj = set.name(obj,val)
             obj.definition = set(obj.definition,'Name',val);
         end
         

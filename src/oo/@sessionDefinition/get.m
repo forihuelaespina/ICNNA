@@ -29,6 +29,21 @@ function val = get(obj, propName)
 %   + All cases are in the sessionDefinition class.
 %
 
-    val = obj.(lower(propName)); %Ignore case
+    %val = obj.(lower(propName)); %Ignore case
+    
+     tmp = lower(propName);
+    
+    switch (tmp)
+
+           case 'description'
+                val = obj.description;
+           case 'id'
+                val = obj.id;  
+           case 'name'
+                val = obj.name;  
+        
+        otherwise 
+            error([propName,' is not a valid property'])
+    end
 
 end

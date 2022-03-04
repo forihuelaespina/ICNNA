@@ -43,8 +43,27 @@ while (length(propertyArgIn) >= 2)
    val = propertyArgIn{2};
    propertyArgIn = propertyArgIn(3:end);
    
-   obj.(lower(prop)) = val; %Ignore case
+   %obj.(lower(prop)) = val; %Ignore case
   
+   tmp = lower(prop);
+    
+    switch (tmp)
+        
+        case 'definition'
+            obj.definition = val;
+        case 'date'
+            obj.date = val;
+        case 'description'
+           obj.description = val;
+        case 'id'
+            obj.id = val;
+        case 'name'
+            obj.name = val;
+
+        otherwise
+            error(['Property ' prop ' not valid.'])
+    end
+   
 end
     assertInvariants(obj);
 end
