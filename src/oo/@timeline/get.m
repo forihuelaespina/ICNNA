@@ -42,6 +42,27 @@ function val = get(obj, propName)
 %   + We simplify the code. All cases are in the timeline class.
 %
 
-    val = obj.(lower(propName)); %Ignore case
+    %val = obj.(lower(propName)); %Ignore case
+    
+    tmp = lower(propName);
+    
+    switch (tmp)
+
+        case 'length'
+            val = obj.length;
+        case 'nconditions'
+            val = obj.nConditions;
+        case 'nominalsamplingrate'
+            val = obj.nominalSamplingRate;
+        case 'starttime'
+            val = obj.startTime;
+        case 'samplingrate'
+            val = obj.samplingrate;
+        case 'timestamps'
+            val = obj.timestamps;
+
+        otherwise 
+            error([propName,' is not a valid property'])
+    end
 
 end

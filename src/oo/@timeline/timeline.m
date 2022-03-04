@@ -52,7 +52,7 @@
 %will have its onset set to 30 and its duration set
 %to 16. 
 %
-% Sample  30  31  32  33  34  35  36  37  38  39  40  41  42  43  44  45
+%Sample  30  31  32  33  34  35  36  37  38  39  40  41  42  43  44  45
 %       ---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
 %Duration  1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16
 %
@@ -137,6 +137,11 @@ classdef timeline
         nominalSamplingRate = 1; %in Hz
         conditions=cell(1,0);
         exclusory=zeros(0,0); %Pairwise exclusory states
+    end
+    
+    properties (Dependent)
+       samplingRate
+       nConditions
     end
     
     methods
@@ -243,6 +248,11 @@ classdef timeline
                         'Value must be a scalar natural/integer.');
             end  
         end
+        
+        %nConditions
+        function val = get.nConditions(obj)
+            val = length(obj.conditions);
+        end
             
         %nominalsamplingrate
         function val = get.nominalSamplingRate(obj)
@@ -255,6 +265,18 @@ classdef timeline
                 error('ICNA:timeline:set:InvalidParameterValue',...
                     'Value must be a scalar natural/integer.');
             end
+        end
+        
+        %samplingRate
+        function val = get.samplingRate(obj)
+            val = 0;
+               if obj.length == 0
+                    val = 0;
+               elseif obj.length == 1
+                    val = 1/timestamps(1);
+               else
+                    val = 1/nanmean(obj.timestamps(2:end)-obj.timestamps(1:end-1));
+               end
         end
         
         %starttime

@@ -50,7 +50,30 @@ while (length(propertyArgIn) >= 2)
    val = propertyArgIn{2};
    propertyArgIn = propertyArgIn(3:end);
 
-   obj.(lower(prop)) = val; %Ignore case
+   %obj.(lower(prop)) = val; %Ignore case
+   
+    tmp = lower(prop);
+    
+    switch (tmp)
+
+        case 'length'
+           obj.length = val;
+        case 'nconditions'
+            obj.nConditions = val;
+        case 'nominalsamplingrate'
+            obj.nominalSamplingRate = val;
+        case 'starttime'
+            obj.startTime = val;
+        case 'samplingrate'
+            obj.samplingrate = val;
+        case 'timestamps'
+            obj.timestamps = val;
+
+        otherwise 
+            error('ICNA:timeline:set:InvalidParameterValue',...
+            ['Property ' prop ' not valid.'])
+    end
+   
 end
     assertInvariants(obj);
 
