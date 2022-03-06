@@ -244,7 +244,7 @@ classdef rawData_ShimadzuLabnirs < rawData
         
         %rawData
         function val = get.rawData(obj)
-            val = obj.rawData;
+            val = obj.rawData; %Three hemoglobin species per channel; oxy, deoxy and total
         end
         function obj = set.rawData(obj,val)
             if (isreal(val) && (mod(size(val,2),3)==0))

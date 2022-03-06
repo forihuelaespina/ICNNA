@@ -52,5 +52,31 @@ function val = get(obj, propName)
 %   + We create a dependent property inside the rawData_UCLWireless class 
 %
 %
-     val = obj.(lower(propName)); %Ignore case
+     %val = obj.(lower(propName)); %Ignore case
+     
+     tmp = lower(propName);
+    
+    switch (tmp)
+
+            case 'deoxyrawdata'
+                val = obj.deoxyRawData;
+            case {'wlengths','nominalwavelengthset'}
+                val = obj.wLengths;
+            case 'oxyrawdata'
+                val = obj.oxyRawData;  
+            case 'pretimeline'
+                val = obj.preTimeline;
+            case 'samplingrate'
+                val = obj.samplingRate;
+            case 'timestamps'
+                val = obj.timestamps;
+            case 'nchannels'
+                val = obj.nChannels;
+            case 'nevents'
+                val = obj.nEvents;
+            case 'nsamples'
+                val = obj.nSamples;
+        otherwise 
+            val = get@rawData(obj, propName);
+    end
 end

@@ -50,5 +50,31 @@ function val = get(obj, propName)
 %   + We create a dependent property inside the rawData_ShamdzuLabnirs.
 %
 
-     val = obj.(lower(propName)); %Ignore case
+     %val = obj.(lower(propName)); %Ignore case
+     
+     
+     tmp = lower(propName);
+    
+    switch (tmp)
+
+            case {'wlengths','nominalwavelengthset'}
+                val=obj.wLengths;
+            case 'samplingrate'
+                val = obj.samplingRate;
+            case 'marks'
+                val = obj.marks;
+            case 'pretimeline'
+                val = obj.preTimeline;
+            case 'rawdata'
+                val = obj.rawData;
+            case 'nchannels'
+                val = obj.nChannels;
+            case 'nevents'
+                val = obj.nEvents;
+            case 'nsamples'
+                val = obj.nSamples;
+
+        otherwise 
+            val = get@rawData(obj, propName);
+    end
 end

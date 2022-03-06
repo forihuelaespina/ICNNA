@@ -837,7 +837,7 @@ classdef rawData_NIRScout < rawData
             else
                 error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
                   'Value must be a matrix positive integers.');
-            end 
+            end
         end
         
         %sdMask

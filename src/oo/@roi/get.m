@@ -31,5 +31,20 @@ function val = get(obj, propName)
 %   + We simplify the code. All cases are in the roi class.
 %   + We create a dependent property inside of the roi class 
 %
-     val = obj.(lower(propName)); %Ignore case
+     %val = obj.(lower(propName)); %Ignore case
+     
+     tmp = lower(propName);
+    
+    switch (tmp)
+        
+           case 'id'
+                val = obj.id;
+           case 'name'
+                val = obj.name;
+           case 'area'
+                val = obj.area;
+        
+        otherwise 
+            error([propName,' is not a valid property'])
+    end
 end

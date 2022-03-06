@@ -62,7 +62,28 @@ while (length(propertyArgIn) >= 2)
    val = propertyArgIn{2};
    propertyArgIn = propertyArgIn(3:end);
    
-   obj.(lower(prop)) = val; %Ignore case
+   %obj.(lower(prop)) = val; %Ignore case
+   
+   
+    tmp = lower(prop);
+    switch (tmp)
+
+            case {'wlengths','nominalwavelengthset'} 
+                obj.wLengths = val;
+            case 'samplingrate'
+                obj.samplingRate = val;
+            case 'marks'
+                obj.marks = val;
+            case 'pretimeline'
+                obj.preTimeline = val;
+            case 'rawdata'
+                obj.rawData = val;
+            case 'timestamps'
+                obj.timestamps = val;
+
+        otherwise 
+            obj=set@rawData(obj, prop, val);
+    end
   
 end
     assertInvariants(obj);

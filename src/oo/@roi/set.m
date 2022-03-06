@@ -34,6 +34,21 @@ propertyArgIn = varargin;
        val = propertyArgIn{2};
        propertyArgIn = propertyArgIn(3:end);
 
-       obj.(lower(prop)) = val; %Ignore case
+       %obj.(lower(prop)) = val; %Ignore case
+       
+     tmp = lower(prop);
+    
+    switch (tmp)
+        
+        case 'id'
+            obj.id = val;
+        case 'name'
+            obj.name = val;
+
+        otherwise
+            error('ICNA:ROI:set:InvalidPropertyName',...
+            ['Property ' prop ' not valid.'])
+    end
+       
     end
 end

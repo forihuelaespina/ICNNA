@@ -139,5 +139,75 @@ function val = get(obj, propName)
 %   + All cases are in the rawData_NIRScout class.
 %   + We create a dependent property inside the rawData_NIRScout.
 %
-     val = obj.(lower(propName)); %Ignore case
+     %val = obj.(lower(propName)); %Ignore case
+      tmp = lower(propName);
+    
+    switch (tmp)
+        
+            case 'channeldistances'
+                val = obj.channelDistances;
+            case 'device'
+                val = obj.device;
+            case 'eventtriggermarkers'
+                val = obj.eventTriggerMarkers;
+            case 'filename'
+                val = obj.filename;
+            case 'fileversion'
+                val = obj.fileVersion;
+            case 'gains'
+                val = obj.gains;
+            case {'wlengths','nominalwavelengthset'}
+                val=obj.wLengths;
+            case 'lightrawdata'
+                val = obj.lightRawData;
+            case 'modulationamplitudes'
+                val = obj.modulationAmplitudes;
+            case 'modulationthresholds'
+                val = obj.modulationThresholds;
+            case 'notes'
+                val = obj.notes;
+            case 'nanaloginputs'
+                val = obj.nAnalogInputs;
+            case 'nchannels'
+                val = obj.nChannels;
+            case 'ndetectors'
+                val = obj.nDetectors;
+            case 'nsources'
+                val = obj.nSources;
+            case 'nsteps'
+                val = obj.nSteps;
+            case 'ntriggerinputs'
+                val = obj.nTriggerInputs;
+            case 'ntriggeroutputs'
+                val = obj.nTriggerOutputs;
+            case 'probeset'
+                val = obj.probesetInfo;
+            case 'paradigmstimulustype'
+                val = obj.paradigmStimulusType;
+            case 'source'
+                val = obj.source;
+            case 'studytypemodulation'
+                val = obj.studyTypeModulation;
+            case 'subjectindex'
+                val = obj.subjectIndex;
+            case 'samplingrate'
+                val = obj.samplingRate;
+            case 'samplingperiod'
+                val = obj.samplingPeriod;
+            case 'sdkey'
+                val = obj.sdKey;
+            case 'sdmask'
+                val = obj.sdMask;
+            case 'subjectage'
+                val = obj.userAge;
+            case 'subjectgender'
+                val = obj.userGender;
+            case 'subjectname'
+                val = obj.userName;
+           
+
+        otherwise 
+            val = get@rawData(obj, propName);
+    end
+     
 end

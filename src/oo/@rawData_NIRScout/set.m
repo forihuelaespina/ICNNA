@@ -164,406 +164,80 @@ while (length(propertyArgIn) >= 2)
    prop = propertyArgIn{1};
    val = propertyArgIn{2};
    propertyArgIn = propertyArgIn(3:end);
-   switch lower(prop)
+   
 %General information
-    case 'filename'
-        if (ischar(val))
-            obj.filename = val;
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be a string');
-        end
 
-    case 'device'
-        if (ischar(val))
-            obj.device = val;
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be a string');
-        end
-
-    case 'source'
-        if (ischar(val) && ismember(upper(val),{'LED','LASER'}))
-            obj.source = upper(val);
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be either "LED" or "LASER".');
-        end
-
-    case 'studytypemodulation'
-        if (ischar(val))
-            obj.studyTypeModulation = val;
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be a string');
-        end
-
-        
-    case 'fileversion'
-        if (ischar(val))
-            obj.fileVersion = val;
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be a string');
-        end
-        
-    case 'subjectindex'
-        if (isscalar(val) && isnumeric(val) && mod(val,val)==0)
-            obj.subjectIndex = val;
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be an integer number.');
-        end
-        
-%Measure information
-    case 'nsources'
-        if (isscalar(val) && isnumeric(val) && mod(val,val)==0 && val>=0)
-            obj.nSources = val;
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be an integer number.');
-        end
-
-    case 'ndetectors'
-        if (isscalar(val) && isnumeric(val) && mod(val,val)==0 && val>=0)
-            obj.nDetectors = val;
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be an integer number.');
-        end
-
-    case 'nchannels'
-        if (isscalar(val) && isnumeric(val) && mod(val,val)==0 && val>=0)
-            obj.nChannels = val;
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be an integer number.');
-        end
-
-    case 'nsteps'
-        if (isscalar(val) && isnumeric(val) && mod(val,val)==0)
-            obj.nSteps = val;
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be an integer number.');
-        end
-
-
-    case 'nominalwavelenghtset'
-        if (isvector(val) && isreal(val))
-            obj.wLengths = val;
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be a vector of wavelengths in nm.');
-        end
-
-    case 'ntriggerinputs'
-        if (isscalar(val) && isnumeric(val) && mod(val,val)==0)
-            obj.nTriggerInputs = val;
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be an integer number.');
-        end
-
-    case 'ntriggeroutputs'
-        if (isscalar(val) && isnumeric(val) && mod(val,val)==0)
-            obj.nTriggerOutputs = val;
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be an integer number.');
-        end
-
-    case 'nanaloginputs'
-        if (isscalar(val) && isnumeric(val) && mod(val,val)==0)
-            obj.nAnalogInputs = val;
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be an integer number.');
-        end
-
-    case 'modulationamplitudes'
-        if (isvector(val) && isreal(val))
-            obj.modulationAmplitudes = val;
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be a vector of amplitudes.');
-        end
-
-    case 'modulationthresholds'
-        if (isvector(val) && isreal(val))
-            obj.modulationThresholds = val;
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be a vector of thresholds.');
-        end
-
-    case 'samplingperiod' %what is?
-        if (isscalar(val) && isreal(val) && val>0)
-            obj.samplingRate = 1/val;
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be a positive real');
-        end
-
-    case 'samplingrate'
-        if (isscalar(val) && isreal(val) && val>0)
-            obj.samplingRate = val;
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be a positive real');
-        end
-        
-        
-        
-    case 'probeset'
-        if (isstruct(val))
-            %The fields in this probeset struct are NOT always the
-            %same. So these have to be check everytime.
-            obj.probesetInfo = struct('probes',[],'geom',[],...
-                        'temphandles',[],'headmodel','',...
-                        'probeInforFileName','','probeInforFilePath','');
-            fields = fieldnames(val);
-            nFields = length(fields);
-            for ff=1:nFields
-                fieldname = fields{ff};
-                if isfield(obj.probesetInfo,fieldname)
-                    obj.probesetInfo.(fieldname) = val.(fieldname);
-                else
-                    warning('ICNNA:rawData_NIRScout:set:UnexpectedParameterValue',...
-                            ['Unexpected field name ''' fieldname '''in probe set descriptor. Ignoring field.'])
-                end
-            end
-            
-            
-           %Field setupType is not present in all file versions.
-           % I have found it in version 14.2 but not in 15.2
-           %but it was used for several things during conversion
-           %to structuredData.
-           if ~isfield(obj.probesetInfo.probes,'setupType')
-               obj.probesetInfo.probes.setupType = 1;
-           end
-            
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be a struct.');
-        end
-        
-% %     case 'probemode'
-% %         if (ischar(val))
-% %             obj.probeMode = val;
-% %         else
-% %             error('Value must be a string');
-% %         end
-% % 
-% %     case 'nchannels'
-% %         if (isscalar(val) && (floor(val)==val) ...
-% %                 && val>0)
-% %             obj.nChannels = val;
-% %         else
-% %             error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-% %                  'Value must be a positive integer');
-% %         end
-% 
-
-
-
-% Paradigm Information
-    case 'paradigmstimulustype'
-        if (ischar(val))
-            obj.paradigmStimulusType = val;
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be a string');
-        end
-
-% Experimental Notes
-    case 'notes'
-        if (ischar(val))
-            obj.notes = val;
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be a string');
-        end
-
-
-
-
-% Gain settings
-    case 'gains'
-        if any(any(val<0))
-            warning('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Nagative gain found.');
-        end
-        obj.gains = val;
-            
-% Markers Information
-    case 'eventtriggermarkers'
-        if (size(val,2)==3 && all(all(floor(val(:,2:3))==val(:,2:3))) && all(all(val>=0)))
-            obj.eventTriggerMarkers = val;
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be a 3 columns matrix with the second and third columns being integer numbers.');
-        end
-
-
-% Data Structure
-    case 'sdkey'
-        if (all(all(floor(val)==val)) && all(all(val>=0)))
-            obj.sdKey = val;
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be a matrix positive integers.');
-        end
-        
-    case 'sdmask'
-        if (all(all(ismember(val,[0,1]))))
-            obj.sdMask = val;
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be a binary matrix (of 0s and 1s).');
-        end
-        
-        
-% Channel Distances
-    case 'channeldistances'
-        if (all(all(val>=0)) && length(val)==obj.nChannels)
-            obj.channelDistances = val;
-        else
-            if (length(val)==obj.nChannels)
-                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be a vector positive numbers.');
-            else
-                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Number of channel distances is different from the number of channels.');
-            end
-        end
-
-       
-        
-
-%Patient information
-    case 'subjectname'
-        if ischar(val)
-            obj.userName = val;
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be a string');
-        end
-
-    case 'subjectgender'
-        if isempty(val)
-            obj.userGender = 'U';
-        elseif ischar(val)
-            %Try to decode the gender; if not possible, set to 'U'
-            %and issue a warning.
-            if ismember(upper(val),{'F','FEMALE','WOMAN'})
-                obj.userGender = 'F';
-            elseif ismember(upper(val),{'M','MALE','MAN'})
-                obj.userGender = 'M';
-            elseif ismember(upper(val),{'U'})
-                obj.userGender = 'U';
-            else
-                obj.userGender = 'U';
-                warning('ICNNA:rawData_NIRScout:set:UnexpectedParameterValue',...
-                        ['Value for subject gender is not recognised. ' ...
-                        'It will be set to (U)nset. ' ...
-                        'Try common gender identifiers e.g. (M)ale or (F)emale.']);
-            end
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be a string.');
-        end
-
-%     case 'subjectbirthdate'
-%         if (ischar(val) || isvector(val) || isscalar(val))
-%             obj.userBirthDate = datenum(val);
-%         else
-%             error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-%                   'Value must be a date (whether a string, datevec or datenum).');
-%         end
-
-    case 'subjectage'
-        if (isscalar(val) && isreal(val))
-            obj.userAge = val;
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Value must be numeric');
-        end
-        
-
+    tmp = lower(prop);
     
-%The data itself!!
-    case 'lightrawdata'
-        if (isreal(val) && size(val,3)==length(obj.probesetInfo))
-            obj.lightRawData = val;
-                %Note that the size along the 3rd dimension is expected to
-                %match the number of probes sets declared.
-                %See assertInvariants
-        else
-            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-                  'Size of data is expected to match the number of probes sets declared.');
-        end
+    switch (tmp)
         
-%     case 'marks'
-%         if (all(floor(val)==val) && all(val>=0))
-%             obj.marks = val;
-%                 %Note that the number of columns is expected to
-%                 %match the number of probes sets declared.
-%                 %See assertInvariants
-%         else
-%             error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-%                   'Value must be a matrix positive integer.');
-%         end
-% 
-%     case 'timestamps'
-%         if (all(val>=0))
-%             obj.timestamps = val;
-%                 %Note that the number of columns is expected to
-%                 %match the number of probes sets declared.
-%                 %See assertInvariants
-%         else
-%             error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-%                   'Value must be a matrix positive integer.');
-%         end
-% 
-%     case 'bodymovement'
-%         if (all(floor(val)==val) && all(val>=0))
-%             obj.bodyMovement = val;
-%                 %Note that the number of columns is expected to
-%                 %match the number of probes sets declared.
-%                 %See assertInvariants
-%         else
-%             error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-%                   'Value must be a matrix positive integer.');
-%         end
-% 
-%     case 'removalmarks'
-%         if (all(floor(val)==val) && all(val>=0))
-%             obj.removalMarks = val;
-%                 %Note that the number of columns is expected to
-%                 %match the number of probes sets declared.
-%                 %See assertInvariants
-%         else
-%             error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-%                   'Value must be a matrix positive integer.');
-%         end
-% 
-%     case 'prescan'
-%         if (all(floor(val)==val) && all(val>=0))
-%             obj.preScan = val;
-%                 %Note that the number of columns is expected to
-%                 %match the number of probes sets declared.
-%                 %See assertInvariants
-%         else
-%             error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
-%                   'Value must be a matrix positive integer.');
-%         end
+            case 'channeldistances'
+                obj.channelDistances = val;
+            case 'device'
+                obj.device = val;
+            case 'eventtriggermarkers'
+                obj.eventTriggerMarkers = val;
+            case 'filename'
+                obj.filename = val;
+            case 'fileversion'
+                obj.fileVersion = val;
+            case 'gains'
+                obj.gains = val;
+            case {'wlengths','nominalwavelengthset'}
+                obj.wLengths = val;
+            case 'lightrawdata'
+                obj.lightRawData = val;
+            case 'modulationamplitudes'
+                obj.modulationAmplitudes = val;
+            case 'modulationthresholds'
+                obj.modulationThresholds = val;
+            case 'notes'
+                obj.notes = val;
+            case 'nanaloginputs'
+                obj.nAnalogInputs = val;
+            case 'nchannels'
+                obj.nChannels = val;
+            case 'ndetectors'
+                obj.nDetectors = val;
+            case 'nsources'
+                obj.nSources = val;
+            case 'nsteps'
+                obj.nSteps = val;
+            case 'ntriggerinputs'
+                obj.nTriggerInputs = val;
+            case 'ntriggeroutputs'
+                obj.nTriggerOutputs = val;
+            case 'probeset'
+                obj.probesetInfo = val;
+            case 'paradigmstimulustype'
+                obj.paradigmStimulusType = val;
+            case 'source'
+                obj.source = val;
+            case 'studytypemodulation'
+                obj.studyTypeModulation = val;
+            case 'subjectindex'
+                obj.subjectIndex = val;
+            case 'samplingrate'
+                obj.samplingRate = val;
+            case 'samplingperiod'
+                obj.samplingPeriod = val;
+            case 'sdkey'
+                obj.sdKey = val;
+            case 'sdmask'
+                obj.sdMask = val;
+            case 'subjectage'
+                obj.userAge = val;
+            case 'subjectgender'
+                obj.userGender = val;
+            case 'subjectname'
+                obj.userName = val;
+
+        otherwise
+            obj=set@rawData(obj, prop, val);
+    end
 
 
-
-   otherwise
-        obj=set@rawData(obj, prop, val);
-   end
+   
 end
 
 

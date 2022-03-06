@@ -120,6 +120,7 @@ classdef rawData_UCLWireless < rawData
         nEvents
         nSamples
         nChannels
+        rawData
     end
  
     methods    
@@ -164,21 +165,7 @@ classdef rawData_UCLWireless < rawData
             % and look for the deoxyRawData object.
             val = obj.deoxyRawData;
         end
-        function obj = set.deoxyRawData(obj,val)
-            % The method is converted and encapsulated and can be used 
-            % as the example in the constructor method.
-            % This method allows the change of data values.
-            %   obj is the rawData_UCLWireless class
-            %   val = is the provided value, later it is conditioned 
-            %   according to the data type
-            if (isreal(val) && size(val,3)==2)
-                obj.oxyRawData = val(:,:,1);
-                obj.deoxyRawData = val(:,:,2);
-            else
-            error('ICNA:rawData_UCLWireless:set:InvalidParameterValue',...
-                  'Data is expected to contain both Oxy and Deoxy data.');
-            end
-        end
+        
         
         %wLengths/nominalwavelengthset
         function val = get.wLengths(obj)
@@ -197,15 +184,7 @@ classdef rawData_UCLWireless < rawData
         function val = get.oxyRawData(obj)
             val = obj.oxyRawData;
         end
-        function obj = set.oxyRawData(obj,val)
-            if (isreal(val) && size(val,3)==2)
-                obj.oxyRawData = val(:,:,1);
-                obj.deoxyRawData = val(:,:,2);
-            else
-            error('ICNA:rawData_UCLWireless:set:InvalidParameterValue',...
-                  'Data is expected to contain both Oxy and Deoxy data.');
-            end
-        end
+        
         
         %pretimeline
         function val = get.preTimeline(obj)
@@ -286,6 +265,17 @@ classdef rawData_UCLWireless < rawData
         function val = get.nSamples(obj)
            val= size(obj.oxyRawData,1);
            %Note that oxyRawData and deoxyRawData have the same size (class invariant) 
+        end
+        
+        %rawData
+        function obj = set.rawData(obj,val)
+            if (isreal(val) && size(val,3)==2)
+                obj.oxyRawData = val(:,:,1);
+                obj.deoxyRawData = val(:,:,2);
+            else
+                error('ICNA:rawData_UCLWireless:set:InvalidParameterValue',...
+                  'Data is expected to contain both Oxy and Deoxy data.');
+            end 
         end
 
     end
