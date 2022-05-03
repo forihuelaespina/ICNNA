@@ -40,5 +40,14 @@ function val = get(obj, propName)
 %   an error message if the property does not exist.
 %
 
-    val = obj.(lower(propName)); %Ignore case
+   tmp = lower(propName);
+    
+    switch (tmp)
+
+           case 'probemode'
+                val = obj.probeMode;
+
+        otherwise 
+            val =get@neuroimage(obj,propName);
+    end
 end

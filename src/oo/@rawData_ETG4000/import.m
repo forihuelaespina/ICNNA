@@ -97,7 +97,8 @@ function obj=import(obj,filename)
 %   versions of the HITACHI file. This has now been fixed, and different
 %   file versions can be read.
 %
-
+% 15-Mar-2022: ESR. Bug fixed. Se cambio spelling obj=set(obj,'NominalWavelenghtSet',wLengths);
+% obj=set(obj,'NominalWavelengthSet',wLengths);
 
 % Open the data file for conversion
 fidr = fopen(filename, 'r');
@@ -217,7 +218,7 @@ for wl=1:length(idx)-1
     wLengths(wl)=str2double(temp(idx(wl)+1:idx(wl+1))); %Read single wavelength
 end
 wLengths(end)=str2double(temp(idx(end)+1:end));%Read last wavelength
-obj=set(obj,'NominalWavelenghtSet',wLengths);
+obj=set(obj,'NominalWavelengthSet',wLengths);
 clear idx wLengths
 
 %waitbar(0.12,h);

@@ -293,9 +293,10 @@
 %   + The methods are added with the new structure. All the properties have 
 %   the new structure.
 %   + The new structure enables new MATLAB functions
+%   + nReferencePoints is a property dependent on chLocationMap
 
 classdef channelLocationMap
-    properties (SetAccess=private, GetAccess=private)
+    properties %(SetAccess=private, GetAccess=private)
         id=1;
         description='ChannelLocationMap0001';
         nChannels=0; %Number of channels supported by the channelLocationMap
@@ -331,6 +332,10 @@ classdef channelLocationMap
         OPTODE_TYPE_UNKNOWN=0;
         OPTODE_TYPE_EMISOR=1;
         OPTODE_TYPE_DETECTOR=2;
+    end
+    
+    properties (Dependent)
+        nReferencePoints
     end
     
     methods
@@ -511,8 +516,9 @@ classdef channelLocationMap
         end
         
         %referencePoints
-        function val = get.referencePoints(obj)
+        function val = get.nReferencePoints(obj)
             val = length(obj.referencePoints);
+            
         end
         
         

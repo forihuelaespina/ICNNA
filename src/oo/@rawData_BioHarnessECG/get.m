@@ -41,5 +41,20 @@ function val = get(obj, propName)
 % 17-February-2022 (ESR): We simplify the code
 %   + We simplify the code. All cases are in the rawData_BioHarnessECG class.
 %
-    val = obj.(lower(propName)); %Ignore case
+    tmp = lower(propName);
+    
+    switch (tmp)
+        
+           case 'rawdata'
+                val = obj.data; 
+           case 'samplingrate'
+                val = obj.samplingRate;
+           case 'starttime'
+                val = obj.startTime;
+           case 'timestamps'
+                val = obj.timestamps;
+
+        otherwise 
+        val = get@rawData(obj, propName);
+    end
 end

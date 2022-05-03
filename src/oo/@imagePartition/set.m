@@ -37,14 +37,40 @@ function obj = set(obj,varargin)
 %   + We create a dependent property inside the imagePartition class.
 %   + The Height and Width properties are inside of
 %   imagePartition class.
+%
+% 24-March-2022 (ESR): Lowercase
+%   + These cases are to convert the capitalization to lower case so that 
+%   they can all be called correctly.
+%
 
 propertyArgIn = varargin;
-while (length(propertyArgIn) >= 2)
-   prop = propertyArgIn{1};
-   val = propertyArgIn{2};
-   propertyArgIn = propertyArgIn(3:end);
+    while (length(propertyArgIn) >= 2)
+           prop = propertyArgIn{1};
+           val = propertyArgIn{2};
+           propertyArgIn = propertyArgIn(3:end);
 
-   obj.(lower(prop)) = val; %Ignore case
-end
-    assertInvariants(obj);
+           tmp = lower(prop);
+    
+        switch (tmp)
+
+           case 'associatedfile'
+                obj.associatedFile = val;
+           case 'id'
+                 obj.id = val;  
+           case 'name'
+                obj.name = val;
+           case 'screenresolution'
+                obj.screenResolution = val;
+           case 'size'
+                obj.size = val;
+           case 'height'
+                obj.height = val;
+           case 'width'
+                obj.width = val;
+
+        otherwise
+                error('ICNA:imagePartition:set:InvalidPropertyName',...
+                ['Property ' prop ' not valid.'])
+        end
+    end
 end

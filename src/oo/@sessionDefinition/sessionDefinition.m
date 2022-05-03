@@ -52,9 +52,14 @@
 %   + The new structure enables new MATLAB functions
 %   + The properties are arranged alphabetically on Get/Set methods.
 %
+% 02-May-2022 (ESR): sessionDefinition class SetAccess=private, GetAccess=private) removed
+%   + The access from private to public was commented because before the data 
+%   did not request to enter the set method and now they are forced to be executed, 
+%   therefore the private accesses were modified to public.
+%
 
 classdef sessionDefinition
-    properties (SetAccess=private, GetAccess=private)
+    properties %(SetAccess=private, GetAccess=private)
         id=1;
 	    name='Session0001';
         description='';

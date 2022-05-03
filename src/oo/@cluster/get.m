@@ -82,6 +82,98 @@ function val = get(obj, propName)
 %   + We simplify the code. All cases are in the cluster class.
 %   + We create a dependent property inside of the cluster class 
 %
+% 24-March-2022 (ESR): Lowercase
+%   + These cases are to convert the capitalization to lower case so that 
+%   they can all be called correctly.
 %
-     val = obj.(lower(propName)); %Ignore case
+     tmp = lower(propName);
+    
+    switch (tmp)
+
+               case 'id'
+                    val = obj.id;  
+               case 'tag'
+                    val = obj.tag;
+               case 'npatterns'
+                    val = obj.nPatterns;
+               case 'description'
+                    val = obj.description;
+               case 'patternindexes'
+                    val = obj.patternIdxs;
+               case 'visible'
+                    val = obj.visible;
+                    
+               % ==Cluster generating IDs
+               case 'subjectids'
+                    val = obj.subjectIDs;
+               case 'sessionids'
+                    val = obj.sessionIDs;     
+               case 'stimulusids'
+                    val = obj.stimulusIDs;  
+               case 'blockids'
+                    val = obj.blockIDs;
+               case 'channelgroupids'
+                    val = obj.channelGroupIDs;
+                    
+               % ==Cluster descriptors
+               case 'centroid'
+                    val = obj.centroid;
+               case 'centroidcriteria'
+                    val = obj.centroidCriteria;
+               case 'furthestpoint'
+                    val = obj.furthestPoint;
+               case 'avgdistance'
+                    val = obj.avgDistance; 
+               case 'maxdistance'
+                    val = obj.maxDistance;  
+                    
+               % ==Visualization attributes
+               case 'displaypatternpoints'
+                    val = obj.displayPatternPoints;
+               case 'displaycentroid'
+                    val = obj.displayCentroid;
+               case 'displayfurthestpoint'
+                    val = obj.displayFurthestPoint;
+               case 'displaylink'
+                    val = obj.displayLink;
+               case 'displayavgdcircle'
+                    val = obj.displayAvgDCircle;
+                    
+               % ==== Patterns (data) visualization properties
+               case 'dmarker'
+                    val = obj.dMarker; 
+               case 'dmarkersize'
+                    val = obj.dMarkerSize;  
+               case 'dcolor'
+                    val = obj.dColor;
+               
+               % ==== Centroid visualization properties
+               case 'cmarker'
+                    val = obj.cMarker;
+               case 'cmarkersize'
+                    val = obj.cMarkerSize;
+               case 'ccolor'
+                    val = obj.cColor;
+                    
+               % ==== Furthest Point and link visualization properties
+               case 'fpmarker'
+                    val = obj.fpMarker;
+               case 'fpmarkersize'
+                    val = obj.fpMarkerSize; 
+               case 'fpcolor'
+                    val = obj.fpColor;
+               case 'linkcolor'
+                    val = obj.linkColor;
+               case 'linklinewidth'
+                    val = obj.linkLineWidth;
+                    
+               % ====Average distance circle visualization properties
+               case 'avgccolor'
+                    val = obj.avgcColor;
+               case 'avgclinewidth'
+                    val = obj.avgcLineWidth; 
+
+        otherwise 
+            error([propName,' is not a valid property'])
+    end
 end

@@ -74,7 +74,28 @@ propertyArgIn = varargin;
        val = propertyArgIn{2};
        propertyArgIn = propertyArgIn(3:end);
        
-       obj.(lower(prop)) = val; %Ignore case
+           tmp = lower(prop);
+
+        switch (tmp)
+            
+           case 'data'
+                obj.data = val;
+           case {'RPeaksMode','rpeaksmode'}
+                obj.rPeaksMode = val;  
+           case {'RPeaksAlgo','rpeaksalgo'}
+                obj.rPeaksAlgo = val;
+           case {'RPeaks','rpeaks'}
+                obj.RPeaks = val;
+           case {'SamplingRate','samplingrate'}
+                obj.samplingRate = val;
+           case {'StartTime','starttime'}
+                obj.startTime = val;
+           case {'Threshold','threshold'}
+                obj.Threshold = val;
+
+            otherwise
+                obj=set@structuredData(obj,prop,val);
+        end
    end
 end
 %assertInvariants(obj);

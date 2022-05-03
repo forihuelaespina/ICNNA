@@ -369,6 +369,7 @@ nSamples=size(obj.lightRawData,1);
 nSignals=length(obj.wLengths);
 nChannels = get(obj,'nChannels');
 nWlengths=length(get(obj,'nominalWavelengthSet'));
+
 nimg=nirs_neuroimage(1,[nSamples,nChannels,nSignals]);
 
 
@@ -636,8 +637,8 @@ end     % for each channel pair
 c_hb=zeros(nSamples,nChannels,2);
 c_hb(:,:,nirs_neuroimage.OXY)=c_oxy;
 c_hb(:,:,nirs_neuroimage.DEOXY)=c_deoxy;
-nimg=set(nimg,'Data',c_hb);
 
+nimg=set(nimg,'Data',c_hb);
 %fprintf('\n');
 
 %Now update the channel location map information

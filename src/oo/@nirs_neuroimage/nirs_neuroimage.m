@@ -42,9 +42,14 @@
 %   the new structure.
 %   + The new structure enables new MATLAB functions.
 %
+% 02-May-2022 (ESR): nirs_neuroimage class SetAccess=private, GetAccess=private) removed
+%   + The access from private to public was commented because before the data 
+%   did not request to enter the set method and now they are forced to be executed, 
+%   therefore the private accesses were modified to public.
+%
 
 classdef nirs_neuroimage < neuroimage
-    properties (SetAccess=private, GetAccess=private)
+    properties %(SetAccess=private, GetAccess=private)
         probeMode='3x3'; %DEPRECATED. See superclass neuroimage channelLocationMap
     end
     properties (Constant=true, GetAccess=public)
@@ -82,7 +87,9 @@ classdef nirs_neuroimage < neuroimage
             % Author: Felipe Orihuela-Espina
             %
             
+            
             obj = obj@neuroimage(varargin{:});
+            
             if (nargin==0)
                 %Keep default values
             elseif isa(varargin{1},'nirs_neuroimage')

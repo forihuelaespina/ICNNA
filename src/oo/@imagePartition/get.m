@@ -36,6 +36,30 @@ function val = get(obj, propName)
 %   + We simplify the code. All cases are in the imagePartition class.
 %   + We create a dependent property inside of the imagePartition class 
 %
+% 24-March-2022 (ESR): Lowercase
+%   + These cases are to convert the capitalization to lower case so that 
+%   they can all be called correctly.
 %
-     val = obj.(lower(propName)); %Ignore case
+      tmp = lower(propName);
+    
+    switch (tmp)
+
+           case 'associatedfile'
+                val = obj.associatedFile;
+           case 'id'
+                val = obj.id;  
+           case 'name'
+                val = obj.name;
+           case 'screenresolution'
+                val = obj.screenResolution;
+           case 'size'
+                val = obj.size;
+           case 'height'
+                val = obj.height;
+           case 'width'
+                val = obj.width;
+                      
+        otherwise 
+            error([propName,' is not a valid property'])
+    end
 end

@@ -1,3 +1,4 @@
+
 %Class logarithmicRadialGrid
 %
 %A radial grid to impose over a 2D space. Rings radious are generated
@@ -48,10 +49,15 @@
 % 20-February-2022 (ESR): Get/Set Methods created in logarithmicRadialGrid
 %   + The methods are added with the new structure. All the properties have 
 %   the new structure.
+%
+% 02-May-2022 (ESR): logarithmicRadialGrid class SetAccess=private, GetAccess=private) removed
+%   + The access from private to public was commented because before the data 
+%   did not request to enter the set method and now they are forced to be executed, 
+%   therefore the private accesses were modified to public.
 %   
 
 classdef logarithmicRadialGrid < menaGrid
-    properties (SetAccess=private, GetAccess=private)
+    properties %(SetAccess=private, GetAccess=private)
         minR=10;
         maxR=1000;
         nRings=5;

@@ -59,5 +59,30 @@ function val = get(obj, propName)
 %   + We create a dependent property inside the ecg class 
 %
 %
-     val = obj.(lower(propName)); %Ignore case
+     tmp = lower(propName);
+    
+    switch (tmp)
+
+           case 'rr'
+                val = obj.rr;
+           case 'data'
+                val = obj.data;
+           case 'rpeaksmode'
+                val = obj.rPeaksMode;  
+           case 'rpeaksalgo'
+                val = obj.rPeaksAlgo;
+           case 'rpeaks'
+                val = obj.rPeaks;
+           case 'samplingrate'
+                val = obj.samplingRate;
+           case 'starttime'
+                val = obj.startTime;
+           case 'threshold'
+                val = obj.threshold;
+           case 'nn'
+                val = obj.nn;     
+        
+        otherwise 
+            val = get@structuredData(obj, propName);
+    end
 end

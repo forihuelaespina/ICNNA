@@ -50,11 +50,17 @@
 %   the new structure.
 %   + The new structure enables new MATLAB functions
 %   + We create a dependent property inside of the experiment class.
-%   + The dataSet property dependent are in the
-%   experiment class.
+%   + The dataset property dependent are in the experiment class.
+%
+% 02-May-2022 (ESR): experiment class SetAccess=private, GetAccess=private) removed
+%   + The access from private to public was commented because before the data 
+%   did not request to enter the set method and now they are forced to be executed, 
+%   therefore the private accesses were modified to public.
+%
+%
 
 classdef experiment
-    properties (SetAccess=private, GetAccess=private)
+    properties %(SetAccess=private, GetAccess=private)
         name='NewExperiment';
         version='1.0';
         description='';
@@ -65,7 +71,7 @@ classdef experiment
     end
     
     properties (Dependent)
-       dataSet 
+       dataset 
     end
     
     methods
@@ -121,7 +127,7 @@ classdef experiment
         %encapsulation. 
         
         %dataset
-        function val = get.dataSet(obj)
+        function val = get.dataset(obj)
             val = obj.dataset;
         end
         

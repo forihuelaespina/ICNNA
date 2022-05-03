@@ -192,9 +192,14 @@
 %   the new structure.
 %   + The new structure enables new MATLAB functions
 %   + We create a dependent property inside of the cluster class.
-
+%
+% 02-May-2022 (ESR): cluster class SetAccess=private, GetAccess=private) removed
+%   + The access from private to public was commented because before the data 
+%   did not request to enter the set method and now they are forced to be executed, 
+%   therefore the private accesses were modified to public.
+%
 classdef cluster
-    properties (SetAccess=private, GetAccess=private)
+    properties %(SetAccess=private, GetAccess=private)
         id=1;
         tag='Cluster0001';
         description='';
@@ -246,8 +251,8 @@ classdef cluster
     end
     
     properties (Dependent)
-       NPatterns
-       Color
+       nPatterns
+       color
     end
     
     methods
@@ -854,7 +859,7 @@ classdef cluster
         %---------------------------------------------------------------->
         
         %Color
-        function obj = set.Color(obj,val)
+        function obj = set.color(obj,val)
             obj=set(obj,'DataColor',val,...
                         'CentroidColor',val,...
                         'FurthestPointColor',val,...
@@ -863,7 +868,7 @@ classdef cluster
         end
         
         %NPatterns
-        function val = get.NPatterns(obj)
+        function val = get.nPatterns(obj)
             val = length(obj.patternIdxs);
         end
         

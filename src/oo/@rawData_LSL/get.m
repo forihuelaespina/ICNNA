@@ -45,5 +45,13 @@ function val = get(obj, propName)
 %   + We create a dependent property inside the rawData_LSL.    
 %
 
-     val = obj.(lower(propName)); %Ignore case
+     tmp = lower(propName);
+    
+    switch (tmp)
+
+        case 'rawdata'
+            val = obj.data;
+        otherwise 
+            val = get@rawData(obj, propName); 
+    end
 end

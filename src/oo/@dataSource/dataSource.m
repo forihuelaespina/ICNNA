@@ -91,9 +91,26 @@
 %   + The new structure enables new MATLAB functions
 %   + We create a dependent property inside of the dataSource class.
 %
+% 24-March-2022 (ESR): We change the following line of code of the 
+%     set method of activeStructured: && ismember(val,getStructuredDataList(obj))
+%   + With the new syntax all methods are forced to pass through the get and set.
+%     ismember is the one that is chosen as active must be one that exists. However, 
+%     by giving 0 then ismember does not allow the conditional to be met.
+%     The solution is not to remove the condition because it removes the lock. 
+%     This is solved by telling it that the value will be equal 0 
+%     when the structuredData list is empty.
+%     The solution of the code is as follows 
+%     or(and( isempty(getStructuredDataList(obj)),val==0), ismember(val,getStructuredDataList(obj)) 
+%
+% 02-May-2022 (ESR): All classes must be public.
+%   + With the new syntax all the processes are forced to enter from class 
+%     to class, this is because we have the methods inside the classes and 
+%     not outside of them. The method files of each set/get class are declared 
+%     only to be called correctly.
+%
 
 classdef dataSource
-    properties (SetAccess=private, GetAccess=private)
+    properties %(SetAccess=private, GetAccess=private)
         id=1;
         name='DataSource0001';
         deviceNumber=1;
@@ -104,7 +121,7 @@ classdef dataSource
     end
     
     properties (Dependent)
-        Type
+        type
     end
     
     methods
@@ -162,9 +179,11 @@ classdef dataSource
             %   obj is the dataSource class
             %   val = is the provided value, later it is conditioned 
             %   according to the data type
-            if (isscalar(val) && (val==floor(val)) ...
-                && (val>0) && (val<=length(obj.structured)) ...
-                && ismember(val,getStructuredDataList(obj)))
+
+            if (isscalar(val) && (val==floor(val)) && (val>=0)...
+                && (val<=length(obj.structured))...
+                && or(and( isempty(getStructuredDataList(obj)),val==0), ismember(val,getStructuredDataList(obj)) ))
+                
                 obj.activeStructured = val;
             else
                 error('Value must be a positive integer');
@@ -229,7 +248,7 @@ classdef dataSource
         end
         
         %Type
-        function val = get.Type(obj)
+        function val = get.type(obj)
             %Find the type on the fly
             val='';
             if ~(isempty(obj.structured))

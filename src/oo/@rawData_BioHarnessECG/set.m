@@ -48,5 +48,20 @@ while (length(propertyArgIn) >= 2)
    val = propertyArgIn{2};
    propertyArgIn = propertyArgIn(3:end);
 
-   obj.(lower(prop)) = val; %Ignore case
+   tmp = lower(prop);
+    
+    switch (tmp)
+        
+        case 'rawdata'
+            obj.data = val;
+        case 'samplingrate'
+            obj.samplingRate = val;
+        case 'starttime'
+           obj.startTime = val;
+        case 'timestamps'
+            obj.timestamps = val;
+
+        otherwise
+            obj=set@rawData(obj, prop, val);
+    end
 end

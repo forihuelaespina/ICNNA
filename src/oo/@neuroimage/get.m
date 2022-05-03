@@ -40,5 +40,14 @@ function val = get(obj, propName)
 %   + We simplify the code. All cases are in the neuroimage class.
 %
 
-    val = obj.(lower(propName)); %Ignore case
+    tmp = lower(propName);
+    
+    switch (tmp)
+
+           case {'channellocationmap','chlocationmap'} %comentar
+                val = obj.chLocationMap;
+
+        otherwise 
+            val =get@structuredData(obj,propName);
+    end
 end

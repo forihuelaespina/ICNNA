@@ -39,7 +39,30 @@ function val = get(obj, propName)
 %
 % 20-February-2022 (ESR): We simplify the code
 %   + We simplify the code. All cases are in the channelLocationMap class.
+%   + These cases are to convert the capitalization to lower case so that 
+%   they can all be called correctly.
 %
-%
-     val = obj.(lower(propName)); %Ignore case
+     tmp = lower(propName);
+    
+    switch (tmp)
+
+           case 'description'
+                val = obj.description;
+           case 'id'
+                val = obj.id;  
+           case 'nchannels'
+                val = obj.nChannels;
+           case 'noptodes'
+                val = obj.nOptodes;
+           case 'nreferencepoints'
+                val = obj.nReferencePoints;
+           case 'surfacepositioningsystem'
+                val = obj.surfacePositioningSystem;
+           case 'stereotacticpositioningsystem'
+                val = obj.stereotacticPositioningSystem;
+           
+        otherwise 
+            error('ICNA:channelLocationMap:get:InvalidPropertyName',...
+            [propName,' is not a valid property.']);
+    end
 end

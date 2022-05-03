@@ -22,6 +22,22 @@ function val = get(obj, propName)
 %   + We simplify the code. All cases are in the dataSourceDefinition class.
 %   + We create a dependent property inside of the dataSourceDefinition class 
 %
+% 24-March-2022 (ESR): Lowercase
+%   + These cases are to convert the capitalization to lower case so that 
+%   they can all be called correctly.
 %
-     val = obj.(lower(propName)); %Ignore case
+    tmp = lower(propName);
+    
+    switch (tmp)
+        
+           case 'id'
+                val = obj.id;  
+           case 'type'
+                val = obj.type;
+           case 'devicenumber'
+                val = obj.deviceNumber; 
+        
+        otherwise 
+            error([propName,' is not a valid property'])
+    end
 end

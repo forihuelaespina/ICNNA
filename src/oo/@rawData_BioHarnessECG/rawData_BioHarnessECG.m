@@ -41,9 +41,14 @@
 %   + The new structure enables new MATLAB functions
 %   + We create a dependent property inside the rawData_BioHarnessECG class.
 %
+% 02-May-2022 (ESR): rawData_BioHarnessECG class SetAccess=private, GetAccess=private) removed
+%   + The access from private to public was commented because before the data 
+%   did not request to enter the set method and now they are forced to be executed, 
+%   therefore the private accesses were modified to public.
+%
 
 classdef rawData_BioHarnessECG < rawData
-    properties (SetAccess=private, GetAccess=private)
+    properties %(SetAccess=private, GetAccess=private)
         samplingRate=250;%in [Hz]
         startTime=datevec(date);
         timeStamps=zeros(0,1); %in milliseconds

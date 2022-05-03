@@ -62,16 +62,38 @@
 %   + The methods are added with the new structure. All the properties have 
 %   the new structure.
 %   + The new structure enables new MATLAB functions.
+% 
+% 24-March-2022 (ESR): neuroimage class SetAccess=private, GetAccess=private) removed
+%   + The access from private to public was commented because before the data 
+%   did not request to enter the set method and now they are forced to be executed, 
+%   therefore the private accesses were modified to public.
+%
+% 24-March-2022 (ESR): obj=set@structuredData(obj,'Data',val); removed
+%   + Specifically, it was the following line of code that presented the error. 
+%   What was the solution? We moved the code of the data set method to the 
+%   father class that requests that data. The father class is structuredData, 
+%   there we can find the code in the section of the data set method. 
+%
+%   + With the new versions of matlab the set method of the Data property was 
+%   commented because it presented a code update error.
+%   The following link presents a solution by a matlab worker named as 
+%   "MathWorks Support Team"; 
+%   https://la.mathworks.com/matlabcentral/
+%   answers/395870-how-can-i-call-the-set-dot-method-on-a-subclass-object
+%   -to-set-a-property-of-the-superclass
+% 
+% 02-May-2022 (ESR): neuroimage class SetAccess=private, GetAccess=private) removed
+%   + The access from private to public was commented because before the data 
+%   did not request to enter the set method and now they are forced to be executed, 
+%   therefore the private accesses were modified to public.
 %
 
 classdef neuroimage < structuredData
-    properties (SetAccess=private, GetAccess=private)
+    properties %SetAccess=private, GetAccess=private)
         chLocationMap=channelLocationMap;
     end
     
-    properties (Dependent)
-       Data 
-    end
+
 
     methods
         function obj=neuroimage(varargin)
@@ -90,8 +112,10 @@ classdef neuroimage < structuredData
             %       <nSamples,nChannels,nSignals>
             %
             %
-
+            
+            
             obj = obj@structuredData();
+            
 
             if (nargin==0)
                 %Keep default values
@@ -102,7 +126,9 @@ classdef neuroimage < structuredData
                 obj=set(obj,'ID',varargin{1});
                 if (nargin>1) %Image size also provided
                     if ((isnumeric(varargin{2})) && (length(varargin{2})==3))
+                       
                         obj=set(obj,'Data',zeros(varargin{2}));
+                        
                         cml=channelLocationMap;
                         cml=set(cml,'nChannels',varargin{2}(2));
                         obj=set(obj,'ChannelLocationMap',cml);
@@ -137,8 +163,9 @@ classdef neuroimage < structuredData
            end 
         end
         
+        %Matlab Update error | This set method is in the father class structuredData
         %Data
-        function obj = set.Data(obj,val)
+        %function obj = set.data(obj,val)
             %Setting the data may alter the size of it (i.e. the
             %number of channels. If I call the set method directly
             %it will evaluate the assertInvariants method -of the
@@ -152,18 +179,19 @@ classdef neuroimage < structuredData
             %channelLocationMap BEFORE setting the data, so that
             %when the assertInvariants is called, the channelLocationMap
             %already has the appropriate size.
-            try
+            %try
                 %ensure that the channelLocationMap has the appropriate
                 %size
-                obj.chLocationMap = ...
-                    set(obj.chLocationMap,'nChannels',size(val,2));
-                %...and only then, set the data
-                obj=set@structuredData(obj,'Data',val);
-            catch
-               error('ICNA:neuroimage:set:InvalidPropertyValue',...
-                     'Data must be a numeric.');
-            end
-        end
+%                 obj.chLocationMap = ...
+%                     set(obj.chLocationMap,'nChannels',size(val,2));
+%                 %...and only then, set the data
+%                 obj=set@structuredData(obj,'Data',val);
+%                 %obj.data = val;
+%             catch
+%                error('ICNA:neuroimage:set:InvalidPropertyValue',...
+%                      'Data must be a numeric.');
+%             end
+        %end
     end
     
     methods (Access=protected)

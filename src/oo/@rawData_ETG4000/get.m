@@ -83,5 +83,69 @@ function val = get(obj, propName)
 %   + We create a dependent property inside the rawData_ETG4000 class.
 %
 
-    val = obj.(lower(propName)); %Ignore case
+   tmp = lower(propName);
+    
+    switch (tmp)
+
+           case 'analyzemode'
+                val = obj.analyzeMode;
+           case 'basetime'
+                val = obj.baseTime;
+           case 'bodymovement'
+                val = obj.bodyMovement; 
+           case 'fileversion'
+                val = obj.fileVersion;
+           case 'fittingdegree'
+                val = obj.fittingDegree;
+           case 'hpf'
+                val = obj.hpf;
+           case {'wlengths','nominalwavelengthset'}
+                val = obj.wLengths;
+           case 'lpf'
+                val = obj.lpf;
+           case 'lightrawdata'
+                val = obj.lightRawData;
+           case 'movingaverage'
+                val = obj.movingAvg;
+           case 'marks'
+                val = obj.marks;
+           case 'nblocks'
+                val = obj.nBlocks;
+           case 'nprobes'
+                val = obj.nProbes;
+           case 'nprobesets'
+                val = obj.nProbeSets;
+           case 'nchannels'
+                val = obj.nChannels;
+           case 'prescan'
+                val = obj.preScan;
+           case 'pretime'
+                val = obj.preTime;
+           case 'posttime'
+                val = obj.postTime;
+           case 'recoverytime'
+                val = obj.recoveryTime; 
+           case 'repeatcount'
+                val = obj.repeatCount;
+           case 'removalmarks'
+                val = obj.removalMarks;
+           case 'samplingperiod'
+                val = obj.samplingPeriod; 
+           case 'samplingrate'
+                val = obj.samplingRate;
+           case 'timestamps'
+                val = obj.timestamps;
+           case 'subjectname'
+                val = obj.userName;
+           case 'subjectsex'
+                val = obj.userSex;
+           case 'subjectbirthdate'
+                val = obj.userBirthDate;
+           case 'subjectage'
+                val = obj.userAge;
+           case 'version'
+                val = obj.version;
+        otherwise 
+            val = get@rawData(obj, propName);
+    end
 end

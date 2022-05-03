@@ -23,6 +23,28 @@ function val = get(obj, propName)
 %   + We simplify the code. All cases are in the experiment class.
 %   + We create a dependent property inside the experiment class 
 %   + The dataSet property is inside of the experiment class.
+% 
+% 24-March-2022 (ESR): Lowercase
+%   + These cases are to convert the capitalization to lower case so that 
+%   they can all be called correctly.
 %
-     val = obj.(lower(propName)); %Ignore case
+      tmp = lower(propName);
+    
+    switch (tmp)
+
+           case 'dataset'
+                val = obj.dataset;
+           case 'date'
+                val = obj.date;
+           case 'description'
+                val = obj.description;  
+           case 'name'
+                val = obj.name;
+           case 'version'
+                val = obj.version;
+               
+        
+        otherwise 
+            error([propName,' is not a valid property'])
+    end
 end

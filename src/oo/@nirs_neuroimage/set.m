@@ -52,6 +52,15 @@ function obj = set(obj,varargin)
        val = propertyArgIn{2};
        propertyArgIn = propertyArgIn(3:end);
 
-       obj.(lower(prop)) = val; %Ignore case
+       tmp = lower(prop);
+    
+        switch (tmp)
+
+            case 'probemode'
+                obj.probeMode = val;
+
+            otherwise
+                obj=set@neuroimage(obj,prop,val);
+        end
     end
 end

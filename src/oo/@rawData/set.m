@@ -28,11 +28,23 @@ function obj = set(obj,varargin)
 %   + All cases are in the rawData class.
 %
         propertyArgIn = varargin;
-    while (length(propertyArgIn) >= 2)
+    while (length(propertyArgIn) >= 2) %preguntar
            prop = propertyArgIn{1};
            val = propertyArgIn{2};
            propertyArgIn = propertyArgIn(3:end);
 
-           obj.(lower(prop)) = val; %Ignore case
+           tmp = lower(prop);
+    
+        switch (tmp)
+           
+            case 'date'
+                obj.date = val;
+            case 'description'
+               obj.description = val;
+               
+            otherwise
+                error('ICNA:rawData:set',...
+                ['Property ' prop ' not valid.'])
+        end
     end
 end

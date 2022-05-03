@@ -53,9 +53,14 @@
 %   + The new structure enables new MATLAB functions
 %   + We create a dependent property inside of the dataSourceDefinition class.
 %
+% 02-May-2022 (ESR): dataSourceDefinition class SetAccess=private, GetAccess=private) removed
+%   + The access from private to public was commented because before the data 
+%   did not request to enter the set method and now they are forced to be executed, 
+%   therefore the private accesses were modified to public.
+%
 
 classdef dataSourceDefinition
-    properties (SetAccess=private, GetAccess=private)
+    properties %(SetAccess=private, GetAccess=private)
         id=1;
 	    type='';
         deviceNumber=1;
@@ -135,6 +140,7 @@ classdef dataSourceDefinition
             end
         end
         
+        %type
         function val = get.type(obj)
             val = obj.type;
         end
@@ -146,6 +152,7 @@ classdef dataSourceDefinition
             end
         end
         
+        %deviceNumber
         function val = get.deviceNumber(obj)
             val = obj.deviceNumber;
         end

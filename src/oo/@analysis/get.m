@@ -49,6 +49,47 @@ function val = get(obj, propName)
 %   + We create a dependent property inside of the analysis class 
 %
 %
-     val = obj.(lower(propName)); %Ignore case
+      tmp = lower(propName);
+    
+    switch (tmp)
+
+           case 'description'
+                val = obj.description;
+           case 'id'
+                val = obj.id;  
+           case 'name'
+                val = obj.name;           
+           case 'metric'
+                val = obj.metric;
+           case 'embedding'
+                val = obj.embedding;
+           case 'projectiondimensionality'
+                val = obj.projectionDimensionality;
+           case 'experimentspace'
+                val = obj.F;
+           case 'featurespace'
+                val = obj.H;           
+           case 'projectionspace'
+                val = obj.Y;
+           case 'patterndistances'
+                val = obj.D;
+           case 'patternindexes'
+                val = obj.I;
+           case 'npatterns'
+                val = obj.nPatterns;  
+           case 'runstatus'
+                val = obj.runStatus;           
+           case 'subjectsincluded'
+                val = obj.subjectsIncluded;
+           case 'sessionsincluded'
+                val = obj.sessionsIncluded;
+           case 'channelgrouping'
+                val = obj.channelGrouping;
+           case 'signaldescriptors'
+                val = obj.signalDescriptors;  
+        
+        otherwise 
+            error([propName,' is not a valid property'])
+    end
 
 end
