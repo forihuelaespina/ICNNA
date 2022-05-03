@@ -93,7 +93,65 @@ while (length(propertyArgIn) >= 2)
    val = propertyArgIn{2};
    propertyArgIn = propertyArgIn(3:end);
 
-   obj.(lower(prop)) = val; %Ignore case
+   tmp = lower(prop);
+    
+    switch (tmp)
+        
+           case 'analyzemode'
+                obj.analyzeMode = val;
+           case 'basetime'
+                obj.baseTime = val;
+           case 'bodymovement'
+                obj.bodyMovement = val; 
+           case 'fileversion'
+                obj.fileVersion = val;
+           case 'fittingdegree'
+                obj.fittingDegree = val;
+           case 'hpf'
+                obj.hpf = val;
+           case {'wlengths','nominalwavelengthset'}
+                obj.wLengths = val;
+           case 'lpf'
+                obj.lpf = val;
+           case 'lightrawdata'
+                obj.lightRawData = val;
+           case 'movingaverage'
+                obj.movingAvg = val;
+           case 'marks'
+                obj.marks = val;
+           case 'nblocks'
+                obj.nBlocks = val;
+           case 'prescan'
+                obj.preScan = val;
+           case 'pretime'
+                obj.preTime = val;
+           case 'posttime'
+                obj.postTime = val;
+           case 'recoverytime'
+                obj.recoveryTime = val; 
+           case 'repeatcount'
+                obj.repeatCount = val;
+           case 'removalmarks'
+                obj.removalMarks = val;
+           case 'samplingperiod'
+                obj.samplingPeriod = val; 
+           case 'samplingrate'
+                obj.samplingRate = val;
+           case 'timestamps'
+                obj.timeStamps = val;
+           case 'subjectname'
+                obj.userName = val;
+           case 'subjectsex'
+                obj.userSex = val;
+           case 'subjectbirthdate'
+                obj.userBirthDate = val;
+           case 'subjectage'
+                obj.userAge = val;
+           case 'version'
+                obj.version = val;
+
+        otherwise
+            obj=set@rawData(obj, prop, val);
+    end
 end
-    assertInvariants(obj);
 end

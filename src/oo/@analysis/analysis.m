@@ -331,10 +331,14 @@
 %   + The new structure enables new MATLAB functions
 %   + We create a dependent property inside of the analysis class.
 %
+% 03-May-2022 (ESR): analysis class SetAccess=private, GetAccess=private) removed
+%   + The access from private to public was commented because before the data 
+%   did not request to enter the set method and now they are forced to be executed, 
+%   therefore the private accesses were modified to public.
 %
 
 classdef analysis
-    properties (SetAccess=private, GetAccess=private)
+    properties %(SetAccess=private, GetAccess=private)
         id=1;
 	    name='Analysis0001';
         description='';
@@ -363,7 +367,7 @@ classdef analysis
     end
     
     properties(Dependent)
-       NPatterns 
+       nPatterns 
     end
     
     properties (Constant=true, SetAccess=private, GetAccess=protected)
@@ -693,7 +697,7 @@ classdef analysis
         end
         
         %NPatterns
-        function val = get.NPatterns(obj)
+        function val = get.nPatterns(obj)
             val = size(obj.H,1);
         end
         

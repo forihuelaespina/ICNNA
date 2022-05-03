@@ -128,9 +128,25 @@
 %   the new structure (length,nominalsamplingrate,starttime and timestamps)
 %   + We create .cropOrRemoveEvents file inside the timeline class.
 %   
+% 24-March-2022 (ESR): timeline class SetAccess=private, GetAccess=private) removed
+%   + The access from private to public was commented because before the data 
+%   did not request to enter the set method and now they are forced to be executed, 
+%   therefore the private accesses were modified to public.
+%   
+% 15-April-2022 (ESR): it is necessary to assert that the number of 
+%   timestamps is equal to the size of the length property.
+%   assert(numel(obj.timestamps)==obj.length
+%
+% 02-May-2022 (ESR): Events were not removed because cropOrRemoveEvents 
+%   with the new syntax did not update and therefore did not clip the events.
+%   [res,obj]=obj.cropOrRemoveEvents(val);
+%   
+%
+%
 
 classdef timeline
-    properties (SetAccess=private, GetAccess=private)
+    %we will change the access of private to public
+    properties %(SetAccess=private, GetAccess=private)
         length=0;
         startTime = now;
         timestamps = zeros(0,1); %in seconds relative to .startTime
@@ -217,15 +233,18 @@ classdef timeline
             %   obj is the timeline class
             %   val = is the provided value, later it is conditioned 
             %   according to the data type
+
             if (isscalar(val) && (val==floor(val)))
                 
                 %Remove or crop events beyond the new length.
-                res=obj.cropOrRemoveEvents(val);
+                
+                [res,obj]=obj.cropOrRemoveEvents(val);%comentar
                 if (res)
                     warning('ICNA:timeline:set:EventsCropped',...
                         ['Events lasting beyond the new length ' ...
                         'will be cropped or removed.']);
                 end
+               
                 
                 if val>obj.length
                     %Generate extra timestamps
@@ -235,7 +254,7 @@ classdef timeline
                     end
                     extraTimestamps = initStamp + ...
                         (1:val-obj.length) / get(obj,'NominalSamplingRate');
-                        obj.timestamps = [obj.timestamps; extraTimestamps'];
+                    obj.timestamps = [obj.timestamps; extraTimestamps'];
                 elseif val<obj.length
                     %Remove the later timestamps
                     obj.timestamps(val+1:end) = [];
@@ -243,10 +262,13 @@ classdef timeline
                 
                 obj.length = val;
                 
+                assert(numel(obj.timestamps)==obj.length,...
+                    'ICNA:timeline:set:ViolatedInvariant');
+                
             else
                 error('ICNA:timeline:set:InvalidParameterValue',...
-                        'Value must be a scalar natural/integer.');
-            end  
+                    'Value must be a scalar natural/integer.');
+            end
         end
         
         %nConditions
@@ -298,8 +320,8 @@ classdef timeline
         end
         function obj = set.timestamps(obj,val)
             if (isvector(val) && ~ischar(val) ...
-                && all(val(1:end-1)<val(2:end)) ...
-                && numel(val)==obj.get('length'))
+                && all(val(1:end-1)<val(2:end)))
+                %&& numel(val)==obj.get('length'))
                 %ensure it is a column vector
                 val = reshape(val,numel(val),1);
                 obj.timestamps = val;

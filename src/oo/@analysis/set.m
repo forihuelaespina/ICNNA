@@ -55,6 +55,37 @@ propertyArgIn = varargin;
        val = propertyArgIn{2};
        propertyArgIn = propertyArgIn(3:end);
        
-       obj.(lower(prop)) = val; %Ignore case
+      tmp = lower(prop);
+    
+    switch (tmp)
+
+           case 'description'
+                obj.description = val;
+           case 'id'
+                obj.id = val;  
+           case 'name'
+                obj.name = val;           
+           case 'metric'
+                obj.metric = val;
+           case 'embedding'
+                obj.embedding = val;
+           case 'projectiondimensionality'
+                obj.projectionDimensionality = val;
+           case 'experimentspace'
+                obj.F = val;         
+           case 'subjectsincluded'
+                obj.subjectsIncluded = val;
+           case 'sessionsincluded'
+                obj.sessionsIncluded = val;
+           case 'channelgrouping'
+                obj.channelGrouping = val;
+           case 'signaldescriptors'
+                obj.signalDescriptors = val;  
+            
+
+        otherwise
+            error('ICNA:analysis:set:UndefinedProperty',...
+            ['Property ' prop ' not valid.'])
+    end
    end
 end

@@ -319,11 +319,18 @@
 %   the new structure.
 %   + The new structure enables new MATLAB functions
 %   + We create a dependent property inside the rawData_NIRScout class.
-%   +The samplingPeriod dependent property depends on samplingRate. 
+%   + The samplingPeriod dependent property depends on samplingRate. 
+%
+% 08-March-2022 (ESR): Correction of zeros inside the constructor in the sdkey and sdmask.
+%
+% 02-May-2022 (ESR): rawData_NIRScout class SetAccess=private, GetAccess=private) removed
+%   + The access from private to public was commented because before the data 
+%   did not request to enter the set method and now they are forced to be executed, 
+%   therefore the private accesses were modified to public.
 %
 
 classdef rawData_NIRScout < rawData
-    properties (SetAccess=private, GetAccess=private)
+    properties %(SetAccess=private, GetAccess=private)
         %General information
         filename='NIRS-2018-01-01_001';
         device='NIRScout 16x24';
@@ -434,8 +441,8 @@ classdef rawData_NIRScout < rawData
             %
             
             obj.gains=6*ones(obj.nSources,obj.nDetectors);
-            obj.sdKey= nan(obj.nSources,obj.nDetectors);
-            obj.sdMask= nan(obj.nSources,obj.nDetectors);
+            obj.sdKey= zeros(obj.nSources,obj.nDetectors);
+            obj.sdMask= zeros(obj.nSources,obj.nDetectors);
             
             if (nargin==0)
                 %Keep all other default values
@@ -662,7 +669,7 @@ classdef rawData_NIRScout < rawData
         function val = get.nSources(obj)
             val = obj.nSources;
         end
-        function obj =setnSources(obj,val)
+        function obj =set.nSources(obj,val)
             if (isscalar(val) && isnumeric(val) && mod(val,val)==0 && val>=0)
                 obj.nSources = val;
             else
@@ -832,7 +839,9 @@ classdef rawData_NIRScout < rawData
            val = obj.sdKey; 
         end
         function obj = set.sdKey(obj,val)
+            
             if (all(all(floor(val)==val)) && all(all(val>=0)))
+                
                 obj.sdKey = val;
             else
                 error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...

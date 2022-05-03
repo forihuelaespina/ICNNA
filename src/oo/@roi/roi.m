@@ -44,10 +44,15 @@
 %   + The new structure enables new MATLAB functions
 %   + We create a dependent property inside the roi class.
 %   
+% 02-May-2022 (ESR): roi class SetAccess=private, GetAccess=private) removed
+%   + The access from private to public was commented because before the data 
+%   did not request to enter the set method and now they are forced to be executed, 
+%   therefore the private accesses were modified to public.
+%
 %
 
 classdef roi
-    properties (SetAccess=private, GetAccess=private)
+    properties %(SetAccess=private, GetAccess=private)
         id=1;
         name='ROI0001';
         subregions=cell(1,0);

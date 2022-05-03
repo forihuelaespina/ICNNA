@@ -48,8 +48,15 @@
 %   + The dependent Width and Height properties are in the
 %   imagePartition class.
 %
+% 02-May-2022 (ESR): imagePartition class SetAccess=private, GetAccess=private) removed
+%   + The access from private to public was commented because before the data 
+%   did not request to enter the set method and now they are forced to be executed, 
+%   therefore the private accesses were modified to public.
+%
+%
+
 classdef imagePartition
-    properties (SetAccess=private, GetAccess=private)
+    properties %(SetAccess=private, GetAccess=private)
         id=1;
         name='ImagePartition0001';
         size=[0 0];
@@ -63,8 +70,8 @@ classdef imagePartition
     end
     
     properties (Dependent)
-       Height
-       Width
+       height
+       width
     end
 
     methods
@@ -127,7 +134,7 @@ classdef imagePartition
             %   val = is the provided value, later it is conditioned 
             %   according to the data type
             if (ischar(val))
-            obj.associatedFile = val;
+                    obj.associatedFile = val;
                 try
                     A=imread(obj.associatedFile);
                     w=size(A,2);
@@ -218,10 +225,10 @@ classdef imagePartition
         %---------------------------------------------------------------->
         
         %Height
-        function val = get.Height (obj)
+        function val = get.height (obj)
             val = obj.size(2);
         end
-        function obj = set.Height(obj,val)
+        function obj = set.height(obj,val)
              if (isscalar(val) && isreal(val) && ~ischar(val) ...
                 && (floor(val)==val) && val>=0)
                 obj.size(2) = val;
@@ -232,10 +239,10 @@ classdef imagePartition
         end
         
         %Width
-        function val = get.Width(obj)
+        function val = get.width(obj)
              val = obj.size(1);
         end
-        function obj = set.Width(obj,val)
+        function obj = set.width(obj,val)
            if (isscalar(val) && isreal(val) && ~ischar(val) ...
                 && (floor(val)==val) && val>=0)
                 obj.size(1) = val;

@@ -19,6 +19,10 @@ function obj = set(obj,varargin)
 % 20-February-2022 (ESR): We simplify the code
 %   + All cases are in the dataSourceDefinition class.
 %   + We create a dependent property inside the dataSourceDefinition class.
+%
+% 24-March-2022 (ESR): Lowercase
+%   + These cases are to convert the capitalization to lower case so that 
+%   they can all be called correctly.
 
 
 propertyArgIn = varargin;
@@ -27,7 +31,20 @@ propertyArgIn = varargin;
        val = propertyArgIn{2};
        propertyArgIn = propertyArgIn(3:end);
        
-       obj.(lower(prop)) = val; %Ignore case
+       tmp = lower(prop);
+    
+        switch (tmp)
+
+            case 'id'
+                obj.id = val;  
+           case 'type'
+                obj.type = val;
+           case 'devicenumber'
+                obj.deviceNumber = val; 
+
+            otherwise
+                 error(['Property ' prop ' not valid.'])
+        end
     end
     
 end

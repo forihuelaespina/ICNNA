@@ -23,7 +23,11 @@ function obj = set(obj,varargin)
 %
 % 20-February-2022 (ESR): We simplify the code
 %   + We simplify the code. All cases are in the logarithmicRadialGrid class.
-%   
+%
+% 24-March-2022 (ESR): Lowercase
+%   + These cases are to convert the capitalization to lower case so that 
+%   they can all be called correctly.
+%
 
 propertyArgIn = varargin;
 while (length(propertyArgIn) >= 2)
@@ -31,7 +35,22 @@ while (length(propertyArgIn) >= 2)
    val = propertyArgIn{2};
    propertyArgIn = propertyArgIn(3:end);
 
-   obj.(lower(prop)) = val; %Ignore case
+   tmp = lower(prop);
+    
+    switch (tmp)
+
+        case 'minimumradius'
+                obj.minR = val;
+           case 'maximumradius'
+                obj.maxR = val;
+           case 'nangles'
+                obj.nAngles = val;
+           case 'nrings'
+                obj.nRings = val;  
+          
+        otherwise
+            obj=set@menaGrid(obj,prop,val);
+    end
 end
     assertInvariants(obj);
 end

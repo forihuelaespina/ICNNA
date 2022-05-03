@@ -28,5 +28,18 @@ function val = get(obj, propName)
 % 17-February-2022 (ESR): We simplify the code
 %   + We simplify the code. All cases are in the rawData class.
 %
-    val = obj.(lower(propName)); %Ignore case
+    tmp = lower(propName);
+    
+    switch (tmp)
+  
+           case 'id'
+                val = obj.id;
+           case 'description'
+                val = obj.description;
+           case 'date'
+                val = obj.date;
+                
+        otherwise 
+           error([propName,' is not a valid property'])
+    end
 end

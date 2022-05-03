@@ -54,6 +54,10 @@ function obj = set(obj,varargin)
 %
 % 20-February-2022 (ESR): We simplify the code
 %   + All cases are in the chennelLocationMap class.
+%
+% 24-March-2022 (ESR): Lowercase
+%   + These cases are to convert the capitalization to lower case so that 
+%   they can all be called correctly.
 %   
 
 propertyArgIn = varargin;
@@ -62,7 +66,27 @@ propertyArgIn = varargin;
        val = propertyArgIn{2};
        propertyArgIn = propertyArgIn(3:end);
        
-       obj.(lower(prop)) = val; %Ignore case
+       tmp = lower(prop);
+    
+        switch (tmp)
+
+            case 'description'
+                obj.description = val;
+           case 'id'
+                obj.id = val;  
+           case 'nchannels'
+                obj.nChannels = val;
+           case 'noptodes'
+                obj.nOptodes = val;
+           case 'surfacepositioningsystem'
+                obj.surfacePositioningSystem = val;
+           case 'stereotacticpositioningsystem'
+                obj.stereotacticPositioningSystem = val;
+
+            otherwise
+                error('ICNA:optodeArray:set:InvalidPropertyName',...
+                ['Property ' prop ' not valid.'])
+        end
     end
     assertInvariants(obj);
 end

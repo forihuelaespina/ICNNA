@@ -45,5 +45,36 @@ function val = get(obj, propName)
 %   + We simplify the code. All cases are in the menaGrid class.
 %
 
-    val = obj.(lower(propName)); %Ignore case
+     tmp = lower(propName);
+    
+    switch (tmp)
+
+           case {'edgecolor','edgelinecolor'}
+                val = obj.edgeColor;
+           case 'highlightcells'
+                val = obj.highlightCells;
+           case 'highlightedgecolor'
+                val = obj.highlightEdgeColor;  
+           case 'highlightfacecolor'
+                val = obj.highlightFaceColor;
+           case 'highlightfacealpha'
+                val = obj.highlightFaceAlpha;
+           case 'id'
+                val = obj.id;
+           case 'labelcells'
+                val = obj.labelCells;
+           case {'linewidth','edgelinewidth'}
+                val = obj.lineWidth;
+           case 'vertexcolor'
+                val = obj.vertexColor;     
+           case 'vertexmarker'
+                val = obj.vertexMarker;
+           case 'vertexmarkersize'
+                val = obj.vertexMarkerSize;
+           case 'vertexvisible'
+                val = obj.vertexVisible;   
+        otherwise 
+            error('ICNA:menaGrid:get:InvalidPropertyName',...
+            [propName,' is not a valid property']);
+    end
 end

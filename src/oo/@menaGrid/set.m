@@ -50,9 +50,40 @@ while (length(propertyArgIn) >= 2)
    val = propertyArgIn{2};
    propertyArgIn = propertyArgIn(3:end);
 
-   obj.(lower(prop)) = val; %Ignore case
+   tmp = lower(prop);
+    
+    switch (tmp)
+
+        case 'edgecolor'
+                obj.edgeColor = val;
+           case 'highlightcells'
+                obj.highlightCells = val;
+           case 'highlightedgecolor'
+                obj.highlightEdgeColor = val;  
+           case 'highlightfacecolor'
+                obj.highlightFaceColor = val;
+           case 'highlightfacealpha'
+                obj.highlightFaceAlpha = val;
+           case 'id'
+                obj.id = val;
+           case 'labelcells'
+                obj.labelCells = val;
+           case {'linewidth','edgelinewidth'}
+                obj.lineWidth = val;
+           case 'vertexcolor'
+                obj.vertexColor = val;     
+           case 'vertexmarker'
+                obj.vertexMarker = val;
+           case 'vertexmarkersize'
+                obj.vertexMarkerSize = val;
+           case 'vertexvisible'
+                obj.vertexVisible = val;  
+            
+
+        otherwise
+            error(['Property ' prop ' not valid.'])
+    end
 end
-    assertInvariants(obj);
 
 end
 

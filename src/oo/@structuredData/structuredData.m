@@ -125,13 +125,42 @@
 %   + The methods are added with the new structure. All the properties have 
 %   the new structure (id,description,timeline,data,integrity and signalTags)
 %   + The new structure enables new MATLAB functions
-%   + We create a dependent property inside the structuredData class on line 143.
+%   + We create a dependent property inside the structuredData class.
 %   + The nSamples, nChannels and nSignals properties are in the
 %   structuredData class.
 %
+% 24-March-2022 (ESR): structuredData class SetAccess=private, GetAccess=private) removed
+%   + The access from private to public was commented because before the data 
+%   did not request to enter the set method and now they are forced to be executed, 
+%   therefore the private accesses were modified to public.
+%
+% 24-March-2022 (ESR): obj=set@structuredData(obj,'Data',val); removed
+%   + Specifically, it was the following line of code that presented the error. 
+%   What was the solution? We moved the code of the data set method to the 
+%   father class that requests that data. The father class is structuredData, 
+%   there we can find the code in the section of the data set method. 
+%   
+%   +In the set method of the data property we will be able to observe the
+%   set methods of the data coming from ecg and neuroimage.
+%
+%   + With the new versions of matlab the set method of the Data property was 
+%   commented because it presented a code update error.
+%   The following link presents a solution by a matlab worker named as 
+%   "MathWorks Support Team"; 
+%   https://la.mathworks.com/matlabcentral/
+%   answers/395870-how-can-i-call-the-set-dot-method-on-a-subclass-object
+%   -to-set-a-property-of-the-superclass
+%   
+% 15-April-2022 (ESR): We detect a possible error inside the set method of the property data:
+% obj.signalTags(end+1:nSignals)=tmpTags; 
+% + When this line of code (obsolete) will be executed it would give error
+%   because when performing the operation it would give 0. 
+%   Solution: obj.signalTags(end+1:end+nSignals)=tmpTags;
+%
+
 
 classdef structuredData
-    properties (SetAccess=private, GetAccess=private)
+    properties %(SetAccess=private, GetAccess=private)
         id=1;
         description='StructuredData0001';
         timeline=timeline;
@@ -177,7 +206,9 @@ classdef structuredData
                 if (nargin>1) %Image size also provided
                     if ((isnumeric(varargin{2})) && (length(varargin{2})==3))
                         obj.integrity=setNElements(obj.integrity,varargin{2}(2));
+                        
                         obj.data=zeros(varargin{2});
+                       
                         nSignals=varargin{2}(3);
                         obj.signalTags=cell(1,nSignals);
                         for ii=1:nSignals
@@ -231,43 +262,89 @@ classdef structuredData
         function val = get.data(obj)
             val = obj.data;
         end
+        
         function obj = set.data(obj,val)
-            if (isnumeric(val)) % && ndims(val)==3) %This ndims test will not work if there's only 1 signal!!
-               [nSamples,nChannels,nSignals]=size(val);
-               obj.timeline=set(obj.timeline,'Length',nSamples);
-               if isempty(val)
-                   %val will be empty as long as either
-                   %nSamples, nChannels or nSignals is 0.
-                   %however, the other two elements of the vector may not
-                   %be 0.
-                   %%%%obj.data=zeros(0,0,0); %Do not use it like this
-                   %%%%          %otherwise rawData_TobiiEyeTracker
-                   %%%%          %will crash upon converting empty
-                   %%%%          %data.
-                   obj.data=zeros(nSamples,nChannels,nSignals);
+            %Matlab Update error
+            %Here is the possible solution. Check log for more information.
+            try
+                
+                if (isa(obj,'neuroimage'))
+                    %ensure that the channelLocationMap has the appropriate
+                    %size
+                    
+                    obj.chLocationMap = set(obj.chLocationMap,'nChannels',size(val,2));
+                    %...and only then, set the data
+                end
+                
+                if (isnumeric(val)) % && ndims(val)==3) %This ndims test will not work if there's only 1 signal!!
+                    [nSamples,nChannels,nSignals]=size(val);
+                    obj.timeline=set(obj.timeline,'Length',nSamples);
+                    if isempty(val) 
+                        %val will be empty as long as either
+                        %nSamples, nChannels or nSignals is 0.
+                        %however, the other two elements of the vector may not
+                        %be 0.
+                        %%%%obj.data=zeros(0,0,0); %Do not use it like this
+                        %%%%          %otherwise rawData_TobiiEyeTracker
+                        %%%%          %will crash upon converting empty
+                        %%%%          %data.
+                        obj.data=zeros(nSamples,nChannels,nSignals);
                         %Ensure a 3D matrix
                         %so that derivate attributes NSamples,
                         %NChannels and NSignals works correctly
-               else
-                   obj.data = val;
-               end
-               obj.integrity= ...
-                   setNElements(obj.integrity,get(obj,'NChannels'));
-               if nSignals>length(obj.signalTags)
-                       nNewSignals=nSignals-length(obj.signalTags);
-                       tmpTags=cell(1,nNewSignals);
-                       for tt=1:nNewSignals
-                               tmpTags(tt)={['Signal ' ...
-                           num2str(tt+length(obj.signalTags))]};
-                       end
-                                obj.signalTags(end+1:nSignals)=tmpTags;
-               elseif nSignals<length(obj.signalTags)
-                   obj.signalTags(nSignals+1:end)= [];
-               end
-           else
-                   error('ICNA:structuredData:set:InvalidPropertyValue',...
-                         'Data must be a numeric');
-           end
+                    else
+                        obj.data = val;
+                    end
+                    obj.integrity= ...
+                        setNElements(obj.integrity,get(obj,'NChannels'));
+                    if nSignals>length(obj.signalTags)
+                        nNewSignals=nSignals-length(obj.signalTags);
+                        tmpTags=cell(1,nNewSignals);
+                        for tt=1:nNewSignals
+                            tmpTags(tt)={['Signal ' ...
+                                num2str(tt+length(obj.signalTags))]};
+                        end 
+                        obj.signalTags(end+1:end+nSignals)=tmpTags;
+                    elseif nSignals<length(obj.signalTags)
+                        obj.signalTags(nSignals+1:end)= [];
+                    end
+                else
+                    error('ICNA:structuredData:set:InvalidPropertyValue',...
+                        'Data must be a numeric');
+                end
+                
+                
+                if (isa(obj, 'ecg'))
+                    %The data must be set before calling getRR, otherwise
+                    %we will be operating on old data
+                    switch(get(obj,'RPeaksMode'))
+                        case 'manual'
+                            obj.rPeaks=zeros(0,1); %Clear existing ones
+                        case 'auto'
+                            %Automatic update
+                            switch lower(obj.rPeaksAlgo)
+                                case 'log'
+                                    tmpOptions.algo = 'LoG';
+                                    tmpOptions.threshold = obj.threshold;
+                                case 'chen2017'
+                                    tmpOptions.algo = 'Chen2017';
+                                otherwise
+                                    error('ICAF:ecg:set',...
+                                        'Unexpected R Peaks detection algorithm.');
+                            end
+                            tmpData = getSignal(obj,1);
+                            [obj.rPeaks,obj.threshold] = ...
+                                ecg.getRPeaks(tmpData,tmpOptions);
+                        otherwise
+                            error('ICAF:ecg:set',...
+                                'Unexpected R Peaks Maintenance Mode.');
+                    end
+                    obj.rr = getRR(obj);
+                end
+            catch
+                error('ICNA:structuredData:set:InvalidPropertyValue',...
+                    'Data must be a numeric.');
+            end
         end
         
         %ID
@@ -275,6 +352,7 @@ classdef structuredData
             val = obj.id;
         end
         function obj = set.id(obj,val)
+            
              if (isscalar(val) && isreal(val) && ~ischar(val) ...
                 && (val==floor(val)) && (val>0))
                 %Note that a char which can be converted to scalar
@@ -410,6 +488,7 @@ classdef structuredData
             val = obj.timeline;
         end
         function obj = set.timeline(obj, val)
+            
             if (isa(val,'timeline'))
                obj.timeline = timeline(val);
             else

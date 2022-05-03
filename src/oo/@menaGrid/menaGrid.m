@@ -77,10 +77,14 @@
 % 20-February-2022 (ESR): Get/Set Methods created in menaGrid
 %   + The methods are added with the new structure. All the properties have 
 %   the new structure.
-%   
+%
+% 02-May-2022 (ESR): menaGrid class SetAccess=private, GetAccess=private) removed
+%   + The access from private to public was commented because before the data 
+%   did not request to enter the set method and now they are forced to be executed, 
+%   therefore the private accesses were modified to public.  
 
 classdef menaGrid
-    properties (SetAccess=private, GetAccess=private)
+    properties %(SetAccess=private, GetAccess=private)
         id=1;
         
         lineWidth=1.5;

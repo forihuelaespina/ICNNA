@@ -1,4 +1,4 @@
-function res=cropOrRemoveEvents(obj,newLength)
+function [res,obj]=cropOrRemoveEvents(obj,newLength)
     res=false;
     nCond=get(obj,'NConditions');
     for cc=1:nCond

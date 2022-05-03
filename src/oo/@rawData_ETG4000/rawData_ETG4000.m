@@ -202,10 +202,14 @@
 %   + The samplingRate, version, nBlocks, nProbes, nProbeSets and nChannels properties dependents are in the
 %   rawData_ETG4000 class.
 %
+% 02-May-2022 (ESR): rawData_ETG4000 class SetAccess=private, GetAccess=private) removed
+%   + The access from private to public was commented because before the data 
+%   did not request to enter the set method and now they are forced to be executed, 
+%   therefore the private accesses were modified to public.
 %
 
 classdef rawData_ETG4000 < rawData
-    properties (SetAccess=private, GetAccess=private)
+    properties %(SetAccess=private, GetAccess=private)
         fileVersion='1.06';
         %Patient information
         userName='';
@@ -248,7 +252,7 @@ classdef rawData_ETG4000 < rawData
             %note that intializing to nan(0,0) is equal to
             %initializing to []. See above
         marks=nan(0,0);%The stimulus marks.
-        timeStamps=nan(0,0);%Timestamps.
+        timestamps=nan(0,0);%Timestamps.
         bodyMovement=nan(0,0);%Body movement artifacts as determined by the ETG-4000
         removalMarks=nan(0,0);%Removal marks
         preScan=nan(0,0);%preScan stamps
@@ -358,9 +362,6 @@ classdef rawData_ETG4000 < rawData
         function obj = set.fileVersion(obj,val)
             if (ischar(val))
                 obj.fileVersion = val;
-                warning('ICNA:rawData_ETG4000:set:Deprecated',...
-                    ['The use of ''version'' has been deprecated. ' ...
-                    'Please use ''fileVersion'' instead.']);
             else
                 error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
                   'Value must be a string');
@@ -633,10 +634,10 @@ classdef rawData_ETG4000 < rawData
         end
         
         %timesStamps
-        function val = get.timeStamps(obj)
+        function val = get.timestamps(obj)
             val = obj.timestamps;
         end
-        function obj = set.timeStamps(obj,val)
+        function obj = set.timestamps(obj,val)
             if (all(val>=0))
                 obj.timestamps = val;
                 %Note that the number of columns is expected to
@@ -713,11 +714,11 @@ classdef rawData_ETG4000 < rawData
             if (ischar(val))
                 obj.fileVersion = val;
                 warning('ICNA:rawData_ETG4000:set:Deprecated',...
-                        ['The use of ''version'' has been deprecated. ' ...
-                        'Please use ''fileVersion'' instead.']);
+                    ['The use of ''version'' has been deprecated. ' ...
+                    'Please use ''fileVersion'' instead.']);
             else
                 error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
-                      'Value must be a string');
+                  'Value must be a string');
             end
         end
         

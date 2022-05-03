@@ -40,6 +40,11 @@
 %   session class.
 %   + All the properties are arranged alphabetically on Get/Set methods.
 %
+% 02-May-2022 (ESR): session class SetAccess=private, GetAccess=private) removed
+%   + The access from private to public was commented because before the data 
+%   did not request to enter the set method and now they are forced to be executed, 
+%   therefore the private accesses were modified to public.
+%
 classdef session
     properties %(SetAccess=private, GetAccess=private)
         definition=sessionDefinition;

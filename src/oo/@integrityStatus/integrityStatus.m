@@ -42,8 +42,13 @@
 %
 % See also neuroimage, nirs_neuroimage, channel
 %
+% 02-May-2022 (ESR): integrityStatus class SetAccess=private, GetAccess=private) removed
+%   + The access from private to public was commented because before the data 
+%   did not request to enter the set method and now they are forced to be executed, 
+%   therefore the private accesses were modified to public.
+%
 classdef integrityStatus
-    properties (SetAccess=private, GetAccess=private)
+    properties %(SetAccess=private, GetAccess=private)
         elements=[];
     end
     properties (Constant=true, GetAccess=public)

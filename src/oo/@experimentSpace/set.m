@@ -76,6 +76,10 @@ function obj = set(obj,varargin)
 %   + We create a dependent property inside the experimentSpace class.
 %   + The nPoints and numPoints  properties are inside of the
 %   experimentSpace class.
+%
+% 24-March-2022 (ESR): Lowercase
+%   + These cases are to convert the capitalization to lower case so that 
+%   they can all be called correctly.
 
 propertyArgIn = varargin;
     while (length(propertyArgIn) >= 2)
@@ -83,7 +87,61 @@ propertyArgIn = varargin;
        val = propertyArgIn{2};
        propertyArgIn = propertyArgIn(3:end);
        
-       obj.(lower(prop)) = val; %Ignore case
+       tmp = lower(prop);
+    
+        switch (tmp)
+
+           case 'baselinesamples'
+                obj.baselineSamples = val;
+           case 'description'
+                obj.description = val;  
+           case {'ws_onset','fwonset'}
+                obj.fwOnset = val;
+           case {'ws_duration','fwduration'}
+                obj.fwDuration = val;
+           case {'ws_breakdelay','fwbreakdelay'}
+                obj.fwBreakDelay = val;
+           case 'id'
+                obj.id = val;
+           case 'name'
+                obj.name = val;
+           case 'normalizationdimension'
+                obj.normalizationDimension = val;
+           case 'normalizationmethod'
+                obj.normalizationMethod = val;     
+           case 'normalizationmean'
+                obj.normalizationMean = val;
+           case 'normalizationmin'
+                obj.normalizationMin = val;
+           case 'normalizationmax'
+                obj.normalizationMax = val;  
+           case 'normalizationscope'
+                obj.normalizationScope = val;
+           case 'normalizationvar'
+                obj.normalizationVar = val;
+           case {'averaged','performaveraging'}
+                obj.performAveraging = val;
+           case {'resampled','performresampling'}
+                obj.performResampling = val; 
+           case {'windowed','performfixwindow'}
+                obj.performFixWindow = val;
+           case {'normalized','performnormalization'}
+                obj.performNormalization = val;
+           case 'restsamples'
+                obj.restSamples = val; 
+           case {'rs_baseline','rsbaseline'}
+                obj.rsBaseline = val;
+           case {'rs_task','rstask'}
+                obj.rsTask = val; 
+           case {'rs_rest','rsrest'}
+                obj.rsRest = val;
+           case 'sessionnames'
+                obj.sessionNames = val; 
+
+            otherwise
+                error('ICNA:experimentSpace:set',...
+                ['Property ' prop ' not valid.'])
+        end
     end
     assertInvariants(obj);
 end

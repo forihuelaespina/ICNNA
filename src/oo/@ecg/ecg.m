@@ -80,11 +80,21 @@
 %   + We create a dependent property inside of the ecg class.
 %   + The RR, NN, timestamps and data properties dependents are in the
 %   ecg class.
+%
+% 15-April-2022 (ESR): with the new syntax Matlab is updated and does not accept 
+%   the old syntax. The solution is to send data property to the father class. 
+%   There you can find more information.
+%
+% 02-May-2022 (ESR): ecg class SetAccess=private, GetAccess=private) removed
+%   + The access from private to public was commented because before the data 
+%   did not request to enter the set method and now they are forced to be executed, 
+%   therefore the private accesses were modified to public.
+%
 
 
 
 classdef ecg < structuredData
-    properties (SetAccess=private, GetAccess=private)
+    properties %(SetAccess=private, GetAccess=private)
         samplingRate=250;%in [Hz]
         startTime=datevec(date);       
         rPeaksMode = 'auto';
@@ -98,9 +108,7 @@ classdef ecg < structuredData
     end
     
     properties (Dependent)
-        RR
-        NN
-        data
+        nn
     end
     methods
         function obj=ecg(varargin)
@@ -157,42 +165,42 @@ classdef ecg < structuredData
         %encapsulation.
         
         %data
-        function obj = set.data(obj,val)
-            try
-                obj=set@structuredData(obj,'Data',val);
-                %The data must be set before calling getRR, otherwise
-                %we will be operating on old data
-                switch(get(obj,'RPeaksMode'))
-                    case 'manual'
-                        obj.rPeaks=zeros(0,1); %Clear existing ones
-                    case 'auto'
-                        %Automatic update
-                        switch lower(obj.rPeaksAlgo)
-                            case 'log'
-                                tmpOptions.algo = 'LoG';
-                                tmpOptions.threshold = obj.threshold;
-                            case 'chen2017'
-                                tmpOptions.algo = 'Chen2017';
-                            otherwise
-                                error('ICAF:ecg:set',...
-                                    'Unexpected R Peaks detection algorithm.');
-                        end
-                        tmpData = getSignal(obj,1);
-                        [obj.rPeaks,obj.threshold] = ...
-                            ecg.getRPeaks(tmpData,tmpOptions);
-                    otherwise
-                        error('ICAF:ecg:set',...
-                            'Unexpected R Peaks Maintenance Mode.');
-                end
-                obj.rr = getRR(obj);
-            catch ME
-                %Rethrow the error
-                rethrow(ME);
-            end
-        end
+%         function obj = set.data(obj,val)
+%             try
+%                 obj=set@structuredData(obj,'Data',val);
+% %                 %The data must be set before calling getRR, otherwise
+% %                 %we will be operating on old data
+% %                 switch(get(obj,'RPeaksMode'))
+% %                     case 'manual'
+% %                         obj.rPeaks=zeros(0,1); %Clear existing ones
+% %                     case 'auto'
+% %                         %Automatic update
+% %                         switch lower(obj.rPeaksAlgo)
+% %                             case 'log'
+% %                                 tmpOptions.algo = 'LoG';
+% %                                 tmpOptions.threshold = obj.threshold;
+% %                             case 'chen2017'
+% %                                 tmpOptions.algo = 'Chen2017';
+% %                             otherwise
+% %                                 error('ICAF:ecg:set',...
+% %                                     'Unexpected R Peaks detection algorithm.');
+% %                         end
+% %                         tmpData = getSignal(obj,1);
+% %                         [obj.rPeaks,obj.threshold] = ...
+% %                             ecg.getRPeaks(tmpData,tmpOptions);
+% %                     otherwise
+% %                         error('ICAF:ecg:set',...
+% %                             'Unexpected R Peaks Maintenance Mode.');
+% %                 end
+% %                 obj.rr = getRR(obj);
+%             catch ME
+%                 %Rethrow the error
+%                 rethrow(ME);
+%             end
+%         end
 
         %RR
-        function val = get.RR(obj)
+        function val = get.rr(obj)
            val = obj.rr; 
         end
         
@@ -337,7 +345,7 @@ classdef ecg < structuredData
         end
         
         %NN
-        function val = get.NN(obj)
+        function val = get.nn(obj)
            val = obj.rr; 
         end
         

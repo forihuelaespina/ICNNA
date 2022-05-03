@@ -69,6 +69,68 @@ function val = get(obj, propName)
 %   + We simplify the code. All cases are in the experimentSpace class.
 %   + We create a dependent property inside the experimentSpace class 
 %
-%
-     val = obj.(lower(propName)); %Ignore case
+% 24-March-2022 (ESR): Lowercase
+%   + These cases are to convert the capitalization to lower case so that 
+%   they can all be called correctly.
+    tmp = lower(propName);
+    
+    switch (tmp)
+
+           case 'baselinesamples'
+                val = obj.baselineSamples;
+           case 'description'
+                val = obj.description;  
+           case {'ws_onset','fwonset'}
+                val = obj.fwOnset;
+           case {'ws_duration','fwduration'}
+                val = obj.fwDuration;
+           case {'ws_breakdelay','fwbreakdelay'}
+                val = obj.fwBreakDelay;
+           case 'id'
+                val = obj.id;
+           case 'name'
+                val = obj.name;
+           case 'normalizationdimension'
+                val = obj.normalizationDimension;
+           case 'normalizationmethod'
+                val = obj.normalizationMethod;     
+           case 'normalizationmean'
+                val = obj.normalizationMean;
+           case 'normalizationmin'
+                val = obj.normalizationMin;
+           case 'normalizationmax'
+                val = obj.normalizationMax;
+           case 'numpoints'
+                val = obj.numPoints;     
+           case 'npoints'
+                val = obj.nPoints;     
+           case 'normalizationscope'
+                val = obj.normalizationScope;
+           case 'normalizationvar'
+                val = obj.normalizationVar;
+           case {'averaged','performaveraging'}
+                val = obj.performAveraging;
+           case 'resampled'
+                val = obj.performResampling; 
+           case {'windowed','performfixwindow'}
+                val = obj.performFixWindow;
+           case {'normalized','performnormalization'}
+                val = obj.performNormalization;
+           case 'restsamples'
+                val = obj.restSamples; 
+           case {'rs_baseline','rsbaseline'}
+                val = obj.rsBaseline;
+           case {'rs_task','rstask'}
+                val = obj.rsTask; 
+           case {'rs_rest','rsrest'}
+                val = obj.rsRest;
+           case 'runstatus'
+                val = obj.runStatus;
+           case 'sessionnames'
+                val = obj.sessionNames; 
+
+        otherwise 
+            error('ICNA:experimentSpace:get',...
+            [propName,' is not a valid property']);
+    end
 end

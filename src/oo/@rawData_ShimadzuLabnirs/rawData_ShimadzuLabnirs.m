@@ -95,9 +95,14 @@
 %   + The nSamples, nChannels and nEvents properties are in the
 %   rawData_ShimadzuLabnirs class.
 %
+% 02-May-2022 (ESR): rawData_ShimadzuLabnirs class SetAccess=private, GetAccess=private) removed
+%   + The access from private to public was commented because before the data 
+%   did not request to enter the set method and now they are forced to be executed, 
+%   therefore the private accesses were modified to public.
+%
 
 classdef rawData_ShimadzuLabnirs < rawData
-    properties (SetAccess=private, GetAccess=private)
+    properties %(SetAccess=private, GetAccess=private)
         %Measure information
         wLengths=[780 805 830];%The nominal wavelengths at which the light
             %intensities were acquired in [nm].

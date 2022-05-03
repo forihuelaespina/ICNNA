@@ -81,7 +81,10 @@ function obj = set(obj,varargin)
 % 20-February-2022 (ESR): We simplify the code
 %   + All cases are in the cluster class.
 %   + We create a dependent property inside the cluster class.
-%   
+%
+% 24-March-2022 (ESR): Lowercase
+%   + These cases are to convert the capitalization to lower case so that 
+%   they can all be called correctly.
 
 propertyArgIn = varargin;
     while (length(propertyArgIn) >= 2)
@@ -89,7 +92,97 @@ propertyArgIn = varargin;
        val = propertyArgIn{2};
        propertyArgIn = propertyArgIn(3:end);
        
-       obj.(lower(prop)) = val; %Ignore case
+       tmp = lower(prop);
+    
+        switch (tmp)
+
+               case 'id'
+                     obj.id = val;  
+               case 'tag'
+                    obj.tag = val;
+               case 'description'
+                    obj.description = val;
+               case 'patternindexes'
+                    obj.patternIdxs = val;
+               case 'visible'
+                    obj.visible = val;
+                    
+               % ==Cluster generating IDs
+               case 'subjectids'
+                    obj.subjectIDs = val;
+               case 'sessionids'
+                    obj.sessionIDs = val;     
+               case 'stimulusids'
+                    obj.stimulusIDs = val;  
+               case 'blockids'
+                    obj.blockIDs = val;
+               case 'channelgroupids'
+                    obj.channelGroupIDs = val;
+                    
+               % ==Cluster descriptors
+               case 'centroid'
+                    obj.centroid = val;
+               case 'centroidcriteria'
+                    obj.centroidCriteria = val;
+               case 'furthestpoint'
+                    obj.furthestPoint = val;
+               case 'avgdistance'
+                    obj.avgDistance = val; 
+               case 'maxdistance'
+                    obj.maxDistance = val;  
+                    
+               % ==Visualization attributes
+               case 'displaypatternpoints'
+                    obj.displayPatternPoints = val;
+               case 'displaycentroid'
+                    obj.displayCentroid = val;
+               case 'displayfurthestpoint'
+                    obj.displayFurthestPoint = val;
+               case 'displaylink'
+                    obj.displayLink;
+               case 'displayavgdcircle'
+                    obj.displayAvgDCircle = val;
+                    
+               % ==== Patterns (data) visualization properties
+               case 'dmarker'
+                    obj.dMarker = val; 
+               case 'dmarkersize'
+                    obj.dMarkerSize = val;  
+               case 'dcolor'
+                    obj.dColor = val;
+               
+               % ==== Centroid visualization properties
+               case 'cmarker'
+                    obj.cMarker = val;
+               case 'cmarkersize'
+                    obj.cMarkerSize = val;
+               case 'ccolor'
+                    obj.cColor = val;
+                    
+               % ==== Furthest Point and link visualization properties
+               case 'fpmarker'
+                    obj.fpMarker = val;
+               case 'fpmarkersize'
+                    obj.fpMarkerSize = val; 
+               case 'fpcolor'
+                    obj.fpColor = val;
+               case 'linkcolor'
+                    obj.linkColor = val;
+               case 'linklinewidth'
+                    obj.linkLineWidth = val;
+                    
+               % ====Average distance circle visualization properties
+               case 'avgccolor'
+                    obj.avgcColor = val;
+               case 'avgclinewidth'
+                    obj.avgcLineWidth = val; 
+               case 'color'
+                    obj.color = val;    
+
+            otherwise
+                error('ICNA:cluster:set:InvalidPropertyName',...
+                  ['Property ' prop ' not valid.'])
+        end
    end
 
 end

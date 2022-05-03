@@ -30,5 +30,24 @@ function val = get(obj, propName)
 % 20-February-2022 (ESR): We simplify the code
 %   + We simplify the code. All cases are in the lagarithmicRadialGrid class.
 %
-    val = obj.(lower(propName)); %Ignore case
+% 24-March-2022 (ESR): Lowercase
+%   + These cases are to convert the capitalization to lower case so that 
+%   they can all be called correctly.
+%
+     tmp = lower(propName);
+    
+    switch (tmp)
+
+           case 'minimumradius'
+                val = obj.minR;
+           case 'maximumradius'
+                val = obj.maxR;
+           case 'nangles'
+                val = obj.nAngles;
+           case 'nrings'
+                val = obj.nRings;  
+
+        otherwise 
+            val = get@menaGrid(obj, propName);
+    end
 end
