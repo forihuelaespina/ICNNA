@@ -108,6 +108,7 @@
 %     not outside of them. The method files of each set/get class are declared 
 %     only to be called correctly.
 %
+<<<<<<< HEAD
 % 5-May-2022 (ESR): Problem in the serialization process. 
 %   + The cause of the problem is the new syntax because activeStructured 
 %     gets the data from structured, however, this was empty so the 
@@ -116,6 +117,9 @@
 %     Now with the solution the activeStructured can obtain data from 
 %     structured because this structured is not empty. 
 %
+=======
+
+>>>>>>> 14ce9c3b8dd40eec0a0844b25ca8007463f872f4
 classdef dataSource
     properties %(SetAccess=private, GetAccess=private)
         id=1;
