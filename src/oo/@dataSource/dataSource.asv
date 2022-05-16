@@ -115,6 +115,8 @@
 %     the position of the attributes because the code reading is in cascade form. 
 %     Now with the solution the activeStructured can obtain data from 
 %     structured because this structured is not empty. 
+
+
 %
 classdef dataSource
     properties %(SetAccess=private, GetAccess=private)
@@ -124,7 +126,7 @@ classdef dataSource
         rawData=[];
         lock=true;
         structured=cell(1,0);
-        activeStructured=0; 
+        activeStructured=0; %comentar el cambio de la posicion
     end
     
     properties (Dependent)
