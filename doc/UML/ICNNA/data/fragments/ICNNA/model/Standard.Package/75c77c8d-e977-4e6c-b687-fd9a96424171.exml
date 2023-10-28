@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<!--GENERATED FILE, PLEASE DO NOT EDIT!!!--><EXT object="data" version="4">
+  <OBJECT>
+    <ID name="data" mc="Standard.Package" uid="75c77c8d-e977-4e6c-b687-fd9a96424171"/>
+    <PID name="icnna" mc="Standard.Package" uid="ffd4c3a1-8d36-4b01-9921-3440ebbae915"/>
+    <ATTRIBUTES>
+      <ATT name="IsInstantiable">false</ATT>
+      <ATT name="IsAbstract">false</ATT>
+      <ATT name="IsLeaf">false</ATT>
+      <ATT name="IsRoot">false</ATT>
+      <ATT name="Visibility">Public</ATT>
+      <ATT name="Name"><![CDATA[data]]></ATT>
+      <ATT name="status">1970354901745664</ATT>
+    </ATTRIBUTES>
+    <DEPENDENCIES>
+      <COMP relation="OwnedElement">
+        <COMPID name="experimentalStimulus" mc="Standard.Class" uid="b3ec9b37-736e-4258-82d8-da6c11106ab0"/>
+        <COMPID name="Timeline" mc="Standard.Class" uid="566807a6-22e1-431a-9de3-10a6fdb43e66"/>
+      </COMP>
+      <COMP relation="Product">
+        <COMPID name="data Class diagram" mc="Standard.ClassDiagram" uid="77ba10c7-f0b7-4236-8283-bfe7d36fb4b1"/>
+      </COMP>
+    </DEPENDENCIES>
+  </OBJECT>
+</EXT>

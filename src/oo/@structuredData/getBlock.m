@@ -147,13 +147,27 @@ function obj=getBlock(obj,condTag,eventNum,varargin)
 %
 %
 %
-% Copyright 2008-12
-% @date: 27-Sep-2008
+% Copyright 2008-23
 % @author: Felipe Orihuela-Espina
-% @modified: 10-Jul-2012
 %
 % See also structuredData, dataSource, analysis
 %
+
+
+
+
+%% Log
+%
+% File created: 27-Sep-2008
+% File last modified (before creation of this log): 10-Jul-2012
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%
+
+
+
 
 
 baselineSamples=15;
@@ -169,7 +183,7 @@ while length(propertyArgIn) >= 2,
                     && floor(val)==val && val>=0)
                 baselineSamples=val;
             else
-                error('ICNA:structuredData:getBlock', ...
+                error('ICNNA:structuredData:getBlock', ...
                  '''NBaselineSamples'' value must be a positive integer.');
             end
 
@@ -178,13 +192,13 @@ while length(propertyArgIn) >= 2,
                    && floor(val)==val && val>=0)
                restSamples=val;
            else
-               error('ICNA:structuredData:getBlock', ...
+               error('ICNNA:structuredData:getBlock', ...
                  '''NRestSamples'' value must be a positive integer.');
            end
 
 
         otherwise
-            error('ICNA:structuredData:getBlock', ...
+            error('ICNNA:structuredData:getBlock', ...
                  ['Option ''' prop ''' not recognised.'])
     end
 end
@@ -213,7 +227,8 @@ onset=events(eventNum,1);
 duration=events(eventNum,2);
 %Crop everything beyond the blockEnd
 if eventNum==getNEvents(obj.timeline,condTag)
-    blockEnd=get(obj.timeline,'Length');
+    t = obj.timeline;
+    blockEnd=t.length;
 else
     %blockEnd=events(eventNum+1,1)-1; %i.e. one sample before the next onset
     blockEnd=events(eventNum+1,1); %i.e. up until the next onset
@@ -227,7 +242,9 @@ if exist('restSamples','var')
     tmpBlockEnd=onset+duration+restSamples;
     blockEnd=min(blockEnd,tmpBlockEnd);
 end
+warning('off','ICNNA:timeline:set:EventsCropped');
 obj.data(blockEnd+1:end,:,:)=[];
+warning('on','ICNNA:timeline:set:EventsCropped');
 
 
 %Crop everything before the blockStart
@@ -244,10 +261,15 @@ if blockStart<=0
     end
     obj.data=tempData;
 end
+warning('off','ICNNA:timeline:set:EventsCropped');
 obj.data(1:blockStart,:,:)=[];
+warning('on','ICNNA:timeline:set:EventsCropped');
 
 %Finally replace the timeline
 obj.timeline=timeline(blockEnd-blockStart,condTag,[baselineSamples+1 duration]);
 
 %...and just to play on the safe side
 assertInvariants(obj);
+
+
+end

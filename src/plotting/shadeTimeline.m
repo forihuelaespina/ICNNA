@@ -38,13 +38,36 @@ function [H]=shadeTimeline(axesHandle,t,options)
 %
 %
 %
-% Copyright 2008-13
-% @date: 13-Nov-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 1-Jan-2013
 %
 % See also timeline, plotChannel
 %
+
+
+
+
+
+
+
+%% Log
+%
+% File created: 13-Nov-2008
+% File last modified (before creation of this log): 1-Jan-2013
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Added get/set methods support for struct like access to attributes.
+%
+% 13-May-2023: FOE
+%   + Slightly modify behaviour so that the shading does not alter
+%   the Y axes scaling.
+%
+
+
+
+
+
 
 %%Deal with options
 opt.edgeColor='none';
@@ -65,7 +88,7 @@ axes(axesHandle);
 hold on
 
 
-nConds=get(t,'NConditions');
+nConds=t.nConditions;
 switch (nConds) %this switch is not strictly necessary but makes things
                 %more aesthetically beautiful... ;)
     case 1
@@ -73,6 +96,15 @@ switch (nConds) %this switch is not strictly necessary but makes things
     otherwise
         cmap=colormap(hsv(nConds));
 end
+
+
+
+% Get limits of Y-axis
+tmpYLims = get(gca,'YLim');
+getY=axis;
+limits=[getY(3) getY(4) getY(4) getY(3)];
+
+%hold on;
 
 H=cell(nConds,1);
 for condID=1:nConds
@@ -85,9 +117,6 @@ onsets=condEvents(:,1);
 durations=condEvents(:,2);
 endingMarks=onsets+durations;
 
-% Get limits of Y-axis
-getY=axis;
-limits=[getY(3) getY(4) getY(4) getY(3)];
 tmpH=zeros(1,nEvents);
 for ee=1:nEvents
     tmph=patch([onsets(ee) onsets(ee) ...
@@ -97,10 +126,15 @@ for ee=1:nEvents
         'FaceAlpha',opt.faceAlpha,...
         'FaceColor','flat');
     set(tmph,'FaceColor',cmap(condID,:));
-    hold on;
+    
     tmpH(ee)=tmph;
 end
 H(condID)={tmpH};
 end
+
+
+
+%Make sure we keep the original Y axes scale limits
+set(gca,'YLim',tmpYLims);
 
 end %function

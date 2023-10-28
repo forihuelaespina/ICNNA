@@ -1,19 +1,19 @@
 % @STRUCTUREDDATA
 %
 % Files
-%   assertInvariants - STRUCTUREDDATA/ASSERTINVARIANTS Ensures the class invariants are met
-%   checkIntegrity   - STRUCTUREDDATA/CHECKINTEGRITY Check the integrity of the channels
-%   crop             - STRUCTUREDDATA/CROP Crop a temporal window
-%   cut              - STRUCTUREDDATA/CUT Cut a temporal window
-%   display          - STRUCTUREDDATA/DISPLAY Command window display
-%   eq               - STRUCTUREDDATA/EQ Compares two objects.
-%   get              - STRUCTUREDDATA/GET Get properties from the specified object
-%   getBlock         - STRUCTUREDDATA/GETBLOCK Extract a single block or trial
-%   getChannel       - STRUCTUREDDATA/GETCHANNEL Gets the i-th channel
-%   getSample        - STRUCTUREDDATA/GETSAMPLE Gets the i-th time sample of the structured data
-%   getSignal        - STRUCTUREDDATA/GETSIGNAL Gets the i-th signal of the structured data
-%   getSignalTag     - STRUCTUREDDATA/GETSIGNALTAG Gets an individual signal tag
-%   set              - STRUCTUREDDATA/SET Set object properties and return the updated object
-%   setSignalTag     - STRUCTUREDDATA/SETSIGNALTAG Sets an individual signal tag
+%   assertInvariants - Ensures the class invariants are met
+%   checkIntegrity   - Check the integrity of the channels
+%   crop             - Crop a temporal window
+%   cut              - Cut a temporal window
+%   display          - Command window display
+%   eq               - Compares two objects.
+%   get              - DEPRECATED. Get properties from the specified object
+%   getBlock         - Extract a single block or trial
+%   getChannel       - Gets the i-th channel
+%   getSample        - Gets the i-th time sample of the structured data
+%   getSignal        - Gets the i-th signal of the structured data
+%   getSignalTag     - Gets an individual signal tag
+%   set              - DEPRECATED. Set object properties and return the updated object
+%   setSignalTag     - Sets an individual signal tag
 %   structuredData   - Class structuredData
-%   windowSelection  - STRUCTUREDDATA/CROP Crop a temporal window
+%   windowSelection  - Crop a temporal window

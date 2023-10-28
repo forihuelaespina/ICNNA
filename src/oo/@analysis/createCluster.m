@@ -48,37 +48,53 @@ function c=createCluster(obj,varargin)
 %Ian T Nabney (1996-2001))
 %
 %
-% Copyright 2008
-% @date: 29-Jul-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also analysis, cluster, addCluster, removeCluster
 %
 
-if ~get(obj,'RunStatus')
-    error('ICNA:analysis:createCluster:NotRun',...
+
+
+%% Log
+%
+% File created: 29-Jul-2008
+% File last modified (before creation of this log): N/A. This class file
+%   had not been modified since creation.
+%
+% 7-Jun-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%   + Started to use get/set methods for struct like access.
+%   + Dimension parameters are now case insensitive.
+%   + Error codes are now ICNNA instead of ICNA.
+%
+
+
+
+if ~obj.runStatus
+    error('ICNNA:analysis:createCluster:NotRun',...
           ['Analysis must be run before clusters can be ' ...
           'generated.'])
 end   
 
 
 %By default use all...
-subjectsIDs=unique(obj.I(:,obj.COL_SUBJECT));
-sessionsIDs=unique(obj.I(:,obj.COL_SESSION));
-stimuliIDs=unique(obj.I(:,obj.COL_STIMULUS));
-blocksIDs=unique(obj.I(:,obj.COL_BLOCK));
+subjectsIDs = unique(obj.I(:,obj.COL_SUBJECT));
+sessionsIDs = unique(obj.I(:,obj.COL_SESSION));
+stimuliIDs  = unique(obj.I(:,obj.COL_STIMULUS));
+blocksIDs   = unique(obj.I(:,obj.COL_BLOCK));
 channelGroups=unique(obj.I(:,obj.COL_CHANNELGROUP));
 
-tmpSubjects=[];
-tmpSessions=[];
-tmpStimuli=[];
-tmpBlocks=[];
-tmpChannels=[];
+tmpSubjects = [];
+tmpSessions = [];
+tmpStimuli  = [];
+tmpBlocks   = [];
+tmpChannels = [];
 
 maxSubject = max(obj.I(:,obj.COL_SUBJECT));
-maxSessions=max(obj.I(:,obj.COL_SESSION));
-maxStimuli=max(obj.I(:,obj.COL_STIMULUS));
-maxBlocks=max(obj.I(:,obj.COL_BLOCK));
+maxSessions= max(obj.I(:,obj.COL_SESSION));
+maxStimuli = max(obj.I(:,obj.COL_STIMULUS));
+maxBlocks  = max(obj.I(:,obj.COL_BLOCK));
 maxChannelGroups=size(obj.channelGrouping,1);
 
 
@@ -88,8 +104,8 @@ while length(propertyArgIn) >= 2,
    prop = propertyArgIn{1};
    val = propertyArgIn{2};
    propertyArgIn = propertyArgIn(3:end);
-   switch prop
-    case 'SubjectsIDs'
+   switch lower(prop)
+    case 'subjectsids'
         if isempty(val)
             %Do nothing, keep the default values
         elseif (~ischar(val) && isreal(val) ...
@@ -98,11 +114,11 @@ while length(propertyArgIn) >= 2,
             subjectsIDs=val;
             tmpSubjects=val;
         else
-            error('ICNA:analysis:createCluster:InvalidArgument',...
+            error('ICNNA:analysis:createCluster:InvalidArgument',...
                 ['Property ''' prop ''' contains invalid values.'])
         end
             
-    case 'SessionsIDs'
+    case 'sessionsids'
         if isempty(val)
             %Do nothing, keep the default values
         elseif (~ischar(val) && isreal(val) ...
@@ -111,11 +127,11 @@ while length(propertyArgIn) >= 2,
             sessionsIDs=val;
             tmpSessions=val;
         else
-            error('ICNA:analysis:createCluster:InvalidArgument',...
+            error('ICNNA:analysis:createCluster:InvalidArgument',...
                 ['Property ''' prop ''' contains invalid values.'])
         end
             
-    case 'StimuliIDs'
+    case 'stimuliids'
         if isempty(val)
             %Do nothing, keep the default values
         elseif (~ischar(val) && isreal(val) ...
@@ -124,11 +140,11 @@ while length(propertyArgIn) >= 2,
             stimuliIDs=val;
             tmpStimuli=val;
         else
-            error('ICNA:analysis:createCluster:InvalidArgument',...
+            error('ICNNA:analysis:createCluster:InvalidArgument',...
                 ['Property ''' prop ''' contains invalid values.'])
         end
             
-    case 'BlocksIDs'
+    case 'blocksids'
         if isempty(val)
             %Do nothing, keep the default values
         elseif (~ischar(val) && isreal(val) ...
@@ -137,11 +153,11 @@ while length(propertyArgIn) >= 2,
             blocksIDs=val;
             tmpBlocks=val;
         else
-            error('ICNA:analysis:createCluster:InvalidArgument',...
+            error('ICNNA:analysis:createCluster:InvalidArgument',...
                 ['Property ''' prop ''' contains invalid values.'])
         end
             
-    case 'ChannelGroups'
+    case 'channelgroups'
         if isempty(val)
             %Do nothing, keep the default values
         elseif (~ischar(val) && isreal(val) ...
@@ -150,12 +166,12 @@ while length(propertyArgIn) >= 2,
             channelGroups=val;
             tmpChannels=val;
         else
-            error('ICNA:analysis:createCluster:InvalidArgument',...
+            error('ICNNA:analysis:createCluster:InvalidArgument',...
                 ['Property ''' prop ''' contains invalid values.'])
         end
             
     otherwise
-      error('ICNA:analysis:set:UndefinedProperty',...
+      error('ICNNA:analysis:set:UndefinedProperty',...
             ['Property ' prop ' not valid.'])
    end
 end
@@ -172,12 +188,12 @@ idx=find(ismember(obj.I(:,obj.COL_SUBJECT),subjectsIDs) ...
 %% Create a default cluster
 c=cluster;
 %...and set the patterns indexes
-c=set(c,'PatternIndexes',idx);
-c=set(c,'SubjectsIDs',tmpSubjects);
-c=set(c,'SessionsIDs',tmpSessions);
-c=set(c,'StimuliIDs',tmpStimuli);
-c=set(c,'BlocksIDs',tmpBlocks);
-c=set(c,'ChannelGroupsIDs',tmpChannels);
+c.patternIndexes = idx;
+c.subjectsIDs = tmpSubjects;
+c.sessionsIDs = tmpSessions;
+c.stimuliIDs  = tmpStimuli;
+c.blocksIDs   = tmpBlocks;
+c.channelGroupsIDs=tmpChannels;
 
 %% Calculate the centroid, furthestPoint, and average distance
 
@@ -187,8 +203,8 @@ centroid(1,:)=zeros(1,length(clusterData(1,:)));
 %...and run the k-means algorithm
 options=zeros(1,14);
 centroid(1,:) = kmeans(centroid(1,:),clusterData,options);
-c=set(c,'Centroid',centroid);
-c=set(c,'CentroidCriteria','kmeans');
+c.centroid = centroid;
+c.centroidCriteria =  'kmeans';
 
 %Calculates the distances for each point in the cluster to the centroid
 nPoints=size(clusterData,1);
@@ -200,13 +216,16 @@ end
 [maxDistance,fpClusterInternalIdx]=max(distances); %Note that this idx is only partial
             %to the clusters points
 avgDistance=mean(distances);
-c=set(c,'AverageDistance',avgDistance);
-c=set(c,'MaximumDistance',maxDistance);
+c.averageDistance = avgDistance;
+c.maximumDistance = maxDistance;
 
 %Finally the furthest point (i.e. the "global" idx rather than the partial)
 %fpCoordinates = clusterData(fpClusterInternalIdx,:);
 fpGeneralIdx = idx(fpClusterInternalIdx);
-c=set(c,'FurthestPoint',fpGeneralIdx);
+c.furthestPoint = fpGeneralIdx;
 
+
+
+end
 
 

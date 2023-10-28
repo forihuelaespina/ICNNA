@@ -1,10 +1,5 @@
 function [S,b,f]=doubleES(s,a,g,m)
-%Double exponential smoothing (and forecast) of a time serie
-%%
-%%Date: 17-May-2007
-%%Author: Felipe Orihuela-Espina
-%%  Using "Engineering Statistics Handbook"
-%%  http://www.itl.nist.gov/div898/handbook/
+%Double exponential smoothing (and forecast) of a time series
 %
 % [S,b,f]=doubleES(s,a,g,m)
 %
@@ -30,8 +25,13 @@ function [S,b,f]=doubleES(s,a,g,m)
 %with the Marquardt search algorithm. But this is out of
 %the scope of this function.
 %
-%Parameters:
-%-----------
+%
+%% Remarks
+%
+%  Using "Engineering Statistics Handbook"
+%  http://www.itl.nist.gov/div898/handbook/
+%
+%% Parameters:
 %
 %   s - The sequence (time-serie). A row vector of p observations
 %   a - Alpha. The smoothing constant. 0<a<=1.
@@ -39,12 +39,34 @@ function [S,b,f]=doubleES(s,a,g,m)
 %   m - Optional. Forecasting period. S_(t+m) will be predicted.
 %       Default value set to 1.
 %
-%Output:
-%-------
+%% Output:
 %
 %   S - The sequence of double exponential smoothing.
 %   b - The trend values
 %   f - The t+m forecasts at each step
+%
+%
+%
+% Copyright 2007-23
+% @author: Felipe Orihuela-Espina
+%
+% See also nirs_neuroimage
+%
+
+
+
+
+%% Log
+%
+% File created: 17-May-2007
+% File last modified (before creation of this log): N/A.  This method
+%   had not been modified since creation.
+%
+% 20-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%
+
+
 
 if(isempty(s))
     error('Empty signal')
@@ -80,3 +102,6 @@ end
 %%Forecast S_(t+1)
 f=[s(1) S+m*b]; %The first value is arbitrary,
                 %it is just so f_(t+1)=S(t)+m*b(t)
+
+
+end

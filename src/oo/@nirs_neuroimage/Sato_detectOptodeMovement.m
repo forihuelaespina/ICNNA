@@ -1,9 +1,5 @@
 function [idx,reconstructed,idxPeaks]=Sato_detectOptodeMovement(signal,options)
 %Sato's wavelength based algorithm for the detection of optode movement artefacts
-%%
-%%Date: 19-Jul-2007
-%%Author: Felipe Orihuela-Espina
-%%
 %
 % function [idx,reconstructed]=Sato_detectOptodeMovement(signal)
 %
@@ -11,8 +7,8 @@ function [idx,reconstructed,idxPeaks]=Sato_detectOptodeMovement(signal,options)
 %optode movement artefacts (see [Sato et al, 2006b]).
 %
 %
-%Parameters:
-%-----------
+%% Parameters:
+%
 %
 % signal - The signal time serie. Please note that Sato operates on the
 %   totalHb
@@ -24,11 +20,37 @@ function [idx,reconstructed,idxPeaks]=Sato_detectOptodeMovement(signal,options)
 %   .visualize: Plot the results. False by default.
 %
 %
+%
+%
+% 
+% Copyright 2007-23
+% @author: Felipe Orihuela-Espina
+%
+% See also nirs_neuroimage
+%
+
+
+
+
+%% Log
+%
+% File created: 19-Jul-2007
+% File last modified (before creation of this log): N/A. This method
+%   had not been modified since creation.
+%
+% 20-May-2023: FOE
+%   + Added this log. This method is so old it didn't even had the
+%       labels @date and @modified, instead there was just the creation
+%       date!!
+%
+
+
+
 
 
 %Deal with some options
 opt.visualize=false;
-if(nargin>2)
+if(nargin>=2)
     if(isfield(options,'visualize'))
         opt.visualize=options.visualize;
     end
@@ -123,4 +145,6 @@ if (opt.visualize)
     hthresh=plot([0 nSamples],[threshold threshold],'k:','LineWidth',lineWidth);
     box on, grid on
     
+end
+
 end

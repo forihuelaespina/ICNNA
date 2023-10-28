@@ -7,18 +7,29 @@ function n=getNConditions(obj)
 % This method is now deprecated. Please use get(obj,'nConditions') instead.
 %
 %
-% Copyright 2008-12
-% @date: 18-Apr-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 28-Dec-2012
 %
-%See also get, getCondition, getConditionTag, getConditionEvents
+%See also getCondition, getConditionTag, getConditionEvents
 %
 
-%n=length(obj.conditions); DEPRECATED CODE
-n=get(obj,'nConditions');
+
+
+%% Log
+%
+% File created: 18-Apr-2008
+% File last modified (before creation of this log): 28-Dec-2012
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%
+
 
 warning('ICNA:timeline:getNConditions:Deprecated',...
         ['The use of getNConditions has now been deprecated. ' ...
-         'Please use get(obj,''nConditions'') instead.']);
+         'Please use obj.nConditions instead.']);
 
+n=obj.nConditions;
+
+end

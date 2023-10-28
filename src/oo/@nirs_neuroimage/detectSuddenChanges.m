@@ -1,9 +1,8 @@
 function [idx,reconstructed,alpha,gamma,allIdx]=detectSuddenChanges(signals,thresholdPC,options)
 %Detects where sudden changes are happening and corrects the signal
-%%
-%%Date: 17-May-2007
-%%Author: Felipe Orihuela-Espina
-%%
+%
+% [idx,reconstructed,alpha,gamma,allIdx]=detectSuddenChanges(signal,thresholdPC,options)
+%
 %=============================================
 %18-Jun-2007: Felipe Orihuela-Espina
 %   Extension to more than one signal at a time
@@ -13,8 +12,6 @@ function [idx,reconstructed,alpha,gamma,allIdx]=detectSuddenChanges(signals,thre
 % anything, the results with double testing seems
 % to be somehow worst.
 %=============================================
-%
-% detectSuddenChanges(signal,thresholdPC)
 %
 % Detects where sudden changes (both raise or drops) are happening.
 % and corrects the signal if required
@@ -56,8 +53,7 @@ function [idx,reconstructed,alpha,gamma,allIdx]=detectSuddenChanges(signals,thre
 %
 %
 %
-%Parameters:
-%-----------
+%% Parameters:
 %
 % signals - The signals. It can be a single signal (a column vector)
 %   or a set of signals, a matrix where each column represent
@@ -87,8 +83,7 @@ function [idx,reconstructed,alpha,gamma,allIdx]=detectSuddenChanges(signals,thre
 %   .correct: Set it to true if you want the signal to be
 %       corrected. False by defualt.
 %
-%Output:
-%-------
+%% Output:
 %
 % idx - The indexes of the samples at which a sudden drop or raise has
 %   been detected for all signals.
@@ -96,6 +91,29 @@ function [idx,reconstructed,alpha,gamma,allIdx]=detectSuddenChanges(signals,thre
 % reconstructed - The signals either original or reconstructed
 %depending on the value of options.correct
 %
+% 
+% Copyright 2007-23
+% @author: Felipe Orihuela-Espina
+%
+% See also nirs_neuroimage
+%
+
+
+
+
+%% Log
+%
+%
+% File created: 17-May-2007
+% File last modified (before creation of this log): 20-Jun-2007
+%
+% 20-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%
+
+
+
+
 
 %Deal with some options
 opt.optimize=true;

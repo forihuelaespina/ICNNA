@@ -1,5 +1,5 @@
 function val = get(obj, propName)
-% CLUSTER/GET Get properties from the specified object
+% CLUSTER/GET DEPRECATED (v1.2). Get properties from the specified object
 %and return the value
 %
 % val = get(obj, propName) Gets value of the property propName 
@@ -63,99 +63,130 @@ function val = get(obj, propName)
 %   average distance circle.
 %
 %
-% Copyright 2008
-% @date: 21-Jul-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also cluster, set
 %
 
-switch propName
-case 'ID'
+
+
+%% Log
+%
+% File created: 21-Jul-2008
+% File last modified (before creation of this log): N/A. This method had
+%   not been modified since creation.
+%
+% 28-May-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%   + As I started to add get/set methods for struct like access
+%   to attributes in the main class file, I also updated this
+%   method to simply redirect to those.
+%   + Declare method as DEPRECATED (v1.2).
+%   Bug fixed:
+%   + 1 error was still not using error code.
+%
+
+warning('ICNNA:cluster:get:Deprecated',...
+        ['DEPRECATED (v1.2). Use struct like syntax for accessing the attribute ' ...
+         'e.g. cluster.' lower(propName) '.']); 
+    %Maintain method by now to accept different capitalization though.
+
+
+switch lower(propName)
+case 'id'
    val = obj.id;
-case 'Tag'
+case 'tag'
    val = obj.tag;
-case 'Description'
+case 'description'
    val = obj.description;
-case 'NPatterns'
-   val = length(obj.patternIdxs);
-case 'PatternIndexes'
+case 'npatterns'
+   val = obj.nPatterns;
+case 'patternindexes'
    val = obj.patternIdxs;
-case 'Visible'
+case 'visible'
    val = obj.visible;
     
 % ==Cluster generating IDs
-case 'SubjectsIDs'
+case 'subjectsids'
     val = obj.subjectIDs;
-case 'SessionsIDs'
+case 'sessionsids'
     val = obj.sessionIDs;
-case 'StimuliIDs'
+case 'stimuliids'
     val = obj.stimulusIDs;
-case 'BlocksIDs'
+case 'blocksids'
     val = obj.blockIDs;
-case 'ChannelGroupsIDs'
+case 'channelgroupsids'
     val = obj.channelGroupIDs;
 
 % ==Cluster descriptors
-case 'Centroid'
+case 'centroid'
     val = obj.centroid;
-case 'CentroidCriteria'
+case 'centroidcriteria'
     val = obj.centroidCriteria;
-case 'FurthestPoint'
+case 'furthestpoint'
     val = obj.furthestPoint;
-case 'AverageDistance'
+case 'averagedistance'
     val = obj.avgDistance;
-case 'MaximumDistance'
+case 'maximumdistance'
     val = obj.maxDistance;
 
 
 % ==Visualization attributes
-case 'ShowPatternPoints'
-    val = obj.displayPatternPoints;
-case 'ShowCentroid'
-    val = obj.displayCentroid;
-case 'ShowFurthestPoint'
-    val = obj.displayFurthestPoint;
-case 'ShowLink'
-    val = obj.displayLink;
-case 'ShowAverageDistance'
-    val = obj.displayAvgDCircle;
+case 'showpatternpoints'
+    val = obj.showPatternPoints;
+case 'showcentroid'
+    val = obj.showCentroid;
+case 'showfurthestpoint'
+    val = obj.showFurthestPoint;
+case 'showlink'
+    val = obj.showLink;
+case 'showaveragedistance'
+    val = obj.showAverageDistanceCircle;
+case 'showaveragedistancecircle'
+    val = obj.showAverageDistanceCircle;
 
 % ==== Patterns (data) visualization properties
-case 'DataMarker'
-   val = obj.dMarker;
-case 'DataMarkerSize'
-   val = obj.dMarkerSize;
-case 'DataColor'
-   val = obj.dColor;
+case 'datamarker'
+   val = obj.dataMarker;
+case 'datamarkersize'
+   val = obj.dataMarkerSize;
+case 'datacolor'
+   val = obj.dataColor;
 
 % ==== Centroid visualization properties
-case 'CentroidMarker'
-   val = obj.cMarker;
-case 'CentroidMarkerSize'
-   val = obj.cMarkerSize;
-case 'CentroidColor'
-   val = obj.cColor;
+case 'centroidmarker'
+   val = obj.centroidMarker;
+case 'centroidmarkersize'
+   val = obj.centroidMarkerSize;
+case 'centroidcolor'
+   val = obj.centroidColor;
 
 % ==== Furthest Point and link visualization properties
-case 'FurthestPointMarker'
-   val = obj.fpMarker;
-case 'FurthestPointMarkerSize'
-   val = obj.fpMarkerSize;
-case 'FurthestPointColor'
-   val = obj.fpColor;
+case 'furthestpointmarker'
+   val = obj.furthestpointMarker;
+case 'furthestpointmarkersize'
+   val = obj.furthestpointMarkerSize;
+case 'furthestpointcolor'
+   val = obj.furthestpointColor;
 
-case 'LinkColor'
+case 'linkcolor'
    val = obj.linkColor;
-case 'LinkLineWidth'
+case 'linklinewidth'
    val = obj.linkLineWidth;
 
 % ====Average distance circle visualization properties
-case 'AverageDistanceColor'
-   val = obj.avgcColor;
-case 'AverageDistanceLineWidth'
-   val = obj.avgcLineWidth;
+case 'averagedistancecolor'
+   val = obj.averageDistanceCircleColor;
+case 'averagedistancecirclecolor'
+   val = obj.averageDistanceCircleColor;
+   
+case 'averagedistancelinewidth'
+   val = obj.averageDistanceCircleLineWidth;
+case 'averagedistancecirclelinewidth'
+   val = obj.averageDistanceCircleLineWidth;
    
 otherwise
-   error([propName,' is not a valid property'])
+   error('ICNNA:cluster:get:InvalidProperty',...
+        [propName,' is not a valid property'])
 end

@@ -287,7 +287,7 @@ function obj=import(obj,filename)
 %       the same filename (only changing the extension)!.
 %
 % 
-% Copyright 2018
+% Copyright 2018-23
 % @author: Felipe Orihuela-Espina
 %
 % See also rawData_NIRScout, convert
@@ -296,6 +296,9 @@ function obj=import(obj,filename)
 
 
 %% Log
+%
+% File created: 4-Apr-2008
+% File last modified (before creation of this log): 26-Apr-2012
 %
 % 4/25-Apr-2018: FOE. Method created
 %
@@ -308,6 +311,11 @@ function obj=import(obj,filename)
 %   @myDateStr2DateTime.
 %   It was assumed that the date was entered in the langague set
 %   in the OS, and that string do not have tildes.
+%
+%
+% 13-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
 %
 
 
@@ -345,55 +353,55 @@ tmp=temp(find(temp=='=')+1:end); %Quoted
 tmp = tmp(2:end-1); %Get rid of quotes
 tmpDate=myDateStr2DateTime(tmp);
 %Set the time by now to 00:00h and wait for the field Time
-obj=set(obj,'Date',tmpDate);
+obj.date = tmpDate;
 
 temp=findField(fidr,'Time');
 tmp=temp(find(temp=='=')+1:end); %Quoted
 tmp = tmp(2:end-1); %Get rid of quotes
 %Update the time
-tmpDate = get(obj,'Date');
+tmpDate = obj.date;
 tmpTime=myTimeStr2DateTime(tmp);
 %[h,m,s] = hms(tmpDate); %Ignore the date
-obj=set(obj,'Date',tmpDate+timeofday(tmpTime)); 
+obj.date = tmpDate+timeofday(tmpTime);
 
 temp=findField(fidr,'Device');
 tmp=temp(find(temp=='=')+1:end); %Quoted
 tmp = tmp(2:end-1); %Get rid of quotes
-obj=set(obj,'Device',tmp);
+obj.device = tmp;
 
 temp=findField(fidr,'Source');
 tmp=temp(find(temp=='=')+1:end); %Quoted
 tmp = tmp(2:end-1); %Get rid of quotes
-obj=set(obj,'Source',tmp);
+obj.source = tmp;
 
 temp=findField(fidr,'Mod');
 tmp=temp(find(temp=='=')+1:end); %Quoted
 tmp = tmp(2:end-1); %Get rid of quotes
-obj=set(obj,'StudyTypeModulation',tmp);
+obj.studyTypeModulation = tmp;
 
 temp=findField(fidr,'NIRStar'); %Kind of equivalent to Fileversion
 tmp=temp(find(temp=='=')+1:end); %Quoted
 tmp = tmp(2:end-1); %Get rid of quotes
-obj=set(obj,'FileVersion',tmp);
+obj.fileVersion = tmp;
 
 temp=findField(fidr,'Subject');
 tmp=temp(find(temp=='=')+1:end);
-obj=set(obj,'SubjectIndex',str2double(tmp));
+obj.subjectIndex = str2double(tmp);
 
 
 
 % Read Measurement information
 temp=findField(fidr,'Sources');
 tmp=temp(find(temp=='=')+1:end);
-obj=set(obj,'nSources',str2double(tmp));
+obj.nSources = str2double(tmp);
 
 temp=findField(fidr,'Detectors');
 tmp=temp(find(temp=='=')+1:end);
-obj=set(obj,'nDetectors',str2double(tmp));
+obj.nDetectors = str2double(tmp);
 
 temp=findField(fidr,'Steps');
 tmp=temp(find(temp=='=')+1:end);
-obj=set(obj,'nSteps',str2double(tmp));
+obj.nSteps = str2double(tmp);
 
 
 %Get the wavelengths [nm] at which light is measured
@@ -409,20 +417,20 @@ wLengths=zeros(1,length(tokens));
 for tt=1:length(tokens)
     wLengths(tt)=str2double(tokens(tt)); %Read single wavelength
 end
-obj=set(obj,'NominalWavelenghtSet',wLengths);
+obj.nominalWavelenghtSet = wLengths;
 clear wLengths
 
 temp=findField(fidr,'TrigIns');
 tmp=temp(find(temp=='=')+1:end);
-obj=set(obj,'nTriggerInputs',str2double(tmp));
+obj.nTriggerInputs = str2double(tmp);
 
 temp=findField(fidr,'TrigOuts');
 tmp=temp(find(temp=='=')+1:end);
-obj=set(obj,'nTriggerOutputs',str2double(tmp));
+obj.nTriggerOutputs = str2double(tmp);
 
 temp=findField(fidr,'AnIns');
 tmp=temp(find(temp=='=')+1:end);
-obj=set(obj,'nAnalogInputs',str2double(tmp));
+obj.nAnalogInputs = str2double(tmp);
 
 
 waitbar(0.12,h);
@@ -432,7 +440,8 @@ fprintf('\b\b\b12%%');
 % 
 % Get the sampling rate in [Hz] and the number of blocks
 temp=findField(fidr,'SamplingRate');
-obj=set(obj,'SamplingRate',str2double(temp(find(temp=='=')+1:end)));
+obj.samplingRate = str2double(temp(find(temp=='=')+1:end));
+
 % temp=findField(fidr,'Repeat Count');
 % obj=set(obj,'RepeatCount',str2double(temp(find(temp=='=')+1:end)));
 %
@@ -450,7 +459,7 @@ Amps=zeros(1,length(tokens));
 for tt=1:length(tokens)
     Amps(tt)=str2double(tokens(tt)); %Read single wavelength
 end
-obj=set(obj,'modulationAmplitudes',Amps);
+obj.modulationAmplitudes = Amps;
 clear Amps
 
 %Get the modulation thresholds
@@ -466,7 +475,7 @@ thresholds=zeros(1,length(tokens));
 for tt=1:length(tokens)
     thresholds(tt)=str2double(tokens(tt)); %Read single wavelength
 end
-obj=set(obj,'modulationThresholds',thresholds);
+obj.modulationThresholds = thresholds;
 clear thresholds
 
 
@@ -475,13 +484,13 @@ clear thresholds
 temp=findField(fidr,'StimulusType');
 tmp=temp(find(temp=='=')+1:end); %Quoted
 tmp = tmp(2:end-1); %Get rid of quotes
-obj=set(obj,'paradigmStimulusType',tmp);
+obj.paradigmStimulusType = tmp;
 
 % Experimental Notes
 temp=findField(fidr,'Notes');
 tmp=temp(find(temp=='=')+1:end); %Quoted
 tmp = tmp(2:end-1); %Get rid of quotes
-obj=set(obj,'Notes',tmp);
+obj.notes = tmp;
 
 % Gain Settings
 temp=findField(fidr,'Gains');
@@ -509,7 +518,7 @@ if temp~=-1
     assert(ss == get(obj,'nSources'),...
             'Unexpected number of gains rows. It should match number of sources.');
 end
-obj=set(obj,'Gains',tmp);
+obj.gains = tmp;
 
 
 
@@ -538,7 +547,7 @@ if temp~=-1
         lineString = fgetl(fidr);
     end
 end
-obj=set(obj,'EventTriggerMarkers',tmp);
+obj.eventTriggerMarkers = tmp;
 
 
 
@@ -560,7 +569,7 @@ for kk=1:length(comma_idx)-1
     theKey = str2double(triplet(colon_idx+1:end));
     tmpSDKey(theSource,theDetector)=theKey;
 end
-obj=set(obj,'SDKey',tmpSDKey);
+obj.sdKey = tmpSDKey;
 clear comma_idx dash_idx colon_idx theSource theDetector theKey
 
 
@@ -592,7 +601,7 @@ if temp~=-1
     assert(ss == get(obj,'nSources'),...
             'Unexpected number of mask rows. It should match number of sources.')
 end
-obj=set(obj,'SDMask',tmp);
+obj.sdMask = tmp;
 %sum(sum(tmp))
 disp(' ')
 
@@ -607,7 +616,7 @@ for tt=1:length(tokens)
     vals(tt)=str2double(tokens(tt)); %Read channel distance
 end
 obj.nChannels = length(tokens);
-obj=set(obj,'ChannelDistances',vals);
+obj.channelDistances = vals;
 %Note that at this points, the *_probeInfo.mat file might not have been read.
 
 
@@ -661,17 +670,17 @@ fprintf('Importing information .inf file (NIRScout) -> 0%%');
 temp=findField(fidr,'Name');
 tmp=temp(find(temp=='=')+1:end); %Quoted
 tmp = tmp(2:end-1); %Get rid of quotes
-obj=set(obj,'SubjectName',tmp);
+obj.userName = tmp;
 
 temp=findField(fidr,'Age');
 tmp=temp(find(temp=='=')+1:end);
-obj=set(obj,'SubjectAge',str2double(tmp));
+obj.userAge = str2double(tmp);
 
 temp=findField(fidr,'Gender');
 tmp=temp(find(temp=='=')+1:end); %Quoted
 tmp = tmp(2:end-1); %Get rid of quotes
 if isempty(tmp), tmp='U'; end;
-obj=set(obj,'SubjectGender',tmp);
+obj.userGender = tmp;
 
 
 fclose(fidr);
@@ -683,21 +692,21 @@ fclose(fidr);
 waitbar(0.01,h);
 fprintf('Importing probeset information (NIRScout) -> 0%%');
 tmp=load([srcDir '/' theFilename '_probeInfo.mat']);
-obj=set(obj,'Probeset',tmp.probeInfo);
+obj.probeSetInfo = tmp.probeInfo;
 
 %Try to recover some information
 pInfo= tmp.probeInfo.probes;
-assert(pInfo.nSource0 == get(obj,'nSources'),...
+assert(pInfo.nSource0 == obj.nSources,...
     ['Unexpected number of sources in ' theFilename '_probeInfo.mat. ' ...
     'Please ensure it matches that in ' theFilename '.hdr file.']);
-assert(pInfo.nDetector0 == get(obj,'nDetectors'),...
+assert(pInfo.nDetector0 == obj.nDetectors,...
     ['Unexpected number of detectors in ' theFilename '_probeInfo.mat. ' ...
     'Please ensure it matches that in ' theFilename '.hdr file.']);
 % assert(pInfo.nChannel0 == get(obj,'nChannels'),...
 %     ['Unexpected number of channels in ' theFilename '_probeInfo.mat. ' ...
 %     'Please ensure it matches that in ' theFilename '.hdr file.']);
 
-if pInfo.nChannel0 ~= get(obj,'nChannels')
+if pInfo.nChannel0 ~= obj.nChannels
     warning(['Unexpected number of channels in ' theFilename '_probeInfo.mat. ' ...
             'It was expected to match that in ' theFilename '.hdr file. '])
 end

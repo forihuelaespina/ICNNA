@@ -15,10 +15,8 @@ function [oaInfo]=getOptodeArraysInfo(obj,idx)
 %information fields.
 %
 %
-% Copyright 2012-13
-% @date: 22-Dec-2012
+% Copyright 2012-23
 % @author: Felipe Orihuela-Espina
-% @modified: 8-Sep-2013
 %
 % See also setOptodeArraysInfo, setChannelOptodeArrays, 
 %   getChannel3DLocations, getChannelSurfacePositions,
@@ -30,7 +28,15 @@ function [oaInfo]=getOptodeArraysInfo(obj,idx)
 
 %% Log
 %
+% File created: 22-Dec-2012
+% File last modified (before creation of this log): 8-Sep-2013
+%
 % 8-Sep-2013: Updated "links" of the See also call to other methods
+%   + Added this log.
+%
+% 20-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
 %
 
 
@@ -39,4 +45,8 @@ if exist('idx','var')
     idx(idx<1)=[];
     idx(idx>length(obj.optodeArrays))=[];
     oaInfo=oaInfo(idx);
+end
+
+
+
 end

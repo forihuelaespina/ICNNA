@@ -15,14 +15,23 @@ function n=getNEvents(obj, tag)
 %   possibility that no events have been defined for this conditions
 %   and hence a value 0 will be returned.
 %
-% Copyright 2008-12
-% @date: 18-Jun-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 28-Dec-2012
 %
 % See also setConditionEvents, addConditionEvents, removeConditionEvents,
 %   getMaxEvents, getTotalEvents
 %
+
+
+%% Log
+%
+% File created: 18-Apr-2008
+% File last modified (before creation of this log): 28-Dec-2012
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%
+
 
 n=[];
 if exist('tag','var')

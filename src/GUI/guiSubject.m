@@ -24,13 +24,27 @@ function [element,exitStatus]=guiSubject(element)
 %   whether it has been modified or not.
 %   
 %
-% Copyright 2008-12
-% @date: 23-Apr-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 30-Jan-2012
 %
 % See also guiICNA, subject
 %
+
+%% Log
+%
+%
+% File created: 23-Apr-2008
+% File last modified (before creation of this log): 30-Jan-2012
+%
+% 24-May-2023: FOE
+%   + Added this log.
+%   + Got rid of old labels @date and @modified.
+%   + I have now addressed the long standing issue with accessing
+%   the icons folder when the working directory is not that of ICNNA
+%   using function mfilename. 
+%   + Started to update the get/set methods calls to struct like syntax
+%
+
 
 exitStatus=0;
 
@@ -84,8 +98,8 @@ menuTools = uimenu('Label','Tools',...
 
 %Toolbars
 toolbar = uitoolbar(f,'Tag','toolbar');
-%iconsFolder='C:\Program Files\MATLAB\R2007b\toolbox\matlab\icons\';
-iconsFolder='./GUI/icons/';
+[localDir,~,~] = fileparts(mfilename('fullpath'));
+iconsFolder=[localDir filesep 'icons' filesep];
 tempIcon=load([iconsFolder 'addSession.mat']);
     uipushtool(toolbar,'CData',tempIcon.cdata,...
         'Tag','toolbarButton_AddSession',...
@@ -633,7 +647,7 @@ tmpElement=handles.currentElement.data;
 tmpId=str2double(get(handles.idEditBox,'String'));
 if isnan(tmpId)
     warndlg('Invalid ID.','Update subject');
-    set(handles.idEditBox,'String',get(tmpElement,'ID'));
+    set(handles.idEditBox,'String',tmpElement.id);
 else
     if (isreal(tmpId) && ~ischar(tmpId) && isscalar(tmpId) ...
             && floor(tmpId)==tmpId && tmpId>0)
@@ -689,17 +703,17 @@ if (isempty(handles.currentElement.data)) %Clear
 
 else %Refresh the Information
     s=subject(handles.currentElement.data);
-    set(handles.idEditBox,'String',num2str(get(s,'ID')));
-    set(handles.nameEditBox,'String',get(s,'Name'));
-    set(handles.ageEditBox,'String',num2str(get(s,'Age')));
-    sex=get(s,'Sex');
+    set(handles.idEditBox,'String',num2str(s.id));
+    set(handles.nameEditBox,'String',s.name);
+    set(handles.ageEditBox,'String',num2str(s.age));
+    sex=s.sex;
     switch (sex)
         case 'M'
             set(handles.maleSexRButton,'Value',1);
         case 'F'
             set(handles.femaleSexRButton,'Value',1);
     end        
-    hand=get(s,'Hand');
+    hand=s.hand;
     switch (hand)
         case 'L'
             set(handles.leftHandRButton,'Value',1);
@@ -710,16 +724,17 @@ else %Refresh the Information
     end
 
     sessions=getSessionList(s);
-    data=cell(getNSessions(s),3); %Three columns are currently displayed
+    data=cell(s.nSessions,3); %Three columns are currently displayed
                             %Name,Date,NDataSources
-    rownames=zeros(1,getNSessions(s));
+    rownames=zeros(1,s.nSessions);
     pos=1;
     for ii=sessions
         sess=getSession(s,ii);
-        rownames(pos)=get(get(sess,'Definition'),'ID');
-        data(pos,1)={get(get(sess,'Definition'),'Name')};
-        data(pos,2)={get(sess,'Date')};
-        data(pos,3)={getNDataSources(sess)};
+        sessDef = sess.definition;
+        rownames(pos)=sessDef.id;
+        data(pos,1)={sessDef.name};
+        data(pos,2)={sess.date};
+        data(pos,3)={sess.nDataSources};
         pos=pos+1;
     end
     set(handles.sessionsTable,'RowName',rownames);

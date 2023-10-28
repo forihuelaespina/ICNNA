@@ -5,20 +5,40 @@ function display(obj)
 %then displayed on the with an output similar to the standard
 %MATLAB output.
 %
-% Copyright 2008
-% @date: 26-May-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also cluster, get, set
 %
 
+
+%% Log
+%
+% File created: 26-May-2008
+% File last modified (before creation of this log): N/A. This method had
+%   not been modified since creation.
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%   + Updated calls to get attributes using the struct like syntax
+%   + Now also displays new attribute classVersion
+%
+
+
+
+
 disp(' ');
 disp([inputname(1),'= ']);
 disp(' ');
-disp(['   ID: ' num2str(obj.id)]);
+try
+    disp(['   Class version: ' num2str(obj.classVersion)]);
+catch
+    disp('   Class version: N/A');
+end
+disp(['   id: ' num2str(obj.id)]);
 disp(['   tag: ' obj.tag]);
 disp(['   description: ' obj.description]);
-disp(['   Num. Patterns: ' num2str(length(obj.patternIdxs))]);
+disp(['   num. Patterns: ' num2str(length(obj.patternIndexes))]);
 if (obj.visible)
     disp('   visible: TRUE');
 else
@@ -56,42 +76,42 @@ disp(['   Centroid: ' mat2str(obj.centroid)]);
 if (~isempty(obj.centroid))
     disp(['   Centroid criteria: ' obj.centroidCriteria]);
 end
-disp(['   Average distance to centroid: ' num2str(obj.avgDistance)]);
+disp(['   Average distance to centroid: ' num2str(obj.averageDistance)]);
 disp(['   Furthest point index: ' num2str(obj.furthestPoint)]);
-disp(['   Furthest point distance to centroid: ' num2str(obj.maxDistance)]);
+disp(['   Furthest point distance to centroid: ' num2str(obj.maximumDistance)]);
 
 % ==Visualization attributes
 
 % ==== Patterns (data) visualization properties
-if (obj.displayPatternPoints)
+if (obj.showPatternPoints)
     disp('   Display pattern points: TRUE');
-    disp(['   Pattern points marker: ''' obj.dMarker '''']);
-    disp(['   Pattern points marker size: ' num2str(obj.dMarkerSize)]);
-    disp(['   Pattern points color: ' mat2str(obj.dColor)]);
+    disp(['   Pattern points marker: ''' obj.dataMarker '''']);
+    disp(['   Pattern points marker size: ' num2str(obj.dataMarkerSize)]);
+    disp(['   Pattern points color: ' mat2str(obj.dataColor)]);
 else
     disp('   Display pattern points: FALSE');
 end    
 
 % ==== Centroid visualization properties
-if (obj.displayCentroid)
+if (obj.showCentroid)
     disp('   Display centroid: TRUE');
-    disp(['   Centroid marker: ''' obj.cMarker '''']);
-    disp(['   Centroid marker size: ' num2str(obj.cMarkerSize)]);
-    disp(['   Centroid color: ' mat2str(obj.cColor)]);
+    disp(['   Centroid marker: ''' obj.centroidMarker '''']);
+    disp(['   Centroid marker size: ' num2str(obj.centroidMarkerSize)]);
+    disp(['   Centroid color: ' mat2str(obj.centroidColor)]);
 else
     disp('   Display centroid: FALSE');
 end    
 
 % ==== Furthest Point and link visualization properties
-if (obj.displayFurthestPoint)
+if (obj.showFurthestPoint)
     disp('   Display furthest point: TRUE');
-    disp(['   Furthest point marker: ''' obj.fpMarker '''']);
-    disp(['   Furthest point marker size: ' num2str(obj.fpMarkerSize)]);
-    disp(['   Furthest point color: ' mat2str(obj.fpColor)]);
+    disp(['   Furthest point marker: ''' obj.furthestPointMarker '''']);
+    disp(['   Furthest point marker size: ' num2str(obj.furthestPointMarkerSize)]);
+    disp(['   Furthest point color: ' mat2str(obj.furthestPointColor)]);
 else
     disp('   Display furthest point: FALSE');
 end    
-if (obj.displayLink)
+if (obj.showLink)
     disp('   Display link between furthest point and centroid: TRUE');
     disp(['   Link line width: ' num2str(obj.linkLineWidth)]);
     disp(['   Link color: ' mat2str(obj.linkColor)]);
@@ -100,11 +120,14 @@ else
 end    
 
 % ====Average distance circle visualization properties
-if (obj.displayAvgDCircle)
+if (obj.showAverageDistanceCircle)
     disp('   Display average distance to centroid circle: TRUE');
-    disp(['   Avg. distance to centroid circle line width: ' num2str(obj.linkLineWidth)]);
-    disp(['   Avg. distance to centroid circle color: ' mat2str(obj.linkColor)]);
+    disp(['   Avg. distance to centroid circle line width: ' num2str(obj.averageDistanceCircleLineWidth)]);
+    disp(['   Avg. distance to centroid circle color: ' mat2str(obj.averageDistanceCircleColor)]);
 else
     disp('   Display average distance to centroid circle: FALSE');
 end    
 disp(' ');
+
+
+end

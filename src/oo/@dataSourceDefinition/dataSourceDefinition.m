@@ -1,3 +1,6 @@
+classdef dataSourceDefinition
+%Class dataSourceDefinition
+%
 %A data source definition encapsulates information about a data source
 %from which experimental data is going to be collected. The definition,
 %does not hold any data.
@@ -36,17 +39,39 @@
 %
 % Type methods('dataSourceDefinition') for a list of methods
 % 
-% Copyright 2008
-% date: 21-Jul-2008
+% Copyright 2008-23
 % Author: Felipe Orihuela-Espina
 %
 % See also experiment, sessionDefinition, session, subject
 %
-classdef dataSourceDefinition
-    properties (SetAccess=private, GetAccess=private)
-        id=1;
-	    type='';
-        deviceNumber=1;
+
+
+
+%% Log
+%
+% File created: 21-Jul-2008
+% File last modified (before creation of this log): N/A. This class file
+%   had not been modified since creation.
+%
+% 21-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Added property classVersion. Set to '1.0' by default.
+%   + Added get/set methods support for struct like access to attributes.
+%   + For those attributes above also started to simplify the set
+%   code replacing it with validation rules on the declaration.
+%   + Dependent property nSources is now explicitly declared as such. 
+%   + Improved some comments.
+%
+%
+
+    properties (Constant, Access=private)
+        classVersion = '1.0'; %Read-only. Object's class version.
+    end
+
+    properties %(SetAccess=private, GetAccess=private)
+        id(1,1) double {mustBeInteger, mustBeNonnegative}=1; %Numerical identifier to make the object identifiable.
+	    type(1,:) char=''; % The type of the dataSource. See attribute 'Type' on dataSource.
+        deviceNumber(1,1) double {mustBeInteger, mustBeNonnegative}=1; % A number to identify the device. It disambiguates between two equal data sources. 
     end
     
     methods
@@ -83,17 +108,55 @@ classdef dataSourceDefinition
             obj=varargin{1};
             return;
         else
-            obj=set(obj,'ID',varargin{1});
+            obj.id = varargin{1};
             if (nargin>1)
-                obj=set(obj,'Type',varargin{2});
+                obj.type = varargin{2};
             end
             if (nargin>2)
-                obj=set(obj,'DeviceNumber',varargin{3});
+                obj.deviceNumber = varargin{3};
             end
         end
         %assertInvariants(obj);
         end
     end
 
-end
+    methods
 
+      %Getters/Setters
+
+      function res = get.id(obj)
+         %Gets the object |id|
+         res = obj.id;
+      end
+      function obj = set.id(obj,val)
+         %Sets the object |id|
+         obj.id = val;
+      end
+
+
+      function res = get.type(obj)
+         %Gets the object |type|
+         res = obj.type;
+      end
+      function obj = set.type(obj,val)
+         %Sets the object |type|
+         obj.type = val;
+      end
+
+
+      function res = get.deviceNumber(obj)
+         %Gets the object |deviceNumber|
+         res = obj.deviceNumber;
+      end
+      function obj = set.deviceNumber(obj,val)
+         %Sets the object |deviceNumber|
+         obj.deviceNumber = val;
+      end
+
+
+
+
+    end
+
+
+end

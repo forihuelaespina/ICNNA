@@ -20,11 +20,28 @@ function defs=collectDataSourceDefinitionsFromSessionDefinition(obj,s,mode)
 %       are collected (those with IDs not defined).
 %
 %
-% Copyright 2008
-% @date: 11-Jul-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also experiment, sessionDefinition, dataSourceDefinition, assertInvariants
+
+
+
+
+
+%% Log
+%
+% File created: 11-Jul-2008
+% File last modified (before creation of this log): N/A. This class file
+%   had not been modified since creation.
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + As I started to add get/set methods for struct like access
+%   to attributes in the main class file, I also updated this
+%   method to simply redirect to those.
+%
+
 
 
 if ~isa(s,'sessionDefinition')
@@ -36,7 +53,7 @@ if (exist('mode','var'))
     if (mode==0) || (mode==1)
         m=mode;
     else
-        warning(['ICNA:experiment:private:' ...
+        warning(['ICNNA:experiment:private:' ...
             'collectDataSourceDefinitionsFromSessionDefinition:InvalidMode'],...
             'Invalid mode. Setting mode equals to 0.');
     end
@@ -49,13 +66,13 @@ end
 srcIDs=getSourceList(s);
 defs=cell(1,0);
 if ~m
-    defs=cell(1,getNSources(s));
+    defs=cell(1,s.nDataSources);
 end
 pos=1;
 for src=srcIDs
     if m %Collect only new ones
         tmpDef=getSource(s,src);
-        if (~ismember(get(tmpDef,'ID'),expDefIDs))
+        if (~ismember(tmpDef.id,expDefIDs))
             defs(pos)={tmpDef};
             pos=pos+1;
         end
@@ -63,4 +80,8 @@ for src=srcIDs
         defs(pos)={getSource(s,src)};
         pos=pos+1;
     end
+end
+
+
+
 end

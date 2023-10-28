@@ -1,5 +1,5 @@
 function obj = set(obj,varargin)
-% EXPERIMENTSPACE/SET Set object properties and return the updated object
+% EXPERIMENTSPACE/SET DEPRECATED (v1.2). Set object properties and return the updated object
 %
 % obj = set(obj,varargin) Sets the indicated property propName and
 %    return the updated object
@@ -58,11 +58,36 @@ function obj = set(obj,varargin)
 %       'signal', or 'combined'.
 %
 % Copyright 2008-9
-% @date: 13-Jun-2008
 % @author Felipe Orihuela-Espina
 %
 % See also experimentSpace, get
 %
+
+
+
+
+
+%% Log
+%
+% File created: 13-Jun-2008
+% File last modified (before creation of this log): N/A. This class file
+%   had not been modified since creation.
+%
+% 7-Jun-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%   + As I started to add get/set methods for struct like access
+%   to attributes in the main class file, I also updated this
+%   method to simply redirect to those.
+%   + Declare method as DEPRECATED.
+%
+
+
+
+warning('ICNNA:experimentSpace:set:Deprecated',...
+        ['DEPRECATED (v1.2). Use struct like syntax for setting the attribute ' ...
+         'e.g. experimentSpace.' lower(varargin{1}) ' = ... ']); 
+
+
 
 propertyArgIn = varargin;
 while length(propertyArgIn) >= 2,
@@ -71,244 +96,276 @@ while length(propertyArgIn) >= 2,
    propertyArgIn = propertyArgIn(3:end);
    switch lower(prop)
     case 'id'
-        if (isscalar(val) && isreal(val) && ~ischar(val) ...
-            && (val==floor(val)) && (val>0))
-            %Note that a char which can be converted to scalar
-            %e.g. will pass all of the above (except the ~ischar)
-            obj.id = val;
-        else
-            error('ICNA:experimentSpace:set',...
-                  'Value must be a positive integer.');
-        end
+        obj.id = val;
+        % if (isscalar(val) && isreal(val) && ~ischar(val) ...
+        %     && (val==floor(val)) && (val>0))
+        %     %Note that a char which can be converted to scalar
+        %     %e.g. will pass all of the above (except the ~ischar)
+        %     obj.id = val;
+        % else
+        %     error('ICNA:experimentSpace:set',...
+        %           'Value must be a positive integer.');
+        % end
         
     case 'name'
-        if (ischar(val))
-            obj.name = val;
-        else
-            error('ICNA:experimentSpace:set',...
-                  'Value must be a string');
-        end
+        obj.name = val;
+        % if (ischar(val))
+        %     obj.name = val;
+        % else
+        %     error('ICNA:experimentSpace:set',...
+        %           'Value must be a string');
+        % end
 
     case 'description'
-        if (ischar(val))
-            obj.description = val;
-        else
-            error('ICNA:experimentSpace:set',...
-                  'Value must be a string');
-        end
+        obj.description = val;
+        % if (ischar(val))
+        %     obj.description = val;
+        % else
+        %     error('ICNA:experimentSpace:set',...
+        %           'Value must be a string');
+        % end
 
     case 'sessionnames'
-        if (isstruct(val) && isfield(val,'sessID') && isfield(val,'name'))
-            obj.sessionNames = val;
-        else
-            error('ICNA:experimentSpace:set',...
-                  'Value must be a struct with fields .sessID and .name');
-        end
+        obj.sessionNames = val;
+        % if (isstruct(val) && isfield(val,'sessID') && isfield(val,'name'))
+        %     obj.sessionNames = val;
+        % else
+        %     error('ICNA:experimentSpace:set',...
+        %           'Value must be a struct with fields .sessID and .name');
+        % end
 
-%     case 'runstatus'
-%         if (isscalar(val))
-%             obj.runStatus = logical(val);
-%         else
-%             error('ICNA:experimentSpace:set',...
-%                   'Value must be a logical scalar.');
-%         end
+% %     case 'runstatus'
+% %         if (isscalar(val))
+% %             obj.runStatus = logical(val);
+% %         else
+% %             error('ICNA:experimentSpace:set',...
+% %                   'Value must be a logical scalar.');
+% %         end
 
     case 'averaged'
-        if (isscalar(val))
-            obj.performAveraging = logical(val);
-            obj.runStatus = false;
-        else
-            error('ICNA:experimentSpace:set',...
-                  'Value must be a logical scalar.');
-        end
+        obj.averaged = val;
+        % if (isscalar(val))
+        %     obj.performAveraging = logical(val);
+        %     obj.runStatus = false;
+        % else
+        %     error('ICNA:experimentSpace:set',...
+        %           'Value must be a logical scalar.');
+        % end
+
     case 'resampled'
-        if (isscalar(val))
-            obj.performResampling = logical(val);
-            obj.runStatus = false;
-        else
-            error('ICNA:experimentSpace:set',...
-                  'Value must be a logical scalar.');
-        end
-    case 'windowed'
-        warning('ICNA:experimentSpace:set',...
+        obj.resampled = val;
+        % if (isscalar(val))
+        %     obj.performResampling = logical(val);
+        %     obj.runStatus = false;
+        % else
+        %     error('ICNA:experimentSpace:set',...
+        %           'Value must be a logical scalar.');
+        % end
+
+    case 'windowed'  %THIS HAS NOT BEEN TRANSLATED TO STRUCT LIKE SYNTAX INTENTIONALLY AS IT WAS ALREADY DEPRECATED.
+        warning('ICNNA:experimentSpace:set',...
                   ['This has been DEPRECATED. ' ...
                   '''Windowed'' parameter can no longer ' ...
                   'be set. Please refer to experimentSpace class' ...
                   'documentation.']);
     case 'normalized'
-        if (isscalar(val))
-            obj.performNormalization = logical(val);
-            obj.runStatus = false;
-        else
-            error('ICNA:experimentSpace:set',...
-                  'Value must be a logical scalar.');
-        end
+        obj.normalized = val;
+        % if (isscalar(val))
+        %     obj.performNormalization = logical(val);
+        %     obj.runStatus = false;
+        % else
+        %     error('ICNA:experimentSpace:set',...
+        %           'Value must be a logical scalar.');
+        % end
         
     case 'baselinesamples'
-        if (isscalar(val) && isreal(val) ...
-                && (floor(val)==val) && val>0)
-            obj.baselineSamples = val;
-            obj.runStatus = false;
-        else
-            error('ICNA:experimentSpace:set',...
-                  'Value must be a positive integer or 0.');
-        end
+        obj.baselineSamples = val;
+        % if (isscalar(val) && isreal(val) ...
+        %         && (floor(val)==val) && val>0)
+        %     obj.baselineSamples = val;
+        %     obj.runStatus = false;
+        % else
+        %     error('ICNA:experimentSpace:set',...
+        %           'Value must be a positive integer or 0.');
+        % end
         
     case 'restsamples'
-        if (isscalar(val) && isreal(val) ...
-                && (floor(val)==val))
-            %Rest samples can be negative; meaning that all samples
-            %will be collected until the next onset
-            obj.restSamples = val;
-            obj.runStatus = false;
-        else
-            error('ICNA:experimentSpace:set',...
-                  'Value must be a positive integer or 0.');
-        end
+        obj.restSamples = val;
+        % if (isscalar(val) && isreal(val) ...
+        %         && (floor(val)==val))
+        %     %Rest samples can be negative; meaning that all samples
+        %     %will be collected until the next onset
+        %     obj.restSamples = val;
+        %     obj.runStatus = false;
+        % else
+        %     error('ICNA:experimentSpace:set',...
+        %           'Value must be a positive integer or 0.');
+        % end
         
     case 'rs_baseline'
-        if (isscalar(val) && isreal(val) ...
-                && (floor(val)==val) && val>=0)
-            obj.rsBaseline = val;
-            obj.runStatus = false;
-        else
-            error('ICNA:experimentSpace:set',...
-                  'Value must be a positive integer.');
-        end
+        obj.rs_baseline = val;
+        % if (isscalar(val) && isreal(val) ...
+        %         && (floor(val)==val) && val>=0)
+        %     obj.rsBaseline = val;
+        %     obj.runStatus = false;
+        % else
+        %     error('ICNA:experimentSpace:set',...
+        %           'Value must be a positive integer.');
+        % end
+
     case 'rs_task'
-        if (isscalar(val) && isreal(val) ...
-                && (floor(val)==val) && val>=0)
-            obj.rsTask = val;
-            obj.runStatus = false;
-        else
-            error('ICNA:experimentSpace:set',...
-                  'Value must be a positive integer or 0.');
-        end
+        obj.rs_task = val;
+        % if (isscalar(val) && isreal(val) ...
+        %         && (floor(val)==val) && val>=0)
+        %     obj.rsTask = val;
+        %     obj.runStatus = false;
+        % else
+        %     error('ICNA:experimentSpace:set',...
+        %           'Value must be a positive integer or 0.');
+        % end
+        
     case 'rs_rest'
-        if (isscalar(val) && isreal(val) ...
-                && (floor(val)==val) && val>=0)
-            obj.rsRest = val;
-            obj.runStatus = false;
-        else
-            error('ICNA:experimentSpace:set',...
-                  'Value must be a positive integer or 0.');
-        end
+        obj.rs_rest = val;
+        % if (isscalar(val) && isreal(val) ...
+        %         && (floor(val)==val) && val>=0)
+        %     obj.rsRest = val;
+        %     obj.runStatus = false;
+        % else
+        %     error('ICNA:experimentSpace:set',...
+        %           'Value must be a positive integer or 0.');
+        % end
+        
     case 'ws_onset'
-        if (isscalar(val) && isreal(val) ...
-                && (floor(val)==val)  && ~ischar(val))
-            obj.fwOnset = val;
-            obj.runStatus = false;
-        else
-            error('ICNA:experimentSpace:set',...
-                  'Value must be an integer scalar.');
-        end
+        obj.ws_onset = val;
+        % if (isscalar(val) && isreal(val) ...
+        %         && (floor(val)==val)  && ~ischar(val))
+        %     obj.fwOnset = val;
+        %     obj.runStatus = false;
+        % else
+        %     error('ICNA:experimentSpace:set',...
+        %           'Value must be an integer scalar.');
+        % end
+        
     case 'ws_duration'
-        if (isscalar(val) && isreal(val) ...
-                && (floor(val)==val) && val>=0 && ~ischar(val))
-            obj.fwDuration = val;
-            obj.runStatus = false;
-        else
-            error('ICNA:experimentSpace:set',...
-                  'Value must be a positive integer or 0.');
-        end
+        obj.ws_duration = val;
+        % if (isscalar(val) && isreal(val) ...
+        %         && (floor(val)==val) && val>=0 && ~ischar(val))
+        %     obj.fwDuration = val;
+        %     obj.runStatus = false;
+        % else
+        %     error('ICNA:experimentSpace:set',...
+        %           'Value must be a positive integer or 0.');
+        % end
         
     case 'ws_breakdelay'
-        if (isscalar(val) && isreal(val) && val>=0 ...
-                && (floor(val)==val) && ~ischar(val))
-            obj.fwBreakDelay = val;
-            obj.runStatus = false;
-        else
-            error('ICNA:experimentSpace:set',...
-                  'Value must be a positive integer or 0.');
-        end
+        obj.ws_breakDelay = val;
+        % if (isscalar(val) && isreal(val) && val>=0 ...
+        %         && (floor(val)==val) && ~ischar(val))
+        %     obj.fwBreakDelay = val;
+        %     obj.runStatus = false;
+        % else
+        %     error('ICNA:experimentSpace:set',...
+        %           'Value must be a positive integer or 0.');
+        % end
         
     case 'normalizationmethod'
-        switch(lower(val))
-            case 'normal'
-                obj.normalizationMethod = 'normal';
-            case 'range'
-                obj.normalizationMethod = 'range';
-            otherwise
-                error('ICNA:experimentSpace:set',...
-                  ['Valid normalization methods are ' ...
-                  '''normal'' or ''range''.']);
-        end
-        obj.runStatus = false;
+        obj.normalizationMethod = val;
+        % switch(lower(val))
+        %     case 'normal'
+        %         obj.normalizationMethod = 'normal';
+        %     case 'range'
+        %         obj.normalizationMethod = 'range';
+        %     otherwise
+        %         error('ICNA:experimentSpace:set',...
+        %           ['Valid normalization methods are ' ...
+        %           '''normal'' or ''range''.']);
+        % end
+        % obj.runStatus = false;
         
     case 'normalizationmean'
-        if (isscalar(val) && isreal(val) && ~ischar(val))
-            obj.normalizationMean = val;
-            obj.runStatus = false;
-        else
-            error('ICNA:experimentSpace:set',...
-                  'Value must be an integer.');
-        end
+        obj.normalizationMean = val;
+        % if (isscalar(val) && isreal(val) && ~ischar(val))
+        %     obj.normalizationMean = val;
+        %     obj.runStatus = false;
+        % else
+        %     error('ICNA:experimentSpace:set',...
+        %           'Value must be an integer.');
+        % end
         
     case 'normalizationvar'
-        if (isscalar(val) && isreal(val) && val>=0 ...
-                && ~ischar(val))
-            obj.normalizationVar = val;
-            obj.runStatus = false;
-        else
-            error('ICNA:experimentSpace:set',...
-                  'Value must be a positive integer or 0.');
-        end
+        obj.normalizationVar = val;
+        % if (isscalar(val) && isreal(val) && val>=0 ...
+        %         && ~ischar(val))
+        %     obj.normalizationVar = val;
+        %     obj.runStatus = false;
+        % else
+        %     error('ICNA:experimentSpace:set',...
+        %           'Value must be a positive integer or 0.');
+        % end
         
     case 'normalizationmin'
-        if (isscalar(val) && isreal(val) && ~ischar(val) ...
-                && val<obj.normalizationMax)
-            obj.normalizationMin = val;
-            obj.runStatus = false;
-        else
-            error('ICNA:experimentSpace:set',...
-                  ['Value must be an integer and greater than ' ...
-                  'the NormalizationMax.']);
-        end
+        obj.normalizationMin = val;
+        % if (isscalar(val) && isreal(val) && ~ischar(val) ...
+        %         && val<obj.normalizationMax)
+        %     obj.normalizationMin = val;
+        %     obj.runStatus = false;
+        % else
+        %     error('ICNA:experimentSpace:set',...
+        %           ['Value must be an integer and greater than ' ...
+        %           'the NormalizationMax.']);
+        % end
         
     case 'normalizationmax'
-        if (isscalar(val) && isreal(val) && ~ischar(val) ...
-                && val>obj.normalizationMin)
-            obj.normalizationMax = val;
-            obj.runStatus = false;
-        else
-            error('ICNA:experimentSpace:set',...
-                  ['Value must be an integer and greater than ' ...
-                  'the NormalizationMin.']);
-        end
+        obj.normalizationMax = val;
+        % if (isscalar(val) && isreal(val) && ~ischar(val) ...
+        %         && val>obj.normalizationMin)
+        %     obj.normalizationMax = val;
+        %     obj.runStatus = false;
+        % else
+        %     error('ICNA:experimentSpace:set',...
+        %           ['Value must be an integer and greater than ' ...
+        %           'the NormalizationMin.']);
+        % end
         
     case 'normalizationscope'
-        switch(lower(val))
-            case 'blockindividual'
-                obj.normalizationScope = 'blockindividual';
-            case 'individual'
-                obj.normalizationScope = 'individual';
-            case 'collective'
-                obj.normalizationScope = 'collective';
-            otherwise
-                error('ICNA:experimentSpace:set',...
-                  ['Valid normalization scope are ' ...
-                  '''individual'' or ''collective''.']);
-        end
-        obj.runStatus = false;
+        obj.normalizationScope = val;
+        % switch(lower(val))
+        %     case 'blockindividual'
+        %         obj.normalizationScope = 'blockindividual';
+        %     case 'individual'
+        %         obj.normalizationScope = 'individual';
+        %     case 'collective'
+        %         obj.normalizationScope = 'collective';
+        %     otherwise
+        %         error('ICNA:experimentSpace:set',...
+        %           ['Valid normalization scope are ' ...
+        %           '''individual'' or ''collective''.']);
+        % end
+        % obj.runStatus = false;
         
     case 'normalizationdimension'
-        switch(lower(val))
-            case 'channel'
-                obj.normalizationDimension = 'channel';
-            case 'signal'
-                obj.normalizationDimension = 'signal';
-            case 'combined'
-                obj.normalizationDimension = 'combined';
-            otherwise
-                error('ICNA:experimentSpace:set',...
-                  ['Valid normalization scope are ' ...
-                  '''individual'' or ''collective''.']);
-        end
-        obj.runStatus = false;
+        obj.normalizationDimension = val;
+        % switch(lower(val))
+        %     case 'channel'
+        %         obj.normalizationDimension = 'channel';
+        %     case 'signal'
+        %         obj.normalizationDimension = 'signal';
+        %     case 'combined'
+        %         obj.normalizationDimension = 'combined';
+        %     otherwise
+        %         error('ICNA:experimentSpace:set',...
+        %           ['Valid normalization scope are ' ...
+        %           '''individual'' or ''collective''.']);
+        % end
+        % obj.runStatus = false;
 
     otherwise
-      error('ICNA:experimentSpace:set',...
+      error('ICNNA:experimentSpace:set',...
             ['Property ' prop ' not valid.'])
    end
 end
-assertInvariants(obj);
+%assertInvariants(obj);
+
+
+
+end

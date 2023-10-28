@@ -20,13 +20,32 @@ function element=guiTimeline(varargin)
 %   are 'on' or 'off'.
 %
 %
-% Copyright 2008-13
-% @date: 15-Oct-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 1-Jan-2013
 %
 % See also guiExperiment, guiExperimentSpace, timeline
 %
+
+%% Log
+%
+%
+% File created: 15-Oct-2008
+% File last modified (before creation of this log): 1-Jan-2013
+%
+% 21-May-2023: FOE
+%   + Added this log.
+%   + Got rid of old labels @date and @modified.
+%   + Updated some calls to get attributes using the struct like syntax
+%
+% 24-May-2023: FOE
+%   + I have now addressed the long standing issue with accessing
+%   the icons folder when the working directory is not that of ICNNA
+%   using function mfilename. I believe this might be a good final
+%   solution allowing the use of ICNNA yet permitting the user to
+%   be in whatever working directory he likes. IF this works, I should
+%   extend this solution to other functions of the GUI.
+%
+
 
 %% Deal with options
 if ~isempty(varargin) && isa(varargin{1},'timeline')
@@ -145,8 +164,8 @@ clear tmpMenuTools_OptSetLength
 
 %Toolbars
 toolbar = uitoolbar(f,'Tag','toolbar');
-%iconsFolder='C:\Program Files\MATLAB\R2007b\toolbox\matlab\icons\';
-iconsFolder='./GUI/icons/';
+[localDir,~,~] = fileparts(mfilename('fullpath'));
+iconsFolder=[localDir filesep 'icons' filesep];
 % tempIcon=load([iconsFolder 'savedoc.mat']);
 %     uipushtool(toolbar,'CData',tempIcon.cdata,...
 %         'Tag','toolbarButton_Save',...
@@ -454,7 +473,7 @@ function OnLoad_Callback(hObject,eventData)
 % eventdata - Reserved for later use.
 handles=guidata(hObject);
 t=handles.currentElement.data;
-nConditions=get(t,'NConditions');
+nConditions=t.nConditions;
 
 %Controls (By default all conditions are shown)
 if (nConditions==0)
@@ -807,8 +826,8 @@ conditions=get(handles.conditionsListBox,'Value');
 colors=hsv(length(conditions));
 axes(handles.timecourseAxes)
 cla(handles.timecourseAxes)
-if (get(t,'Length')>0)
-    set(gca,'XLim',[0 get(t,'Length')]);
+if (t.length>0)
+    set(gca,'XLim',[0 t.length]);
 else
     set(gca,'XLim',[0 0.1]);
 end
@@ -866,7 +885,7 @@ end
 box on
 set(gca,'XGrid','on');
 
-if (get(t,'NConditions')==0)
+if (t.nConditions==0)
     set(handles.menuEvents,'Enable','off');
     set(handles.menuEvents_OptAddEvent,'Enable','off');
     set(handles.menuEvents_OptRemoveEvent,'Enable','off');

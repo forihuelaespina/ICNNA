@@ -5,17 +5,24 @@ function display(obj)
 %then displayed on the with an output similar to the standard
 %MATLAB output.
 %
-% Copyright 2012-13
-% @date: 26-Nov-2012
+% Copyright 2012-23
 % @author: Felipe Orihuela-Espina
-% @modified: 8-Sep-2013
 %
 % See also optodeArray, get, set
 %
 
 %% Log
 %
+%
+% File created: 26-Nov-2012
+% File last modified (before creation of this log): 8-Sep-2013
+%
 % 8-Sep-2013: Support for visualizing optodes and pairings information
+%   + Added this log.
+%
+% 20-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
 %
 
 
@@ -26,14 +33,14 @@ disp(' ');
 disp(['   ID: ' num2str(obj.id)]);
 disp(['   Description: ' obj.description]);
 
-nChannels=get(obj,'nChannels');
+nChannels=obj.nChannels;
 disp(['   Num. Channels: ' num2str(nChannels)]);
-nOptodes=get(obj,'nOptodes');
+nOptodes=obj.nOptodes;
 disp(['   Num. Optodes: ' num2str(nOptodes)]);
 
 if nChannels>0
     disp(['   Channel surface positions (' ...
-            get(obj,'SurfacePositioningSystem') ...
+            obj.surfacePositioningSystem ...
             '), 3D Locations (X,Y,Z) ' ...
             'and associated optode pairings <Emisor,Detector>:']);
     chPos_surface=getChannelSurfacePositions(obj);
@@ -52,7 +59,7 @@ if nChannels>0
     
     disp(' ')
     disp(['   Channel stereotactic positions (' ...
-            get(obj,'StereotacticPositioningSystem') ...
+            obj.stereotacticPositioningSystem ...
             ') - (X,Y,Z):']);
     chPos_stereotactic=getChannelStereotacticPositions(obj);
     for ch=1:nChannels
@@ -65,7 +72,7 @@ end
     
 if nOptodes>0
     disp(['   Optode surface positions (' ...
-            get(obj,'SurfacePositioningSystem') ...
+            obj.surfacePositioningSystem ...
             '), Type and 3D Locations (X,Y,Z):']);
     oPos_surface=getOptodeSurfacePositions(obj);
     oPos_Type=getOptodeTypes(obj);

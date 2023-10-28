@@ -24,14 +24,28 @@ function obj=cut(obj,winInit,winEnd)
 %
 %
 %
-% Copyright 2008-13
-% @date: 16-Aug-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 3-Jan-2013
 %
 % See also structuredData, crop, windowSelection, getBlock,
 % experimentSpace, analysis, blockResample, blocksTemporalAverage
 %
+
+
+
+
+%% Log
+%
+% File created: 16-Aug-2008
+% File last modified (before creation of this log): 3-Jan-2013
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%
+
+
+
 
 if (winInit<1)
     error('ICNA:structuredData:cut:InvalidParameter',...
@@ -42,15 +56,14 @@ if (winInit>winEnd)
         ['Wrong parameter value; ' ...
         'winInit should be minor or equal than winEnd.']);
 end
-if (winEnd>get(obj,'NSamples'))
+if (winEnd>obj.nSamples)
     error('ICNA:structuredData:cut:InvalidParameter',...
         ['Wrong parameter value; ' ...
         'winEnd should be minor or equal than data length.']);
 end
 
-t=get(obj,'Timeline');
-data=get(obj,'Data');
-[nSamples,nChannels,nSignals]=size(data);
+t = obj.timeline;
+data= obj.data;
 
 s = warning('off', 'ICNA:timeline:set:Length:EventsCropped');
 
@@ -59,7 +72,7 @@ data(winInit:winEnd,:,:)=[];
 nCutSamples=(winEnd-winInit)+1;
                 
 %Adjust the timeline appropiately accordingly
-nCond=get(t,'NConditions');
+nCond= t.nConditions;
 for cc=1:nCond
     tmpCondTag=getConditionTag(t,cc);
     [events,eventsInfo]=getConditionEvents(t,tmpCondTag);
@@ -114,10 +127,12 @@ for cc=1:nCond
     t=setConditionEvents(t,tmpCondTag,events,eventsInfo);
 end
 %...and reduce the length appropriately
-t=set(t,'Length',nSamples-nCutSamples);
+t.length = obj.nSamples-nCutSamples;
 
 %%Finally update the object
-obj=set(obj,'Data',data);
-obj=set(obj,'Timeline',t);
+obj.data = data;
+obj.timeline = t;
 warning(s);
+
+end
 

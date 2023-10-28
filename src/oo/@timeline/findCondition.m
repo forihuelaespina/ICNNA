@@ -6,11 +6,22 @@ function idx=findCondition(obj,tag)
 %   If the condition has not been defined it returns an empty
 %   matrix [].
 %
-% Copyright 2008
-% @date: 18-Apr-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also timeline
+
+
+%% Log
+%
+% File created: 18-Apr-2008
+% File last modified (before creation of this log): N/A. This method had
+%       not been updated since creation!
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date
+%
+
 
 nConditions=length(obj.conditions);
 idx=[];

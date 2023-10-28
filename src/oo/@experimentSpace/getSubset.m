@@ -31,22 +31,35 @@ function [Findex,Fvectors]=getSubset(obj,s)
 %
 %
 %
-% Copyright 2008
-% @date: 18-Jul-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also experimentSpace, compute
 %
 
+
+
+%% Log
+%
+% File created: 18-Jul-2008
+% File last modified (before creation of this log): N/A. This method
+%   had not been modified since creation.
+%
+% 7-Jun-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%   + Error codes changed from ICNA to ICNNA.
+%
+
+
 if (isempty(s))
-    Findex=obj.Findex;
-    Fvectors=obj.Fvectors;
+    Findex   = obj.Findex;
+    Fvectors = obj.Fvectors;
     return
 end
 
 %Check the validity of the input parameter s
 if ~iscell(s)
-    error('ICNA:experimentSpace:getSubset:InvalidParameter',...
+    error('ICNNA:experimentSpace:getSubset:InvalidParameter',...
         'Invalid parameter subsetDefinition.')
 end
 dims=zeros(1,0); %dimension descriptors
@@ -54,7 +67,7 @@ for ii=1:length(s)
     tmpStruct=s{ii};
     if ~(isstruct(tmpStruct) && isfield(tmpStruct,'dimension') ...
             && isfield(tmpStruct,'values'))
-        error('ICNA:experimentSpace:getSubset:InvalidParameter',...
+        error('ICNNA:experimentSpace:getSubset:InvalidParameter',...
             'Invalid parameter subsetDefinition.')
     end
     
@@ -62,7 +75,7 @@ for ii=1:length(s)
 end
 dims=dims';
 if (any(dims<1) || any(dims>=obj.DIM_BLOCK))
-     error('ICNA:experimentSpace:getSubset:UndefinedDimension',...
+     error('ICNNA:experimentSpace:getSubset:UndefinedDimension',...
         'Undefined dimension within space.')
 end
 
@@ -122,10 +135,13 @@ switch (length(dims))
                & ismember(obj.Findex(:,dims(8)),s{8}.values));
 
     otherwise
-     error('ICNA:experimentSpace:getSubset:UndefinedDimension',...
+     error('ICNNA:experimentSpace:getSubset:UndefinedDimension',...
         'Unexpected dimension.')
 end
 
 %Now simply pick the subset...
-Findex=obj.Findex(idx,:);
-Fvectors=obj.Fvectors(idx);
+Findex   = obj.Findex(idx,:);
+Fvectors = obj.Fvectors(idx);
+
+
+end

@@ -79,10 +79,8 @@ function [theIntegrityStatus,flagSuccess] = ...
 %
 %
 %
-% Copyright 2010
-% @date: 29-Oct-2010
+% Copyright 2010-23
 % @author Felipe Orihuela-Espina
-% @modified: 18-May-2018
 %
 % See also structuredData.checkIntegrity, getIntegrityReport,
 %   addVisualIntegrity, runIntegrity
@@ -92,26 +90,39 @@ function [theIntegrityStatus,flagSuccess] = ...
 
 %% Log
 %
+% File created: 29-Oct-2010
+% File last modified (before creation of this log): 18-May-2018
+%
 % 18-May-2018: FOE. Added support for NIRScout neuroimages.
 %
 % 2-Jan-2021: FOE
 %   + Bug fixed. If the options does not have a field .nirs_neuroimage
 %   default values are not automatically set.
-%   + Tag @modified has been removed.
+%
+%
+% 24-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%
+% 25-May-2023: FOE
+%   + Added case for rawData_Snirf. Currently only 1 nirsDataset (the first
+%   found) of raw CW-NIRS data (snirf dataType 1) is supported.
+%
 %
 
 
-
 if ~isa(rawElement,'rawData')
-    error('ICNA:runIntegrityOnRaw:InvalidInputParameter',...
+    error('ICNNA:runIntegrityOnRaw:InvalidInputParameter',...
           ['Unexpected rawElement class. rawElement must be ' ...
           'an object of class rawData.'])
 else
     sd = convert(rawElement);
-    nChannels = get(sd,'NChannels');
+    nChannels = sd.nChannels;
     assert(length(double(theIntegrityStatus)) == nChannels, ...
             'Unexpected size of integrityStatus parameter.');
 end
+
+
 
 %% Deal with options
 opt.whichChannels = 1:nChannels;
@@ -125,7 +136,8 @@ if exist('options','var')
     end
     
     if (isa(rawElement,'rawData_ETG4000') ...
-        || isa(rawElement,'rawData_NIRScout'))
+        || isa(rawElement,'rawData_NIRScout')...
+        || isa(rawElement,'rawData_Snirf'))
     
         if isfield(options,'nirs_neuroimage')
             tests=options.nirs_neuroimage;
@@ -149,6 +161,7 @@ if exist('options','var')
     
     
 end
+
 
 
 if (isa(rawElement,'rawData_ETG4000') ...
@@ -188,6 +201,101 @@ if (isa(rawElement,'rawData_ETG4000') ...
         end
         theIntegrityStatus = setStatus(theIntegrityStatus,ch,res);
     end
+
+
+elseif isa(rawElement,'rawData_Snirf')
+
+
+    tmpSnirfImg = rawElement.snirfImg;
+    
+
+    %By now, it can only check 1 nirsDataset and CW-NIRS data
+    %For no particular reason, I will use the first raw nirsDataset found
+    %in the Snirf structure
+
+    idxSet = 0;
+    for iSet = 1:tmpSnirfImg.nNirsDatasets
+        %Check it if is a raw dataset 
+        tmpSet  = tmpSnirfImg.nirs(iSet);
+        tmpDataBlock = tmpSet.data;
+        tmpMeasurement = tmpDataBlock.measurementList(1);
+        tmpDataType = tmpMeasurement.dataType;
+
+        %The data Type code for raw CW-NIRS data is 1
+        if tmpDataType == 1
+            idxSet = iSet;
+            break
+        end
+    end
+
+    if idxSet ~=0
+
+        tmpSet  = tmpSnirfImg.nirs(idxSet);
+        tmpDataBlock = tmpSet.data;
+        tmpMeasurementList = tmpDataBlock.measurementList;
+        nMeasurements = length(tmpMeasurementList);
+
+        %%Estimate channels
+        mList = nan(0,2);
+        for iMeas = 1:nMeasurements
+            iSrc = tmpMeasurementList(iMeas).sourceIndex;
+            iDet = tmpMeasurementList(iMeas).detectorIndex;
+            mList(iMeas,:) = [iSrc iDet];
+        end
+        channelList = unique(mList,'rows');
+        nChannels = size(channelList,1);
+        
+        %Reformat to the classical tensor
+        nSamples=size(tmpDataBlock.dataTimeSeries,1);
+        nSignals=nMeasurements/nChannels;
+        nWlengths=length(tmpSet.probe.wavelengths);
+        tmpLightRawData = nan(nSamples, nChannels, nWlengths);
+        for iMeas = 1:nMeasurements
+            tmpMeasurement = tmpMeasurementList(iMeas);
+            iSrc = tmpMeasurement.sourceIndex;
+            iDet = tmpMeasurement.detectorIndex;
+            iCh  = find(channelList(:,1) == iSrc & channelList(:,2) == iDet);
+            iWl  = tmpMeasurement.wavelengthIndex;
+            tmpLightRawData(:,iCh,iWl) = tmpDataBlock.dataTimeSeries(:,iMeas);
+        end
+
+
+        %Intensity threshold for raw signals [mV]
+        thresh=4.9998;
+    
+        theData = tmpLightRawData; %Cols are temporal samples
+
+        for ch=opt.whichChannels
+            wlength1_data = theData(:,:,1);
+            wlength2_data = theData(:,:,2);
+            %rawData_ETG4000 tests here
+            res = getStatus(theIntegrityStatus,ch);
+            if (opt.nirs_neuroimage.ApparentNonRecording)
+                idx = find(wlength1_data >= thresh & wlength2_data >= thresh);
+                if ~isempty(idx)
+                    res = integrityStatus.NONRECORDINGS;
+                end
+                flagSuccess.nirs_neuroimage.ApparentNonRecording = true;
+                clear idx
+            end
+            if (opt.nirs_neuroimage.Mirroring)
+                idx = find(wlength1_data >= thresh | wlength2_data >= thresh);
+                if ~isempty(idx)
+                    res = integrityStatus.MIRRORING;
+                end
+                flagSuccess.nirs_neuroimage.Mirroring = true;
+                clear idx
+            end
+            if res==integrityStatus.UNCHECK
+                res = integrityStatus.FINE;
+            end
+            theIntegrityStatus = setStatus(theIntegrityStatus,ch,res);
+        end
+
+    end
+
+
+
 end
 
 

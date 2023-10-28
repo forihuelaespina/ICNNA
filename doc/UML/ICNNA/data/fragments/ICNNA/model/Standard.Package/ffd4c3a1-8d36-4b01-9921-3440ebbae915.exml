@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<!--GENERATED FILE, PLEASE DO NOT EDIT!!!--><EXT object="icnna" version="4">
+  <OBJECT>
+    <ID name="icnna" mc="Standard.Package" uid="ffd4c3a1-8d36-4b01-9921-3440ebbae915"/>
+    <PID name="ICNNA" mc="Standard.Project" uid="7eff7d5b-7927-405a-ae3f-52187ebc2c99"/>
+    <ATTRIBUTES>
+      <ATT name="IsInstantiable">false</ATT>
+      <ATT name="IsAbstract">false</ATT>
+      <ATT name="IsLeaf">false</ATT>
+      <ATT name="IsRoot">false</ATT>
+      <ATT name="Visibility">Public</ATT>
+      <ATT name="Name"><![CDATA[icnna]]></ATT>
+      <ATT name="status">1970354901745664</ATT>
+    </ATTRIBUTES>
+    <DEPENDENCIES>
+      <COMP relation="OwnedElement">
+        <COMPID name="data" mc="Standard.Package" uid="75c77c8d-e977-4e6c-b687-fd9a96424171"/>
+      </COMP>
+    </DEPENDENCIES>
+  </OBJECT>
+</EXT>

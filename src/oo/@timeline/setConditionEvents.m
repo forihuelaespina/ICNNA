@@ -16,14 +16,23 @@ function obj=setConditionEvents(obj,tag,events,eventsInfo)
 %
 %
 %
-% Copyright 2008-12
-% @date: 18-Apr-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 31-Dec-2012
 %
 % See also getCondition, addCondition, removeCondition, setConditionTag,
 % getConditionEvents, addConditionEvents, removeConditionEvents
 %
+
+
+%% Log
+%
+% File created: 18-Apr-2008
+% File last modified (before creation of this log): 31-Dec-2012
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%
+
 
 if ~exist('eventsInfo','var')
     eventsInfo = cell(size(events,1),1);
@@ -55,3 +64,5 @@ else
     end
 end
 assertInvariants(obj);
+
+end

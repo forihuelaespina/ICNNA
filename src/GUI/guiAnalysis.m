@@ -12,10 +12,8 @@ function element=guiAnalysis(element)
 %   be changed, but its parameters and clusters can be updated.
 %
 %
-% Copyright 2008-18
-% @date: 13-Jun-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 25-Apr-2018
 %
 % See also guiExperiment, guiVisualizeAnalysis, analysis, cluster,
 %   experimentSpace
@@ -24,13 +22,24 @@ function element=guiAnalysis(element)
 
 %% Log
 %
+% File created: 13-Jun-2008
+% File last modified (before creation of this log): 25-Apr-2018
+%
 % 25-Apr-2018: FOE. Window rebranded to ICNNA
 %
 % 26-Apr-2016: FOE.
 %   + Updated deprecated calls from get(obj,'numPoints') to get(obj,'nPoints')
 %   in myRedrawStatus.
 %
-
+% 24-May-2023: FOE
+%   + Got rid of the old labels @date and @modified.
+%   + I have now addressed the long standing issue with accessing
+%   the icons folder when the working directory is not that of ICNNA
+%   using function mfilename. 
+%
+% 8-Jun-2023: FOE
+%   + Started to update the get/set methods calls to struct like syntax
+%
 
 
 
@@ -136,8 +145,8 @@ menuHelp = uimenu('Label','Help',...
 
 %Toolbars
 toolbar = uitoolbar(f,'Tag','toolbar');
-%iconsFolder='C:\Program Files\MATLAB\R2007b\toolbox\matlab\icons\';
-iconsFolder='./GUI/icons/';
+[localDir,~,~] = fileparts(mfilename('fullpath'));
+iconsFolder=[localDir filesep 'icons' filesep];
 tempIcon=load([iconsFolder 'newdoc.mat']);
 	uipushtool(toolbar,'CData',tempIcon.cdata,...
         'Tag','toolbarButton_New',...
@@ -817,13 +826,13 @@ function OnLoad(hObject,eventData)
 handles=guidata(hObject);
 if (~isempty(handles.currentElement.data))
 set(handles.idEditBox,'String',...
-    num2str(get(handles.currentElement.data,'ID')));
+    num2str(handles.currentElement.data.id));
 set(handles.nameEditBox,'String',...
-    num2str(get(handles.currentElement.data,'Name')));
+    num2str(handles.currentElement.data.name));
 set(handles.descriptionEditBox,'String',...
-    num2str(get(handles.currentElement.data,'Description')));
+    num2str(handles.currentElement.data.description));
 
-pD=get(handles.currentElement.data,'ProjectionDimensionality');
+pD = handles.currentElement.data.projectionDimensionality;
 if (pD==2)
     set(handles.twoDRButton,'Value',1);
     set(handles.threeDRButton,'Value',0);
@@ -836,7 +845,7 @@ else
 end
 
 
-metric=get(handles.currentElement.data,'Metric');
+metric = handles.currentElement.data.metric;
 switch(metric)
     case 'euc' %Use of 'euc' is now DEPRECATED
         set(handles.euclideanRButton,'Value',1);
@@ -891,7 +900,7 @@ switch(metric)
             'guiAnalysis')
 end
 
-embeddingTech=get(handles.currentElement.data,'Embedding');
+embeddingTech = handles.currentElement.data.embedding;
 switch(embeddingTech)
     case 'cmds'
         set(handles.cmdsRButton,'Value',1);
@@ -911,14 +920,14 @@ switch(embeddingTech)
 end
 
 set(handles.subjectsEditBox,'String',...
-    mat2str(get(handles.currentElement.data,'SubjectsIncluded')));
+    mat2str(handles.currentElement.data.subjectsIncluded));
 set(handles.sessionDefinitionsEditBox,'String',...
-    mat2str(get(handles.currentElement.data,'SessionsIncluded')));
+    mat2str(handles.currentElement.data.sessionsIncluded));
 
 set(handles.channelGroupingEditBox,'String',...
-    mat2str(get(handles.currentElement.data,'ChannelGroups')));
+    mat2str(handles.currentElement.data.channelGrouping));
 set(handles.signalDescriptorsEditBox,'String',...
-    mat2str(get(handles.currentElement.data,'SignalDescriptors')));
+    mat2str(handles.currentElement.data.signalDescriptors));
 
 
 guidata(f,handles);
@@ -937,8 +946,7 @@ function On2DRButton_Callback(hObject,eventData)
 handles=guidata(hObject);
 set(handles.twoDRButton,'Value',1);
 set(handles.threeDRButton,'Value',0);
-handles.currentElement.data=...
-    set(handles.currentElement.data,'ProjectionDimensionality',2);
+handles.currentElement.data.projectionDimensionality = 2;
 handles.currentElement.saved=false;
 guidata(f,handles);
 myRedrawStatus(f);
@@ -953,8 +961,7 @@ function On3DRButton_Callback(hObject,eventData)
 handles=guidata(hObject);
 set(handles.twoDRButton,'Value',0);
 set(handles.threeDRButton,'Value',1);
-handles.currentElement.data=...
-    set(handles.currentElement.data,'ProjectionDimensionality',3);
+handles.currentElement.data.projectionDimensionality = 3;
 handles.currentElement.saved=false;
 guidata(f,handles);
 myRedrawStatus(f);
@@ -971,14 +978,11 @@ handles=guidata(hObject);
 set(handles.ambientRButton,'Value',1);
 set(handles.geoRButton,'Value',0);
 if get(handles.euclideanRButton,'Value')==1
-    handles.currentElement.data=...
-        set(handles.currentElement.data,'Metric','euclidean');
+    handles.currentElement.data.metric = 'euclidean';
 elseif get(handles.corrRButton,'Value')==1
-    handles.currentElement.data=...
-        set(handles.currentElement.data,'Metric','corr');
+    handles.currentElement.data.metric = 'corr';
 elseif get(handles.jsmRButton,'Value')==1
-    handles.currentElement.data=...
-        set(handles.currentElement.data,'Metric','jsm');
+    handles.currentElement.data.metric = 'jsm';
 else
     warndlg('Unexpected metric selection. No change made.',...
             'guiAnalysis');
@@ -997,9 +1001,9 @@ function OnDistanceDistortion_Callback(hObject,eventData)
 % eventdata - Reserved for later use.
 handles=guidata(hObject);
 
-dy=squareform(pdist(get(handles.currentElement.data,'ProjectionSpace')));
+dy = squareform(pdist(handles.currentElement.data.projectionSpace));
     %Low dimensional (Euclidean) distances
-dx=get(handles.currentElement.data,'PatternDistances');
+dx = handles.currentElement.data.patternDistances;
     %High dimensional distances
 figure
 plotDyDx(dy,dx);
@@ -1019,11 +1023,9 @@ set(handles.corrRButton,'Value',0);
 set(handles.jsmRButton,'Value',0);
 
 if get(handles.ambientRButton,'Value')==1
-    handles.currentElement.data=...
-        set(handles.currentElement.data,'Metric','euc');
+    handles.currentElement.data.metric = 'euc';
 elseif get(handles.geoRButton,'Value')==1
-    handles.currentElement.data=...
-        set(handles.currentElement.data,'Metric','geo_euclidean');
+    handles.currentElement.data.metric = 'geo_euclidean';
 else
     warndlg('Unexpected metric selection. No change made.',...
             'guiAnalysis');
@@ -1044,11 +1046,9 @@ set(handles.euclideanRButton,'Value',0);
 set(handles.corrRButton,'Value',1);
 set(handles.jsmRButton,'Value',0);
 if get(handles.ambientRButton,'Value')==1
-    handles.currentElement.data=...
-        set(handles.currentElement.data,'Metric','corr');
+    handles.currentElement.data.metric = 'corr';
 elseif get(handles.geoRButton,'Value')==1
-    handles.currentElement.data=...
-        set(handles.currentElement.data,'Metric','geo_corr');
+    handles.currentElement.data.metric = 'geo_corr';
 else
     warndlg('Unexpected metric selection. No change made.',...
             'guiAnalysis');
@@ -1084,11 +1084,9 @@ set(handles.euclideanRButton,'Value',0);
 set(handles.corrRButton,'Value',0);
 set(handles.jsmRButton,'Value',1);
 if get(handles.ambientRButton,'Value')==1
-    handles.currentElement.data=...
-        set(handles.currentElement.data,'Metric','jsm');
+    handles.currentElement.data.metric = 'jsm';
 elseif get(handles.geoRButton,'Value')==1
-    handles.currentElement.data=...
-        set(handles.currentElement.data,'Metric','geo_jsm');
+    handles.currentElement.data.metric = 'geo_jsm';
 else
     warndlg('Unexpected metric selection. No change made.',...
             'guiAnalysis');
@@ -1110,14 +1108,11 @@ handles=guidata(hObject);
 set(handles.ambientRButton,'Value',0);
 set(handles.geoRButton,'Value',1);
 if get(handles.euclideanRButton,'Value')==1
-    handles.currentElement.data=...
-        set(handles.currentElement.data,'Metric','geo_euclidean');
+    handles.currentElement.data.metric = 'geo_euclidean';
 elseif get(handles.corrRButton,'Value')==1
-    handles.currentElement.data=...
-        set(handles.currentElement.data,'Metric','geo_corr');
+    handles.currentElement.data.metric = 'geo_corr';
 elseif get(handles.jsmRButton,'Value')==1
-    handles.currentElement.data=...
-        set(handles.currentElement.data,'Metric','geo_jsm');
+    handles.currentElement.data.metric = 'geo_jsm';
 else
     warndlg('Unexpected metric selection. No change made.',...
             'guiAnalysis');
@@ -1137,8 +1132,7 @@ function OnCMDSEmbeddingRButton_Callback(hObject,eventData)
 handles=guidata(hObject);
 set(handles.cmdsRButton,'Value',1);
 set(handles.ccaRButton,'Value',0);
-handles.currentElement.data=...
-    set(handles.currentElement.data,'Embedding','cmds');
+handles.currentElement.data.embedding = 'cmds';
 handles.currentElement.saved=false;
 guidata(f,handles);
 myRedrawStatus(f);
@@ -1154,8 +1148,7 @@ function OnCCAEmbeddingRButton_Callback(hObject,eventData)
 handles=guidata(hObject);
 set(handles.cmdsRButton,'Value',0);
 set(handles.ccaRButton,'Value',1);
-handles.currentElement.data=...
-    set(handles.currentElement.data,'Embedding','cca');
+handles.currentElement.data.embedding = 'cca';
 handles.currentElement.saved=false;
 guidata(f,handles);
 myRedrawStatus(f);
@@ -1172,7 +1165,7 @@ try
     s=analysis(handles.currentElement.data);
 
     tmp=str2num(get(handles.channelGroupingEditBox,'String'));
-    s=set(s,'ChannelGroups',tmp);
+    s.channelGrouping = tmp;
     
     handles.currentElement.data=s;
     handles.currentElement.saved=false;
@@ -1198,7 +1191,7 @@ try
     s=analysis(handles.currentElement.data);
 
     tmp=str2num(get(handles.sessionDefinitionsEditBox,'String'));
-    s=set(s,'SessionsIncluded',tmp);
+    s.sessionsIncluded = tmp;
     
     handles.currentElement.data=s;
     handles.currentElement.saved=false;
@@ -1224,7 +1217,7 @@ try
     s=analysis(handles.currentElement.data);
 
     tmp=str2num(get(handles.signalDescriptorsEditBox,'String'));
-    s=set(s,'SignalDescriptors',tmp);
+    s.signalDescriptors = tmp;
     
     handles.currentElement.data=s;
     handles.currentElement.saved=false;
@@ -1250,7 +1243,7 @@ try
     s=analysis(handles.currentElement.data);
 
     tmp=str2num(get(handles.subjectsEditBox,'String'));
-    s=set(s,'SubjectsIncluded',tmp);
+    s.subjectsIncluded = tmp;
     
     handles.currentElement.data=s;
     handles.currentElement.saved=false;
@@ -1278,9 +1271,8 @@ if (isempty(handles.currentElement.data))
         'guiAnalysis','modal');
 else
     
-    tmpExpSp=get(handles.currentElement.data,'ExperimentSpace');
-    if (get(handles.currentElement.data,'RunStatus') ...
-        && get(tmpExpSp,'RunStatus'))
+    tmpExpSp = handles.currentElement.data.experimentSpace;
+    if ( handles.currentElement.data.runStatus && tmpExpSp.runStatus )
         handles.currentElement.data=...
         guiCluster(handles.currentElement.data);
         handles.currentElement.saved=false;
@@ -1334,9 +1326,9 @@ else
                 'Yes','No','No');
             switch(button)
                 case 'Yes'
-                    tmpExpSp=get(handles.currentElement.data,'ExperimentSpace');
-                    if (get(handles.currentElement.data,'RunStatus') ...
-                            && get(tmpExpSp,'RunStatus'))
+                    tmpExpSp = handles.currentElement.data.experimentSpace;
+                    if ( handles.currentElement.data.runStatus ...
+                            && tmpExpSp.runStatus)
                         %Note that the view will be created, even
                         %if the user click the cancel button on the
                         %guiCluster!!
@@ -1415,11 +1407,10 @@ function OnComputeExperimentSpace_Callback(hObject,eventData)
 %   for which the callback was triggered.  See GCBO
 % eventdata - Reserved for later use.
 handles=guidata(hObject);
-expSp=get(handles.currentElement.data,'ExperimentSpace');
-expSp=guiExperimentSpace(expSp);
+expSp = handles.currentElement.data.experimentSpace;
+expSp = guiExperimentSpace(expSp);
 if ~isempty(expSp) %i.e. if not the action is not cancelled
-    handles.currentElement.data=...
-        set(handles.currentElement.data,'ExperimentSpace',expSp);
+    handles.currentElement.data.experimentSpace = expSp;
     guidata(hObject,handles);
     myRedrawStatus(hObject);
 end
@@ -1447,9 +1438,7 @@ else
     end
     if (isa(tmp,'experimentSpace'))
         handles=guidata(hObject);
-        handles.currentElement.data=...
-            set(handles.currentElement.data,...
-                'ExperimentSpace',experimentSpace(tmp));
+        handles.currentElement.data.experimentSpace = experimentSpace(tmp);
         handles.currentElement.saved=false;
         
         guidata(hObject,handles);
@@ -1490,10 +1479,8 @@ set(handles.menuClusters_OptUpdateCluster,'Enable','on');
 set(handles.menuClusters_OptRemoveCluster,'Enable','on');
 
 set(handles.menuExperimentSpace,'Enable','on');
-set(handles.menuExperimentSpace_OptComputeExperimentSpace,...
-                'Enable','on');
-set(handles.menuExperimentSpace_OptLoadExperimentSpace,...
-                'Enable','on');
+set(handles.menuExperimentSpace_OptComputeExperimentSpace,'Enable','on');
+set(handles.menuExperimentSpace_OptLoadExperimentSpace,'Enable','on');
 
 set(handles.menuTools,'Enable','off');
 set(handles.menuTools_OptDistanceDistortion,'Enable','off');
@@ -1728,9 +1715,9 @@ handles=guidata(hObject);
 try
     s=analysis(handles.currentElement.data);
     tmpId=str2double(get(handles.idEditBox,'String'));
-    s=set(s,'ID',tmpId);
-    s=set(s,'Name',get(handles.nameEditBox,'String'));
-    s=set(s,'Description',get(handles.descriptionEditBox,'String'));
+    s.id = tmpId;
+    s.name = get(handles.nameEditBox,'String');
+    s.description = get(handles.descriptionEditBox,'String');
     handles.currentElement.data=s;
     handles.currentElement.saved=false;
 catch ME
@@ -1764,21 +1751,21 @@ if (isempty(handles.currentElement.data)) %Clear
     clear(hObject);
 else %Refresh the Information
     s=handles.currentElement.data;
-    set(handles.idEditBox,'String',get(s,'ID'));
-    set(handles.nameEditBox,'String',get(s,'Name'));
-    set(handles.descriptionEditBox,'String',get(s,'Description'));
+    set(handles.idEditBox,'String',s.id);
+    set(handles.nameEditBox,'String',s.name);
+    set(handles.descriptionEditBox,'String',s.description);
     
     clusters=getClusterList(s);
-    data=cell(getNClusters(s),3); %Four columns are currently displayed
+    data=cell(s.nClusters,3); %Four columns are currently displayed
                             %Tag,Visible,Num. Patterns
-    rownames=zeros(1,getNClusters(s));
+    rownames=zeros(1,s.nClusters);
     pos=1;
     for ii=clusters
         element=getCluster(s,ii);
-        rownames(pos)=get(element,'ID');
-        data(pos,1)={get(element,'Tag')};
-        data(pos,2)={get(element,'Visible')};
-        data(pos,3)={num2str(get(element,'NPatterns'))};
+        rownames(pos) = element.id;
+        data(pos,1)={element.tag};
+        data(pos,2)={element.visible};
+        data(pos,3)={num2str(element.nPatterns)};
         pos=pos+1;
     end
     set(handles.clustersTable,'RowName',rownames);
@@ -1794,11 +1781,11 @@ function myRedrawStatus(hObject)
 % hObject - Handle of the object, e.g., the GUI component,
 handles=guidata(hObject);
 
-tmpES=get(handles.currentElement.data,'ExperimentSpace');
-tmpRunStatus=get(tmpES,'RunStatus');
+tmpES= handles.currentElement.data.experimentSpace;
+tmpRunStatus=tmpES.runStatus;
 if tmpRunStatus
     set(handles.experimentSpaceStatusText,...
-        'String',['COMPUTED (' num2str(get(tmpES,'nPoints')) ')']);
+        'String',['COMPUTED (' num2str(tmpES.nPoints) ')']);
     set(handles.runButton,'Enable','on');
 else
     set(handles.experimentSpaceStatusText,'String','NOT COMPUTED');
@@ -1808,7 +1795,7 @@ else
 
 end
 
-if get(handles.currentElement.data,'RunStatus')
+if handles.currentElement.data.runStatus
     set(handles.runStatusText,'String',['RUN (' ...
          num2str(get(handles.currentElement.data,'NPatterns')) ')']);
     set(handles.visualizeButton,'Enable','on');

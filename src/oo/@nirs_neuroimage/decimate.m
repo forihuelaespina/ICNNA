@@ -28,21 +28,35 @@ function obj=decimate(obj,r)
 %guess.
 %
 %
-% Copyright 2007-2012
-% @date: 29-May-2008
+% Copyright 2007-23
 % @author Felipe Orihuela-Espina
-% @modified: 31-Dec-2012
 %
 % See also detrend, rawData.convert, decimate
 %
 %
+
+
+
+%% Log
+%
+%
+% File created: 29-May-2008
+% File last modified (before creation of this log): 31-Dec-2012
+%
+% 20-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%
+
+
+
 
 if (~exist('r','var'))
     r=10;
 end
 
 %First decimate the image data
-data=get(obj,'Data');
+data=obj.data;
 [nSamples,nChannels,nSignals]=size(data);
 %wwait=waitbar(0,'Decimating nirs\_neuroimage... 0%');
 for ss=1:nSignals
@@ -53,11 +67,11 @@ for ss=1:nSignals
         tempData(:,pe,ss)=decimate(data(:,pe,ss)',r)';
     end
 end
-tline=get(obj,'Timeline');
-warning('off','ICNA:timeline:set:EventsCropped');
-obj=set(obj,'Data',tempData);
-warning('on','ICNA:timeline:set:EventsCropped');
-data=get(obj,'Data');
+tline=obj.timeline;
+warning('off','ICNNA:timeline:set:EventsCropped');
+obj.data = tempData;
+warning('on','ICNNA:timeline:set:EventsCropped');
+data=obj.data;
 
 %Now readjust the timeline
 
@@ -83,15 +97,15 @@ newLength=size(data,1);
 %
 %I'll go with this second option...
 dest_tline=timeline(tline); %Use the current timeline as template
-nConds=get(dest_tline,'NConditions');
+nConds=dest_tline.nConditions;
 for con=1:nConds, %Pre-empty events
     tag=getConditionTag(dest_tline,con);
     dest_tline=setConditionEvents(dest_tline,tag,[]);
 end
-dest_tline=set(dest_tline,'Length',newLength);
+dest_tline.length = newLength;
 
 
-nConds=get(tline,'NConditions');
+nConds=tline.nConditions;
 % Re-arrange the events onsets and durations
 for con=1:nConds,
     tag=getConditionTag(tline,con);
@@ -140,7 +154,7 @@ for con=1:nConds,
                         else
                             %If that neither work, then we have a problem!
                             %We MUST merge the two events involved
-                            warning('ICNA:nirs_neuroimage:decimate',...
+                            warning('ICNNA:nirs_neuroimage:decimate',...
                                 'Merging of events has ocurred.');
                             %Remove the old two events and insert the new one
                             newOnsets(ii+1,:)=[]; %This actually remove the "second" event
@@ -164,7 +178,7 @@ end %for
 %Generate the new (decimated) timestamps
 %The new timestamps depend on the new length and the previously available
 %timestamps
-tmpTimestamps = get(tline,'Timestamps');
+tmpTimestamps = tline.timestamps;
 if newLength == 0
     %Do nothing
 elseif newLength == 1
@@ -173,7 +187,8 @@ elseif newLength == 1
         %generated)
     else
         tmpTimestamps = tmpTimestamps(end);
-        dest_tline = set(dest_tline,'Timestamps',tmpTimestamps);
+        %dest_tline = set(dest_tline,'Timestamps',tmpTimestamps);
+        dest_tline.timestamps = tmpTimestamps;
     end
 else %newLength > 1
     if isempty(tmpTimestamps)
@@ -181,12 +196,16 @@ else %newLength > 1
         %generated)
     else
         tmpTimestamps = linspace(tmpTimestamps(1),tmpTimestamps(end),newLength);
-        dest_tline = set(dest_tline,'Timestamps',tmpTimestamps);
+        %dest_tline = set(dest_tline,'Timestamps',tmpTimestamps);
+        dest_tline.timestamps = tmpTimestamps;
     end
 end
 
 %Finally, update the timeline
-obj=set(obj,'Timeline',dest_tline);
+obj.timeline = dest_tline;
 
 assertInvariants(obj);
 %close(wwait);
+
+
+end

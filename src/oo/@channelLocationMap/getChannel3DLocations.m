@@ -13,10 +13,8 @@ function locations=getChannel3DLocations(obj,idx)
 %
 %
 %
-% Copyright 2012-13
-% @date: 26-Nov-2012
+% Copyright 2012-23
 % @author: Felipe Orihuela-Espina
-% @modified: 8-Sep-2013
 %
 % See also setChannel3DLocations, getChannelSurfacePositions,
 %   getChannelStereotacticPositions,
@@ -26,15 +24,27 @@ function locations=getChannel3DLocations(obj,idx)
 
 %% Log
 %
+%
+% File created: 26-Nov-2012
+% File last modified (before creation of this log): 8-Sep-2013
+%
 % 8-Sep-2013: Method name changed from get3DLocations to
 %       getChannel3DLocations. Also updated the property accessed
 %       from .locations to .chLocations
+%   + Added this log.
+%
+% 20-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
 %
 
 
 locations=obj.chLocations;
 if exist('idx','var')
     idx(idx<1)=[];
-    idx(idx>get(obj,'nChannels'))=[];
+    idx(idx>obj.nChannels)=[];
     locations=locations(idx,:);
+end
+
+
 end

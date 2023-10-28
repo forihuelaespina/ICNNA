@@ -23,10 +23,8 @@ function sp=getOptodeSurfacePositions(obj,idx)
 %   head-surface-based positioning systems" NeuroImage 34 (2007) 1600–1611
 %
 %
-% Copyright 2013
-% @date: 8-Sep-2013
+% Copyright 2013-23
 % @author: Felipe Orihuela-Espina
-% @modified: 8-Sep-2013
 %
 % See also setOptodeSurfacePositions, getOptode3DLocations,
 %   getOptodeStereotacticPositions,
@@ -36,7 +34,18 @@ function sp=getOptodeSurfacePositions(obj,idx)
 
 %% Log
 %
+%
+% File created: 8-Sep-2013
+% File last modified (before creation of this log): N/A. This method was
+%   never update since creation.
+%
 % 8-Sep-2013: Method created
+%   + Added this log.
+%
+% 20-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%
 %
 
 
@@ -44,6 +53,9 @@ function sp=getOptodeSurfacePositions(obj,idx)
 sp=obj.optodesSurfacePositions;
 if exist('idx','var')
     idx(idx<1)=[];
-    idx(idx>get(obj,'nOptodes'))=[];
+    idx(idx>obj.nOptodes)=[];
     sp=sp(idx);
+end
+
+
 end

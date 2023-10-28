@@ -17,3 +17,6 @@ if (~isempty(idx))
     obj.sessions(idx)={session(s)}; %Ensuring that s is a session
 end
 assertInvariants(obj);
+
+
+end

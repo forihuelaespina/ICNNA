@@ -31,7 +31,7 @@ function obj=setOptodeArraysInfo(obj,idx,oaInfo)
 %               subclass should check the validity of the modes.
 %           .type - A string describing whether the optode array is for
 %               adults, infants or neonates.
-%           .topoArrangement - Topographical arrangement of the channels
+%           .chTopoArrangement - Topographical arrangement of the channels
 %               within the optode array. These are 3D coordinates which
 %               locate the channels internally to the optode array. The
 %               coordinates in this property are assigned to the channels
@@ -50,19 +50,24 @@ function obj=setOptodeArraysInfo(obj,idx,oaInfo)
 %               beware that they will not be removed, and will remain
 %               latent and will be used again if ever new channels are
 %               associated to the optode array.
+%           .optodesTopoArrangement - Topographical arrangement of the optodes
+%               within the optode array. These are 3D coordinates which
+%               locate the optodes internally to the optode array.
 %
 %
 %
 %
-% Copyright 2012-13
-% @date: 22-Dec-2012
+% Copyright 2012-23
 % @author: Felipe Orihuela-Espina
-% @modified: 12-Oct-2013
 %
 % See also getOptodeArraysInfo, clearOptodeArraysInfo,
 %
 
 %% Log
+%
+%
+% File created: 22-Dec-2012
+% File last modified (before creation of this log): 12-Oct-2013
 %
 % 12-Oct-2013: Minor bug fixed. Error message was displaying the wrong
 %       index of the optode array info.
@@ -72,6 +77,11 @@ function obj=setOptodeArraysInfo(obj,idx,oaInfo)
 %
 % 8-Sep-2013: Support for topological arrangement of optodes. Updated
 %       "links" of the See also section
+%
+% 21-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%   + Improved some comments
 %
 
 
@@ -94,7 +104,7 @@ if isempty(oaInfo)
 else
     
 assert(numel(idx)==numel(oaInfo),...
-        ['ICNA:channelLocationMap:setOptodeArraysInfo:InvalidParameterValue',...
+        ['ICNNA:channelLocationMap:setOptodeArraysInfo:InvalidParameterValue',...
          ' Number of optode arrays indexes mismatches number of ' ...
          'associated optode arrays information records.']);
 idx=reshape(idx,numel(idx),1); %Ensure both are vectors
@@ -121,7 +131,7 @@ for ee=1:nElem
                     %This ought to be checked in each neuroimage subclass
                     %independently.
                 else 
-                  error('ICNA:channelLocationMap:setOptodeArraysInfo:InvalidFieldValue',...
+                  error('ICNNA:channelLocationMap:setOptodeArraysInfo:InvalidFieldValue',...
                       ['Mode in ' num2str(ee) ...
                        '-th optode array information record must be a string.']);
                 end
@@ -136,7 +146,7 @@ for ee=1:nElem
                     %This ought to be checked in each neuroimage subclass
                     %independently.
                 else 
-                  error('ICNA:channelLocationMap:setOptodeArraysInfo:InvalidFieldValue',...
+                  error('ICNNA:channelLocationMap:setOptodeArraysInfo:InvalidFieldValue',...
                       ['Type in ' num2str(ee) ...
                        '-th optode array information record must be a string.']);
                 end
@@ -173,7 +183,7 @@ for ee=1:nElem
                     oaInfo(ee).chTopoArrangement = val;
                                         
                 else 
-                  error('ICNA:channelLocationMap:setOptodeArraysInfo:InvalidFieldValue',...
+                  error('ICNNA:channelLocationMap:setOptodeArraysInfo:InvalidFieldValue',...
                       ['Topographical arrangement of channels in ' num2str(ee) ...
                        '-th optode array information record must be ' ...
                        'a matrix of 3D locations.']);
@@ -212,7 +222,7 @@ for ee=1:nElem
                     oaInfo(ee).optodesTopoArrangement = val;
                                         
                 else 
-                  error('ICNA:channelLocationMap:setOptodeArraysInfo:InvalidFieldValue',...
+                  error('ICNNA:channelLocationMap:setOptodeArraysInfo:InvalidFieldValue',...
                       ['Topographical arrangement of optodes in ' num2str(ee) ...
                        '-th optode array information record must be ' ...
                        'a matrix of 3D locations.']);
@@ -248,3 +258,5 @@ obj.optodeArrays(idx)=oaInfo;
 end
 assertInvariants(obj);
 
+
+end

@@ -1,4 +1,5 @@
-%Abstract Class rawData
+classdef rawData
+% rawData Data as recorded by some device
 %
 %A rawData represents the experimentally recorded data
 %during a session from a particular source (neuroimaging
@@ -41,6 +42,7 @@
 %
 %% Properties
 %
+%   .classVersion - (Read only) The class version of the object
 %   .id - A numerical identifier.
 %   .description - A short description
 %   .date - A string date
@@ -50,26 +52,43 @@
 % Type methods('rawData') for a list of methods
 %
 %
-% Copyright 2008-18
-% @date: 12-May-2008
+% Copyright 2008-23
 % @author: Felipe Orihuela-Espina
-% @modified: 4-Apr-2018
 %
 % See also processedData,
 %
 
 %% Log
 %
+% File created: 12-May-2008
+% File last modified (before creation of this log): 4-Apr-2018
+%
 % 4-Apr-2018 (FOE): Added known subclasses.
+%
+%
+% 13-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Added property classVersion. Set to '1.0' by default.
+%   + Added get/set methods support for struct like access to attributes.
+%   + For those attributes above also started to simplify the set
+%   code replacing it with validation rules on the declaration.
+%   + Improved some comments.
 %
 
 
+    properties (Constant, Access=private)
+        classVersion = '1.0'; %Read-only. Object's class version.
+    end
 
-classdef rawData
-    properties (SetAccess=private, GetAccess=private)
-        id=1;
-        description='RawData0001';
-        date=date;
+
+
+    properties %(SetAccess=private, GetAccess=private)
+        id(1,1) double {mustBeInteger, mustBeNonnegative}=1; %Numerical identifier to make the object identifiable.
+        description(1,:) char ='RawData0001'; %A short description of the data.
+        date=date; %Acquisition date as character vector.
+            %NOTE: Datenum has now been deprecated by matlab and
+            %use of datetime is recommended instead.
+            %However, I'm keeping datenum for compatibility by now.
     end
  
     methods    
@@ -106,4 +125,49 @@ classdef rawData
         obj=import(obj,filename,varargin);
         %Reads an external file holding the raw data
     end
+
+
+
+    methods
+
+      %Getters/Setters
+
+      function res = get.id(obj)
+         %Gets the object |id|
+         res = obj.id;
+      end
+      function obj = set.id(obj,val)
+         %Sets the object |id|
+         obj.id = val;
+      end
+
+
+      function res = get.description(obj)
+         %Gets the object |description|
+         res = obj.description;
+      end
+      function obj = set.description(obj,val)
+         %Sets the object |description|
+         obj.description = val;
+      end
+
+
+      function res = get.date(obj)
+         %Gets the object |date|
+         res = obj.date;
+      end
+      function obj = set.date(obj,val)
+         %Sets the object |date|
+         if (ischar(val) || isvector(val) || isscalar(val) || isdatetime(val))
+            obj.date = val;
+         else
+             error('ICNA:rawData:set:InvalidParameterValue',...
+                 'Value must be a date (whether a string, datevec or datetime).');
+         end
+      end
+
+
+
+    end
+
 end

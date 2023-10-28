@@ -1,17 +1,18 @@
 % @ANALYSIS
 %
 % Files
-%   addCluster     - ANALYSIS/ADDCLUSTER Add a new cluster to the analysis
+%   addCluster     - Add a new cluster to the analysis
 %   analysis       - Manifold Embedding Neuroimage Analysis (MENA).
-%   clearClusters  - ANALYSIS/CLEARCLUSTERS Removes all existing clusters
-%   createCluster  - ANALYSIS/CREATECLUSTER Generate a new cluster
-%   display        - ANALYSIS/DISPLAY Command window display of a analysis
-%   emd            - ANALYSIS/EMD Calculates EMD between all clusters
-%   get            - ANALYSIS/GET Get properties from the specified object
-%   getCluster     - ANALYSIS/GETCLUSTER Get the cluster identified by id
-%   getClusterList - ANALYSIS/GETCLUSTERLIST Get a list of IDs of defined clusters
-%   getNClusters   - ANALYSIS/GETNCLUSTERS Gets the number of clusters defined in the analysis
-%   removeCluster  - ANALYSIS/REMOVECLSUTER Removes a cluster from the analysis
-%   run            - ANALYSIS/RUN Run MENA analysis
-%   set            - ANALYSIS/SET Set object properties and return the updated object
-%   setCluster     - ANALYSIS/SETCLUSTER Replace a cluster
+%   clearClusters  - Removes all existing clusters
+%   createCluster  - Generate a new cluster
+%   display        - Command window display of a analysis
+%   emd            - Calculates EMD between all clusters
+%   findCluster    - Finds a custer within the analysis
+%   get            - DEPRECATED (v1.2). Get properties from the specified object
+%   getCluster     - Get the cluster identified by id
+%   getClusterList - Get a list of IDs of defined clusters
+%   getNClusters   - DEPRECATED (v1.2). Gets the number of clusters defined in the analysis
+%   removeCluster  - Removes a cluster from the analysis
+%   run            - Run MENA analysis
+%   set            - DEPRECATED (v1.2). Set object properties and return the updated object
+%   setCluster     - Replace a cluster

@@ -1,3 +1,4 @@
+classdef session
 %Class session
 %
 %A session represent an experimental run. During this experimental
@@ -22,19 +23,51 @@
 %
 % Type methods('session') for a list of methods
 % 
-% Copyright 2008
-% date: 17-Apr-2008
-% Author: Felipe Orihuela-Espina
+% Copyright 2008-23
+% @author: Felipe Orihuela-Espina
 %
 % See also subject, sessionDefinition, dataSource
 %
-classdef session
-    properties (SetAccess=private, GetAccess=private)
-        definition=sessionDefinition;
-        date=date;
-        sources=cell(1,0);
+
+
+
+%% Log
+%
+% File created: 17-Apr-2008
+% File last modified (before creation of this log): N/A. This class file
+%   had not been modified since creation.
+%
+% 24-May-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%   + Added property classVersion. Set to '1.0' by default.
+%   + Added get/set methods support for struct like access to attributes.
+%   + For those attributes above also started to simplify the set
+%   code replacing it with validation rules on the declaration.
+%   + Improved some comments.
+%   + Added dependent properties for;
+%       nDataSources
+%   + Deprecated methods
+%       getNDataSources
+%
+
+
+    properties (Constant, Access=private)
+        classVersion = '1.0'; %Read-only. Object's class version.
     end
-    
+
+    properties %(SetAccess=private, GetAccess=private)
+        definition(1,1) sessionDefinition = sessionDefinition; %The sessionDefinition object
+        date=date; % The session date
+    end
+
+    properties (SetAccess=private, GetAccess=private)
+        sources=cell(1,0); %Collection of dataSources recorded during the session
+    end
+
+    properties (Dependent)
+      nDataSources % Number of dataSources.
+    end
+
     methods
         function obj=session(varargin)
             %SESSION Session class constructor
@@ -65,8 +98,8 @@ classdef session
                 obj.definition=varargin{1};
             else
                 obj.definition=sessionDefinition(varargin{1});
-                id=get(obj.definition,'ID');
-                name=['Session' num2str(id,'%04i')];
+                tmpSessDef = obj.definition;
+                name=['Session' num2str(tmpSessDef.id,'%04i')];
                 if (nargin>1)
                     if (ischar(varargin{2}))
                         name=varargin{2};
@@ -75,7 +108,8 @@ classdef session
                             'Name is not a string.');
                     end
                 end
-                obj.definition=set(obj.definition,'Name',name);
+                tmpSessDef.name =name;
+                obj.definition = tmpSessDef;
             end
             assertInvariants(obj);
         end
@@ -89,4 +123,36 @@ classdef session
         idx=findDataSource(obj,id);
     end
     
+    methods
+
+      %Getters/Setters
+
+      function res = get.definition(obj)
+         %Gets the object |definition|
+         res = obj.definition;
+      end
+      function obj = set.definition(obj,val)
+         %Sets the object |definition|
+         obj.definition =  val;
+      end
+
+
+    function res = get.date(obj)
+         %Gets the object |date|
+         res = obj.date;
+      end
+      function obj = set.date(obj,val)
+         %Sets the object |date|
+         obj.date =  val;
+      end
+
+    
+      function res = get.nDataSources(obj)
+         %Gets the object |nDataSources|
+         res = length(obj.sources);
+      end
+    
+    
+    end
+
 end

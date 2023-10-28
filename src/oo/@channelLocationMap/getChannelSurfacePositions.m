@@ -23,10 +23,8 @@ function sp=getChannelSurfacePositions(obj,idx)
 %   head-surface-based positioning systems" NeuroImage 34 (2007) 1600–1611
 %
 %
-% Copyright 2012-13
-% @date: 26-Nov-2012
+% Copyright 2012-23
 % @author: Felipe Orihuela-Espina
-% @modified: 8-Sep-2013
 %
 % See also setChannelSurfacePositions, getChannel3DLocations,
 %   getChannelStereotacticPositions,
@@ -36,16 +34,27 @@ function sp=getChannelSurfacePositions(obj,idx)
 
 %% Log
 %
+%
+% File created: 26-Nov-2012
+% File last modified (before creation of this log): 8-Sep-2013
+%
 % 8-Sep-2013: Method name changed from getSurfacePositions to
 %       getChannelSurfacePositions. Also updated the property accessed
 %       from .surfacePositions to .chSurfacePositions
+%   + Added this log.
 %
-
+% 20-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%
 
 
 sp=obj.chSurfacePositions;
 if exist('idx','var')
     idx(idx<1)=[];
-    idx(idx>get(obj,'nChannels'))=[];
+    idx(idx>obj.nChannels)=[];
     sp=sp(idx);
+end
+
+
 end

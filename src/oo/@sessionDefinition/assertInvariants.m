@@ -25,10 +25,11 @@ nElements=length(obj.sources);
 ids=zeros(1,nElements);
 %Collect IDs
 for ii=1:nElements
-    ids(ii)=get(obj.sources{ii},'ID');
+    tmpSource = obj.sources{ii};
+    ids(ii)=tmpSource.id;
     
     %...take advantage to ensure that the type is valid
-    s=get(obj.sources{ii},'Type');
+    s=tmpSource.type;
     assert((~isempty(s) && ischar(s)),...
             'sessionDefinition.assertInvariants: Invalid type found.');
     
@@ -36,4 +37,8 @@ end
 %And check that there are no repetitions
 assert(length(ids)==length(unique(ids)), ...
         'sessionDefinition.assertInvariants: Repeated source IDs.');
+
+
+
+end
 

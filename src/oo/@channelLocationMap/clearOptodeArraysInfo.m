@@ -18,18 +18,26 @@ function obj=clearOptodeArraysInfo(obj)
 %
 %
 %
-% Copyright 2012-13
-% @date: 22-Dec-2012
+% Copyright 2012-23
 % @author: Felipe Orihuela-Espina
-% @modified: 8-Sep-2013
 %
 % See also getOptodeArraysInfo, setOptodeArraysInfo,
 %
 
 %% Log
 %
+%
+% File created: 22-Dec-2012
+% File last modified (before creation of this log): 8-Sep-2013
+%
 % 8-Sep-2013: Support for topological arrangement of optodes. Updated
 %       "links" of the See also section
+%   + Added this log.
+%
+%
+% 20-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
 %
 
 
@@ -51,3 +59,6 @@ for oa=1:nOAs
     obj.optodeArrays(oa).optodesTopoArrangement(:,1)=(1:nAssocChannels)-0.5;
 end
 assertInvariants(obj);
+
+
+end

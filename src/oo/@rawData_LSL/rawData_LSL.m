@@ -1,3 +1,4 @@
+classdef rawData_LSL < rawData
 %Class rawData_LSL
 %
 %A rawData_LSL represents the recorded data
@@ -51,8 +52,7 @@
 %
 % Type methods('rawData_LSL') for a list of methods
 % 
-% Copyright 2021
-% @date: 23-Aug-2021
+% Copyright 2021-23
 % @author: Felipe Orihuela-Espina
 %
 % See also rawData, 
@@ -63,13 +63,25 @@
 
 %% Log
 %
+% File created: 23-Aug-2021
+% File last modified (before creation of this log): N/A
+%
 % 23-Aug-2021 (FOE): 
 %	File and class created.
 %
+% 12-Oct-2021 (FOE): 
+%   + Got rid of old labels @date and @modified.
+%   + Added property classVersion. Set to '1.0' by default.
+%   + Migrated for struct like access to attributes.
 %
 
 
-classdef rawData_LSL < rawData
+
+    properties (Constant, Access=private)
+        classVersion = '1.0'; %Read-only. Object's class version.
+    end
+
+    
     properties (SetAccess=private, GetAccess=private)
         %  == The data
         data=[];
@@ -101,10 +113,10 @@ classdef rawData_LSL < rawData
                 obj=varargin{1};
                 return;
             else
-                set(obj,'ID',varargin{1});
+                obj.id = varargin{1};
             end
-            description=['RawData' num2str(get(obj,'ID'),'%04i')];
-            set(obj,'Description',description);
+            description=['RawData' num2str(obj.id,'%04i')];
+            obj.description = description;
             %assertInvariants(obj);
 
         end

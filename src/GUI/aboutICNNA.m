@@ -18,6 +18,11 @@ function f=aboutICNNA()
 %   About window size now depends on screen size.
 %   Software title is rendered in bold.
 %
+% 24-May-2023: FOE
+%   + I have now addressed the long standing issue with accessing
+%   the icons folder when the working directory is not that of ICNNA
+%   using function mfilename. 
+%
 
 
 
@@ -97,7 +102,8 @@ uicontrol(f,'Style', 'text',...
 
 
                 
-A=imread('./GUI/icons/ICNNA_jack.jpg','jpeg');
+[localDir,~,~] = fileparts(mfilename('fullpath'));
+A=imread([localDir filesep 'icons' filesep 'ICNNA_jack.jpg'],'jpeg');
 image(A);
 set(gca,'Tag','logoAxes',...
        'Color','w',...

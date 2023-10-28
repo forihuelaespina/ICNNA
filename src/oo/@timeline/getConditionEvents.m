@@ -9,13 +9,21 @@ function [events,eventsInfo]=getConditionEvents(obj,tag)
 %
 %
 %
-% Copyright 2008-12
-% @date: 18-Apr-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 28-Dec-2012
 %
 % See also getCondition, addCondition, removeCondition, setConditionTag,
 %   setConditionEvents, addConditionEvents, removeConditionEvents
+%
+
+
+%% Log
+%
+% File created: 18-Apr-2008
+% File last modified (before creation of this log): 28-Dec-2012
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
 %
 
 idx=findCondition(obj,tag);
@@ -24,4 +32,8 @@ eventsInfo=cell(0,1);
 if (~isempty(idx))
     events=obj.conditions{idx}.events;
     eventsInfo=obj.conditions{idx}.eventsInfo;
+end
+
+
+
 end

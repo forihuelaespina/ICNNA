@@ -12,10 +12,8 @@ function guiRegistration(element)
 %
 %
 %
-% Copyright 2009-14
-% @date: 1-Apr-2009
+% Copyright 2009-23
 % @author Felipe Orihuela-Espina
-% @modified: 25-Mar-2014
 %
 % See also channelLocationMap, import_ETG4000_3DChannelPosition,
 %   mesh3D_visualize, generatePositioningSystemMesh
@@ -24,6 +22,10 @@ function guiRegistration(element)
 
 
 %% Log
+%
+%
+% File created: 1-Apr-2009
+% File last modified (before creation of this log): 25-Mar-2014
 %
 % 24-Mar-2014: Previous auxiliary function registrationDistances has
 %       now been separated into a fully independent function.
@@ -35,6 +37,16 @@ function guiRegistration(element)
 %       channelLocationMap object. It does no longer accepts
 %       an optodeSpace
 %
+% 24-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + I have now addressed the long standing issue with accessing
+%   the icons folder when the working directory is not that of ICNNA
+%   using function mfilename. 
+%
+
+
+
+
 
 %% Initialize the figure
 %...and hide the GUI as it is being constructed
@@ -123,8 +135,8 @@ uimenu(cmMainAxes,'Label','Rotate',...
 
 %Toolbars
 toolbar = uitoolbar(f,'Tag','toolbar');
-%iconsFolder='C:\Program Files\MATLAB\R2007b\toolbox\matlab\icons\';
-iconsFolder='.\GUI\icons\';
+[localDir,~,~] = fileparts(mfilename('fullpath'));
+iconsFolder=[localDir filesep 'icons' filesep];
 tempIcon=load([iconsFolder 'opendoc.mat']);
 	uipushtool(toolbar,'CData',tempIcon.cdata,...
         'Tag','toolbarButton_Load',...

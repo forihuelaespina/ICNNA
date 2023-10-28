@@ -11,12 +11,29 @@ function obj=addDataSourceDefinition(obj,newDataSourceDefinitions)
 %using a cell array of dataSourceDefinitions in s.
 %
 %
-% Copyright 2008
-% @date: 21-Jul-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also removeDataSourceDefinition, setDataSourceDefinition
 %
+
+
+%% Log
+%
+% File created: 21-Jul-2008
+% File last modified (before creation of this log): N/A. This class file
+%   had not been modified since creation.
+%
+% 21-May-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%
+% 24-May-2023: FOE
+%   + Started to update calls to get/set methods for struct like access
+%
+
+
+
+
 
 if (length(newDataSourceDefinitions)==1 ...
         && isa(newDataSourceDefinitions,'dataSourceDefinition'))
@@ -25,7 +42,7 @@ if (length(newDataSourceDefinitions)==1 ...
     
     %Ensure that s is a dataSourceDefinition
     if isa(s,'dataSourceDefinition')
-        idx=findDataSourceDefinition(obj,get(s,'ID'));
+        idx=findDataSourceDefinition(obj,s.id);
         if isempty(idx)
             obj.dataSourceDefinitions(end+1)={s};
         else
@@ -48,13 +65,13 @@ for ii=1:numel(newDataSourceDefinitions)
 %     waitbar(barProgress,h,['Adding multiple dataSourceDefinitions - Check Stage - ' ...
 %                     num2str(round(barProgress*100)) '%']);
 %     barProgress=barProgress+step;
-    if isa(newDataSourceDefinitions{ii},'dataSourceDefinition')
-        if isempty(findDataSourceDefinition(obj,get(newDataSourceDefinitions{ii},'ID')))
+    tmpDSdef = newDataSourceDefinitions{ii};
+    if isa(tmpDSdef,'dataSourceDefinition')
+        if isempty(findDataSourceDefinition(obj,tmpDSdef.id))
             idxs=[idxs ii];
         else
              warning('ICNA:experiment:addDataSourceDefinition:RepeatedID',...
-                ['A dataSourceDefinition with ID=' ...
-                     num2str(get(newDataSourceDefinitions{ii},'ID')) ...
+                ['A dataSourceDefinition with ID=' num2str(tmpDSdef.id) ...
                      ' has already been defined.']);
         end
     else
@@ -76,3 +93,7 @@ else
     error('Invalid input dataSourceDefinition/s. For multiple dataSourceDefinitions use a cell array');
 end
 assertInvariants(obj);
+
+
+
+end

@@ -1,5 +1,5 @@
 function val = get(obj, propName)
-% RAWDATA_NIRScout/GET Get properties from the specified object
+% RAWDATA_NIRScout/GET DEPRECATED. Get properties from the specified object
 %and return the value
 %
 % val = get(obj, propName) Gets value of the property propName 
@@ -114,133 +114,150 @@ function val = get(obj, propName)
 %
 %
 %
-% Copyright 2018
-% @date: 4-Apr-2018
+% Copyright 2018-23
 % @author Felipe Orihuela-Espina
-% @modified: 25-Apr-2018
 %
 % See also rawData.get, set
 %
 
 
-
-
 %% Log
 %
+% File created: 4-Apr-2008
+% File last modified (before creation of this log): 25-Apr-2012
+%
+%
 % 4/25-Apr-2018: FOE. Method created
+%   + Added this log.
 %
+% 13-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + As I started to add get/set methods for struct like access
+%   to attributes in the main class file, I also updated this
+%   method to simply redirect to those.
+%   + Declare method as DEPRECATED.
+%   Bug fixed:
+%   + Comment for property nConditions was inaccurate.
+%   + 1 error was still not using error code.
 %
+
+warning('ICNNA:rawData_NIRScout:get:Deprecated',...
+        ['DEPRECATED. Use struct like syntax for accessing the attribute ' ...
+         'e.g. rawData_NIRScout.' lower(propName) '.']); 
+    %Maintain method by now to accept different capitalization though.
+
 
 
 
 switch lower(propName)
-%General information
-case 'filename'
-   val = obj.filename;
-case 'device'
-   val = obj.device;
-case 'source'
-   val = obj.source;
-case 'studytypemodulation'
-   val = obj.studyTypeModulation;
-case 'fileversion'
-   val = obj.fileVersion;
-case 'subjectindex'
-   val = obj.subjectIndex;
-
-
-   
-% Measurement information
-case 'nsources'
-   val = obj.nSources;
-case 'ndetectors'
-   val = obj.nDetectors;
-case 'nsteps'
-   val = obj.nSteps;
-case 'nominalwavelengthset'
-   val = obj.wLengths;
-case 'ntriggerinputs'
-   val = obj.nTriggerInputs;
-case 'ntriggeroutputs'
-   val = obj.nTriggerOutputs;
-case 'nanaloginputs'
-   val = obj.nAnalogInputs;
-case 'samplingperiod'
-   val = 1/obj.samplingRate;
-case 'samplingrate'
-   val = obj.samplingRate;
-case 'modulationamplitudes'
-   val = obj.modulationAmplitudes;
-case 'modulationthresholds'
-   val = obj.modulationThresholds;
-   
- %Measure information
-case 'probeset'
-   val = obj.probesetInfo;
-case 'nchannels'
-    %Total number of channels across all probes.
-    val=obj.nChannels;
-
-% % case 'channels'
-% %    val = obj.nChannels; %The vector of channels at each optode array or probe
-% case 'repeatcount' %Number of Blocks
-%    val = obj.repeatCount;
-  
-
-% Paradigm Information
-case 'paradigmstimulustype'
-   val = obj.paradigmStimulusType;
-   
-% Experimental Notes
-case 'notes'
-   val = obj.notes;
-
-% Gain settings
-case 'gains'
-   val = obj.gains;
-% Markers Information
-case 'eventtriggermarkers'
-   val = obj.eventTriggerMarkers;
-
-% Data Structure:
-case 'sdkey'
-   val = obj.sdKey;
-case 'sdmask'
-   val = obj.sdMask;
-
-% Channel Distances:
-case 'channeldistances'
-   val = obj.channelDistances;
-   
-
-% %Patient information
-case 'subjectname'
-   val = obj.userName;
-case 'subjectgender'
-   val = obj.userGender;
-% case 'subjectbirthdate'
-%    val = obj.userBirthDate;
-case 'subjectage'
-   val = obj.userAge;
-
-
-
-
-%The data itself!!
-case 'lightrawdata'
-   val = obj.lightRawData;%The raw light intensity data.
-% case 'marks'
-%    val = obj.marks;%The stimulus marks.
-% case 'timestamps'
-%    val = obj.timestamps;
-% case 'bodymovement'
-%    val = obj.bodyMovement;
-% case 'removalmarks'
-%    val = obj.removalMarks;
-% case 'prescan'
-%    val = obj.preScan;
-
-   
-otherwise
-   val = get@rawData(obj, propName);
+    %General information
+    case 'filename'
+       val = obj.filename;
+    case 'device'
+       val = obj.device;
+    case 'source'
+       val = obj.source;
+    case 'studytypemodulation'
+       val = obj.studyTypeModulation;
+    case 'fileversion'
+       val = obj.fileVersion;
+    case 'subjectindex'
+       val = obj.subjectIndex;
+    
+    
+       
+    % Measurement information
+    case 'nsources'
+       val = obj.nSources;
+    case 'ndetectors'
+       val = obj.nDetectors;
+    case 'nsteps'
+       val = obj.nSteps;
+    case 'nominalwavelengthset'
+       val = obj.wLengths;
+    case 'ntriggerinputs'
+       val = obj.nTriggerInputs;
+    case 'ntriggeroutputs'
+       val = obj.nTriggerOutputs;
+    case 'nanaloginputs'
+       val = obj.nAnalogInputs;
+    case 'samplingperiod'
+       %val = 1/obj.samplingRate;
+       val = obj.samplingPeriod;
+    case 'samplingrate'
+       val = obj.samplingRate;
+    case 'modulationamplitudes'
+       val = obj.modulationAmplitudes;
+    case 'modulationthresholds'
+       val = obj.modulationThresholds;
+       
+     %Measure information
+    case 'probeset'
+       val = obj.probesetInfo;
+    case 'nchannels'
+        %Total number of channels across all probes.
+        val=obj.nChannels;
+    
+    % % case 'channels'
+    % %    val = obj.nChannels; %The vector of channels at each optode array or probe
+    % case 'repeatcount' %Number of Blocks
+    %    val = obj.repeatCount;
+      
+    
+    % Paradigm Information
+    case 'paradigmstimulustype'
+       val = obj.paradigmStimulusType;
+       
+    % Experimental Notes
+    case 'notes'
+       val = obj.notes;
+    
+    % Gain settings
+    case 'gains'
+       val = obj.gains;
+    % Markers Information
+    case 'eventtriggermarkers'
+       val = obj.eventTriggerMarkers;
+    
+    % Data Structure:
+    case 'sdkey'
+       val = obj.sdKey;
+    case 'sdmask'
+       val = obj.sdMask;
+    
+    % Channel Distances:
+    case 'channeldistances'
+       val = obj.channelDistances;
+       
+    
+    % %Patient information
+    case 'subjectname'
+       val = obj.userName;
+    case 'subjectgender'
+       val = obj.userGender;
+    % case 'subjectbirthdate'
+    %    val = obj.userBirthDate;
+    case 'subjectage'
+       val = obj.userAge;
+    
+    
+    
+    
+    %The data itself!!
+    case 'lightrawdata'
+       val = obj.lightRawData;%The raw light intensity data.
+    % case 'marks'
+    %    val = obj.marks;%The stimulus marks.
+    % case 'timestamps'
+    %    val = obj.timestamps;
+    % case 'bodymovement'
+    %    val = obj.bodyMovement;
+    % case 'removalmarks'
+    %    val = obj.removalMarks;
+    % case 'prescan'
+    %    val = obj.preScan;
+    
+       
+    otherwise
+       val = get@rawData(obj, propName);
 end

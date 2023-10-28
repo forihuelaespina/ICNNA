@@ -19,11 +19,25 @@ function [theAnalysis]=guiCluster(theAnalysis,id)
 %
 %
 % Copyright 2008
-% @date: 22-Jul-2008
 % @author Felipe Orihuela-Espina
 %
 % See also guiAnalysis, analysis, cluster
 %
+
+%% Log
+%
+%
+% File created: 22-Jul-2008
+% File last modified (before creation of this log): N/A. This method had
+%   not been updated since creation.
+%
+% 7/8-Jun-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%   + Started to update the get/set methods calls to struct like syntax
+%
+
+
+
 
 %% Initialize the figure
 %...and hide the GUI as it is being constructed
@@ -908,37 +922,37 @@ try
         
     handles.currentElement.data=...
         set(handles.currentElement.data,...
-            'PatternIndexes',get(c,'PatternIndexes'));
+            'PatternIndexes',c.patternIndexes);
     handles.currentElement.data=...
         set(handles.currentElement.data,...
-            'SubjectsIDs',get(c,'SubjectsIDs'));
+            'SubjectsIDs',c.subjectsIDs);
     handles.currentElement.data=...
         set(handles.currentElement.data,...
-            'SessionsIDs',get(c,'SessionsIDs'));
+            'SessionsIDs',c.sessionsIDs);
     handles.currentElement.data=...
         set(handles.currentElement.data,...
-            'StimuliIDs',get(c,'StimuliIDs'));
+            'StimuliIDs',c.stimuliIDs);
     handles.currentElement.data=...
         set(handles.currentElement.data,...
-            'BlocksIDs',get(c,'BlocksIDs'));
+            'BlocksIDs',c.blocksIDs);
     handles.currentElement.data=...
         set(handles.currentElement.data,...
-            'ChannelGroupsIDs',get(c,'ChannelGroupsIDs'));
+            'ChannelGroupsIDs',c.channelGroupsIDs);
     handles.currentElement.data=...
         set(handles.currentElement.data,...
-            'Centroid',get(c,'Centroid'));
+            'Centroid',c.centroid);
     handles.currentElement.data=...
         set(handles.currentElement.data,...
-            'CentroidCriteria',get(c,'CentroidCriteria'));
+            'CentroidCriteria',c.centroidCriteria);
     handles.currentElement.data=...
         set(handles.currentElement.data,...
-            'AverageDistance',get(c,'AverageDistance'));
+            'AverageDistance',c.averageDistance);
     handles.currentElement.data=...
         set(handles.currentElement.data,...
-            'MaximumDistance',get(c,'MaximumDistance'));
+            'MaximumDistance',c.maximumDistance);
     handles.currentElement.data=...
         set(handles.currentElement.data,...
-            'FurthestPoint',get(c,'FurthestPoint'));
+            'FurthestPoint',c.furthestPoint);
     
     handles.currentElement.saved=false;
     guidata(f,handles);
@@ -961,9 +975,10 @@ function OnSelectDataColor_Callback(hObject,eventData)
 %   for which the callback was triggered.  See GCBO
 % eventdata - Reserved for later use.
 handles = guidata(f);
-c=uisetcolor(get(handles.currentElement.data,'DataColor'));
-handles.currentElement.data=...
-    set(handles.currentElement.data,'DataColor',c);
+tmp = handles.currentElement.data;
+c=uisetcolor(tmp.dataColor);
+tmp.dataColor = c;
+handles.currentElement.data = tmp;
     %this is valid even if cancelled uisetcolor
 set(handles.dColorButton,'BackgroundColor',c);
 handles.currentElement.saved=false;

@@ -24,41 +24,54 @@ function obj=crop(obj,winInit,winEnd)
 %
 %
 %
-% Copyright 2008-2013
-% @date: 16-Jul-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 3-Jan-2013
 %
 % See also structuredData, cut, windowSelection, getBlock,
 % experimentSpace, analysis, blockResample, blocksTemporalAverage
 %
 
+
+
+
+%% Log
+%
+% File created: 16-Jul-2008
+% File last modified (before creation of this log): 3-Jan-2013
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%
+
+
+
+
 if (winInit<1)
-    error('ICNA:structuredData:crop:InvalidParameter',...
+    error('ICNNA:structuredData:crop:InvalidParameter',...
         'Wrong parameter value winInit.');
 end
 if (winInit>winEnd)
-    error('ICNA:structuredData:crop:InvalidParameter',...
+    error('ICNNA:structuredData:crop:InvalidParameter',...
         ['Wrong parameter value; ' ...
         'winInit should be minor or equal than winEnd.']);
 end
-if (winEnd>get(obj,'NSamples'))
-    error('ICNA:structuredData:crop:InvalidParameter',...
+if (winEnd>obj.nSamples)
+    error('ICNNA:structuredData:crop:InvalidParameter',...
         ['Wrong parameter value; ' ...
         'winEnd should be minor or equal than data length.']);
 end
 
-t=get(obj,'Timeline');
-data=get(obj,'Data');
-[nSamples,nChannels,nSignals]=size(data);
+t=obj.timeline;
+data=obj.data;
 
-s = warning('off', 'ICNA:timeline:set:Length:EventsCropped');
+s = warning('off', 'ICNNA:timeline:set:Length:EventsCropped');
 
 %Crop the first winInit-1 samples
 data(1:winInit-1,:,:)=[];
 %Shift the onsets accordingly
-nCond=get(t,'NConditions');
-newt=timeline(get(t,'Length'));
+nCond=t.nConditions;
+newt=timeline(t.length);
 for cc=1:nCond
     tmpCondTag=getConditionTag(t,cc);
     [events,eventsInfo]=getConditionEvents(t,tmpCondTag);
@@ -92,7 +105,7 @@ end
 t=newt;
 
 %...and reduce the length appropriately
-t=set(t,'Length',nSamples-(winInit-1));
+t.length = obj.nSamples-(winInit-1);
 
 winEnd=(winEnd+1)-winInit;
 %Deal with the window end
@@ -100,8 +113,11 @@ winEnd=(winEnd+1)-winInit;
 %and the set function takes care of
 %cropping the timeline appropriately
 data=data(1:winEnd,:,:);
-obj=set(obj,'Data',data);
-t=set(t,'Length',winEnd);
-obj=set(obj,'Timeline',t);
+obj.data = data;
+t.length = winEnd;
+obj.timeline = t;
 warning(s);
 
+
+
+end

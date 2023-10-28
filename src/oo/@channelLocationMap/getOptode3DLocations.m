@@ -13,10 +13,8 @@ function locations=getOptode3DLocations(obj,idx)
 %
 %
 %
-% Copyright 2013
-% @date: 8-Sep-2013
+% Copyright 2013-23
 % @author: Felipe Orihuela-Espina
-% @modified: 8-Sep-2013
 %
 % See also setOptode3DLocations, getOptodeSurfacePositions,
 %   getOptodeStereotacticPositions,
@@ -26,13 +24,24 @@ function locations=getOptode3DLocations(obj,idx)
 
 %% Log
 %
-% 8-Sep-2013: Method created
 %
-
+% File created: 8-Sep-2013
+% File last modified (before creation of this log): N/A. This method was
+%   never updated since creation.
+%
+% 8-Sep-2013: Method created
+%   + Added this log.
+%
+% 20-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%
 
 locations=obj.optodesLocations;
 if exist('idx','var')
     idx(idx<1)=[];
-    idx(idx>get(obj,'nOptodes'))=[];
+    idx(idx>obj.nOptodes)=[];
     locations=locations(idx,:);
+end
+
 end

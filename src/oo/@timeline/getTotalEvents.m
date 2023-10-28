@@ -1,6 +1,8 @@
 function n=getTotalEvents(obj)
 %TIMELINE/GETTOTALEVENTS DEPRECATED Get the total number of events across all conditions
 %
+% This method is now deprecated. Please use getNEvents(obj) instead.
+%
 % max = getTotalEvents(obj) DEPRECATED Get the total number of events
 %   defined in the timeline across all defined conditions.
 %   If no conditions have been defined
@@ -9,26 +11,38 @@ function n=getTotalEvents(obj)
 %   possibility that no events have been declared for any conditions
 %   and hence a value 0 will be returned.
 %
-% This method is now deprecated. Please use getNEvents(obj) instead.
 %
 %
-%
-% Copyright 2008-12
-% @date: 18-Jun-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 28-Dec-2012
 %
 % See also setConditionEvents, addConditionEvents, removeConditionEvents,
 %   getNEvents, getMaxEvents
 %
-n=[];
-if ~isempty(obj.conditions)
-    n=0;
-    for ii=1:length(obj.conditions)
-        n=n+size(obj.conditions{ii}.events,1);
-    end
-end
+
+
+%% Log
+%
+% File created: 18-Apr-2008
+% File last modified (before creation of this log): 28-Dec-2012
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   Bug fixing
+%   + Method was still implementing the "whole" code. Instead, now
+%   it truly calls obj.getNEvents()
+%   + Slightly modified the deprecated warning message.
+%
 
 warning('ICNA:timeline:getTotalEvents:Deprecated',...
-        ['The use of getTotalEvents has now been deprecated. ' ...
-         'Please use getNEvents(obj) instead.']);
+        ['DEPRECATED. Please use obj.getNEvents() instead.']);
+
+n = obj.getNEvents();
+% n=[];
+% if ~isempty(obj.conditions)
+%     n=0;
+%     for ii=1:length(obj.conditions)
+%         n=n+size(obj.conditions{ii}.events,1);
+%     end
+% end
+

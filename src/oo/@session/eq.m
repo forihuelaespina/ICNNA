@@ -6,12 +6,25 @@ function res=eq(obj,obj2)
 % res=eq(obj1,obj2) Compares two objects.
 %
 %
-% Copyright 2008
-% @date: 11-Jul-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also session
 %
+
+
+%% Log
+%
+% File created: 11-Jul-2008
+% File last modified (before creation of this log): N/A. This class file
+%   had not been modified since creation.
+%
+% 24-May-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%   + Updated calls to get attributes using the struct like syntax
+%   + Added support for new property classVersion
+%
+
 
 res=true;
 if ~isa(obj2,'session')
@@ -19,13 +32,14 @@ if ~isa(obj2,'session')
     return
 end
 
-res = res && (get(obj,'Definition')==get(obj2,'Definition'));
-res = res && (strcmp(get(obj,'Date'),get(obj2,'Date')));
+res = res && (strcmp(obj.classVersion,obj2.classVersion));
+res = res && (obj.definition==obj2.definition);
+res = res && (strcmp(obj.date,obj2.date));
 if ~res
     return
 end
 
-res = res && (getNDataSources(obj)==getNDataSources(obj2));
+res = res && (obj.nDataSources==obj2.nDataSources);
 if ~res
     return
 end
@@ -50,4 +64,9 @@ for cc=srcIDs
     if ~res
         return
     end
+end
+
+
+
+
 end

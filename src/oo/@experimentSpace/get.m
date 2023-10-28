@@ -1,5 +1,5 @@
 function val = get(obj, propName)
-% EXPERIMENTSPACE/GET Get properties from the specified object
+% EXPERIMENTSPACE/GET DEPRECATED (v1.2). Get properties from the specified object
 %and return the value
 %
 % val = get(obj, propName) Gets value of the property propName 
@@ -55,13 +55,34 @@ function val = get(obj, propName)
 %   'nPoints' - Get the number of points in the Experiment Space
 %
 %
-% Copyright 2008-13
-% @date: 12-Jun-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 4-Jan-2013
 %
 % See also experimentSpace, set
 %
+
+
+
+%% Log
+%
+% File created: 12-Jun-2008
+% File last modified (before creation of this log): 4-Jan-2013
+%
+% 7-Jun-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + As I started to add get/set methods for struct like access
+%   to attributes in the main class file, I also updated this
+%   method to simply redirect to those.
+%   + Declare method as DEPRECATED.
+%   + Error codes changed from ICNA to ICNNA.
+%
+
+warning('ICNNA:experimentSpace:get:Deprecated',...
+        ['DEPRECATED (v1.2). Use struct like syntax for accessing the attribute ' ...
+         'e.g. experimentSpace.' lower(propName) '.']); 
+    %Maintain method by now to accept different capitalization though.
+
+
 
 switch lower(propName)
     case 'id'
@@ -78,7 +99,7 @@ switch lower(propName)
         val = obj.performAveraging;
     case 'resampled'
         val = obj.performResampling;
-    case 'windowed'
+    case 'windowed' %THIS HAS NOT BEEN TRANSLATED TO STRUCT LIKE SYNTAX INTENTIONALLY AS IT WAS ALREADY DEPRECATED.
         val = obj.performFixWindow;
         warning('ICNA:experimentSpace:set',...
                   ['This has been DEPRECATED. ' ...
@@ -91,17 +112,17 @@ switch lower(propName)
     case 'restsamples'
         val = obj.restSamples;
     case 'rs_baseline'
-        val = obj.rsBaseline;
+        val = obj.rs_baseline;
     case 'rs_task'
-        val = obj.rsTask;
+        val = obj.rs_task;
     case 'rs_rest'
-        val = obj.rsRest;
+        val = obj.rs_rest;
     case 'ws_onset'
-        val = obj.fwOnset;
+        val = obj.ws_onset;
     case 'ws_duration'
-        val = obj.fwDuration;
+        val = obj.ws_duration;
     case 'ws_breakdelay'
-        val = obj.fwBreakDelay;
+        val = obj.ws_breakDelay;
     case 'normalizationmethod'
         val = obj.normalizationMethod;
     case 'normalizationmean'
@@ -118,13 +139,14 @@ switch lower(propName)
         val = obj.normalizationDimension;
 % ==Derived attributes
     case 'numpoints'
-        warning('ICNA:experimentSpace:get:Deprecated',...
-            ['The use of numPoints has now been deprecated. ' ...
-            'Please use get(obj,''nPoints'') instead.']);
-        val = size(obj.Findex,1);
+        val = obj.numPoints;
     case 'npoints'
-        val = size(obj.Findex,1);
+        val = obj.nPoints;
     otherwise
-        error('ICNA:experimentSpace:get',...
+        error('ICNNA:experimentSpace:get',...
             [propName,' is not a valid property']);
+end
+
+
+
 end

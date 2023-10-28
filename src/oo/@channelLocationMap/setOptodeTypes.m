@@ -22,10 +22,8 @@ function obj=setOptodeTypes(obj,idx,types)
 %
 %
 %
-% Copyright 2013
-% @date: 8-Sep-2013
+% Copyright 2013-23
 % @author: Felipe Orihuela-Espina
-% @modified: 8-Sep-2013
 %
 % See also getOptodeTypes, getPairings, setPairings
 %
@@ -33,7 +31,16 @@ function obj=setOptodeTypes(obj,idx,types)
 
 %% Log
 %
+% File created: 8-Sep-2013
+% File last modified (before creation of this log): N/A. This method was
+%   never updated since creation.
+%
 % 8-Sep-2013: Method created
+%   + Added this log.
+%
+% 20-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
 %
 
 
@@ -43,7 +50,7 @@ assert(numel(idx)==size(types,1),...
 idx=reshape(idx,numel(idx),1); %Ensure it is a vector
 types=reshape(types,numel(types),1); %Ensure it is a vector
 
-tempIdx=find(idx<1 | idx>get(obj,'nOptodes'));
+tempIdx=find(idx<1 | idx> obj.nOptodes);
 idx(tempIdx)=[];
 types(tempIdx)=[];
 

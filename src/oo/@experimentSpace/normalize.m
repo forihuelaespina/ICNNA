@@ -17,24 +17,35 @@ function obj=normalize(obj)
 %
 %
 %
-% Copyright 2009
-% @date: 5-Jun-2009
+% Copyright 2009-23
 % @author Felipe Orihuela-Espina
 %
 % See also experimentSpace, compute, util/normalize
 %
 
 
-method=get(obj,'NormalizationMethod');
+%% Log
+%
+% File created: 5-Jun-2009
+% File last modified (before creation of this log): N/A. This method
+%   had not been modified since creation.
+%
+% 7-Jun-2023: FOE
+%   + Added this log. Got rid of old labels @date.
+%   + Updated calls to get attributes using the struct like syntax
+%   + Error codes changed from ICNA to ICNNA.
+%
+
+
+
+method = obj.normalizationMethod;
 switch (method)
     case 'normal'
-        params=[get(obj,'NormalizationMean') ...
-                get(obj,'NormalizationVar')];
+        params=[obj.normalizationMean obj.normalizationVar];
     case 'range'
-        params=[get(obj,'NormalizationMin') ...
-                get(obj,'NormalizationMax')];
+        params=[obj.normalizationMin obj.normalizationMax];
     otherwise
-        error('ICNA:experimentSpace:normalize:UnexpectedMethod',...
+        error('ICNNA:experimentSpace:normalize:UnexpectedMethod',...
             'Unexpected normalization method.');
 end
 
@@ -48,9 +59,9 @@ nPoints=length(obj.Fvectors);
 % end
 tmpFvectors=cell2mat(obj.Fvectors)';
 
-switch (get(obj,'NormalizationScope'))
+switch (obj.normalizationScope)
     case 'blockindividual'
-        switch (get(obj,'NormalizationDimension'))
+        switch (obj.normalizationDimension)
             case 'channel'
                 tmpFvectors=normalize_BlockIndividual_ByChannel(obj.Findex,...
                                         tmpFvectors,method,params);
@@ -61,11 +72,11 @@ switch (get(obj,'NormalizationScope'))
                 tmpFvectors=normalize_BlockIndividual_Combined(obj.Findex,...
                                         tmpFvectors,method,params);                
             otherwise
-                error('ICNA:experimentSpace:normalize:UnexpectedDimension',...
+                error('ICNNA:experimentSpace:normalize:UnexpectedDimension',...
                     'Unexpected normalization direction.');
         end
     case 'individual'
-        switch (get(obj,'NormalizationDimension'))
+        switch (obj.normalizationDimension)
             case 'channel'
                 tmpFvectors=normalize_Individual_ByChannel(obj.Findex,...
                                         tmpFvectors,method,params);
@@ -76,11 +87,11 @@ switch (get(obj,'NormalizationScope'))
                 tmpFvectors=normalize_Individual_Combined(obj.Findex,...
                                         tmpFvectors,method,params);                
             otherwise
-                error('ICNA:experimentSpace:normalize:UnexpectedDimension',...
+                error('ICNNA:experimentSpace:normalize:UnexpectedDimension',...
                     'Unexpected normalization direction.');
         end
     case 'collective'
-        switch (get(obj,'NormalizationDimension'))
+        switch (obj.normalizationDimension)
             case 'channel'
                 tmpFvectors=normalize_Collective_ByChannel(obj.Findex,...
                                         tmpFvectors,method,params);
@@ -91,12 +102,12 @@ switch (get(obj,'NormalizationScope'))
                 tmpFvectors=normalize_Collective_Combined(obj.Findex,...
                                         tmpFvectors,method,params);                
             otherwise
-                error('ICNA:experimentSpace:normalize:UnexpectedDimension',...
+                error('ICNNA:experimentSpace:normalize:UnexpectedDimension',...
                     'Unexpected normalization direction.');
         end
         
     otherwise
-        error('ICNA:experimentSpace:normalize:UnexpectedScope',...
+        error('ICNNA:experimentSpace:normalize:UnexpectedScope',...
             'Unexpected normalization scope.');
 end
 
@@ -105,7 +116,7 @@ for ii=1:nPoints
     obj.Fvectors(ii)={tmpFvectors(ii,:)'};
 end
 
-obj=set(obj,'Normalized',true);
+obj.normalized = true;
 assertInvariants(obj);
 
 end

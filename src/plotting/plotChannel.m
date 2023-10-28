@@ -89,8 +89,7 @@ function [h]=plotChannel(sd,ch,options)
 %
 % A figure/axis handle.
 %
-% Copyright 2008-13
-% @date: 13-Nov-2008
+% Copyright 2008-23
 % @author: Felipe Orihuela-Espina
 %
 % See also structuredData, timeline, shadeTimeline,
@@ -101,6 +100,7 @@ function [h]=plotChannel(sd,ch,options)
 
 %% Log
 %
+% File created: 13-Nov-2008
 % Previous last modification: 4-Jan-2013
 %
 % 17-Mar-2021: FOE
@@ -108,21 +108,25 @@ function [h]=plotChannel(sd,ch,options)
 %   * shading the timeline now occurs before setting the legend
 %   to avoid the plotting of timeline to change the legend.
 %
+% 27-May-2023: FOE
+%   + Got rid of old label @date.
+%   + Updated calls to get attributes using the struct like syntax
+%
 
 
 
-channelData=getChannel(sd,ch);
-t=get(sd,'Timeline');
-nSamples=get(sd,'NSamples');
+channelData = getChannel(sd,ch);
+t = sd.timeline;
+nSamples = sd.nSamples;
 if isempty(channelData)
-    error('ICNA:plotChannel:InvalidChannel',...
+    error('ICNNA:plotChannel:InvalidChannel',...
         'Invalid selected channel.');
 end
 
 
 %% Deal with options
-opt.mainTitle=[get(sd,'Description') '; Ch:' num2str(ch)];
-opt.whichSignals=1:get(sd,'NSignals');
+opt.mainTitle=[sd.description '; Ch:' num2str(ch)];
+opt.whichSignals=1:sd.nSignals;
 opt.scale=true;
 %Calculate an appropriate Y scale (rounding to the nearest decade)
 maxY = ceil(max(max(real(channelData)))/10)*10;
@@ -231,7 +235,7 @@ if opt.blockAveraging
     end
     channelData=mean(tmpChannelData,3);
     channelDataSTD = std(tmpChannelData,0,3);
-    t=get(tmpSd,'Timeline');
+    t= tmpSd.timeline;
     nSamples=size(channelData,1);
     
     

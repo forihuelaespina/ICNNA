@@ -1,3 +1,4 @@
+classdef channelLocationMap
 %Class channelLocationMap
 %
 %
@@ -268,16 +269,17 @@
 %  
 %
 %
-% Copyright 2012-13
-% @date: 26-Nov-2012
+% Copyright 2012-23
 % @author: Felipe Orihuela-Espina
-% @modified: 10-Sep-2013
 %
-% See also rawData, rawData_ETG4000, nirs_neuroimage
+% See also rawData, rawData_ETG4000, nirs_neuroimage, icnnna.data.snirf.probe
 %
 
 
 %% Log
+%
+% File created: 26-Nov-2012
+% File last modified (before creation of this log): 10-Sep-2013
 %
 % 10-Sep-2013: Fixed erroneous comment on Source-Detector distribution
 %       for probes of mode 4x4.
@@ -288,25 +290,36 @@
 %       and probe sets to which they are associated and the pairings
 %       conforming the channels.
 %
+% 20-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Added property classVersion. Set to '1.0' by default.
+%   + Added get/set methods support for struct like access to attributes.
+%   + For those attributes above also started to simplify the set
+%   code replacing it with validation rules on the declaration.
+%   + Improved some comments.
+%
 
+    properties (Constant, Access=private)
+        classVersion = '1.0'; %Read-only. Object's class version.
+    end
 
-classdef channelLocationMap
-    properties (SetAccess=private, GetAccess=private)
-        id=1;
-        description='ChannelLocationMap0001';
-        nChannels=0; %Number of channels supported by the channelLocationMap
-        nOptodes=0; %Number of channels supported by the channelLocationMap
+    properties %(SetAccess=private, GetAccess=private)
+        id(1,1) double {mustBeInteger, mustBeNonnegative}=1; %Numerical identifier to make the object identifiable.
+        description(1,:) char = 'ChannelLocationMap0001'; %A short description of the probe.
+        nChannels(1,1) double {mustBeInteger, mustBeNonnegative}=0; %Number of channels supported by the channelLocationMap
+        nOptodes(1,1) double {mustBeInteger, mustBeNonnegative}=0; %Number of optodes supported by the channelLocationMap
         chLocations = nan(0,3); %3D "real world" location of the channels.
         optodesLocations = nan(0,3); %3D "real world" location of the channels.
-        optodesTypes = nan(0,3); %Optodes types; (0) Unknown, (1) Emission, (2) Detector
+        %optodesTypes = nan(0,3); %Optodes types; (0) Unknown, (1) Emission, (2) Detector
+        optodesTypes(:,1) double {mustBeInteger, mustBeNonnegative} = nan(0,1); %Optodes types; (0) Unknown, (1) Emission, (2) Detector
         
-        referencePoints = struct('name',{},'location',{});
+        referencePoints = struct('name',{},'location',{}); %Landmarks
 
-        surfacePositioningSystem = 'UI 10/10';
+        surfacePositioningSystem(1,:) char = 'UI 10/10';
         chSurfacePositions = cell(0,1); %Channels surface positions
         optodesSurfacePositions = cell(0,1); %Optodes surface positions
 
-        stereotacticPositioningSystem = 'MNI';
+        stereotacticPositioningSystem(1,:) char {mustBeMember(stereotacticPositioningSystem,{'MNI','Talairach'})}= 'MNI';
         chStereotacticPositions = nan(0,3); %3D MNI location of the channels.
 
         chProbeSets = nan(0,1); %column vector indicating the associated
@@ -348,7 +361,7 @@ classdef channelLocationMap
             %of your location map following object constrution, e.g.:
             %
             %       obj=channelLocationMap();
-            %       obj=set(obj,'nChannels',24);
+            %       obj.nChannels = 24;
             %
             %
 
@@ -358,9 +371,9 @@ classdef channelLocationMap
                 obj=varargin{1};
                 return;
             else
-                obj=set(obj,'ID',varargin{1});
-                obj=set(obj,'Description',...
-                    ['ChannelLocationMap' num2str(obj.id,'%04i')]);
+                obj.id = varargin{1};
+                obj.description = ['ChannelLocationMap' ...
+                                        num2str(obj.id,'%04i')];
             end
             assertInvariants(obj);
 
@@ -375,4 +388,143 @@ classdef channelLocationMap
     methods (Static)
         [valid]=isValidSurfacePosition(positions,positioningSystem);
     end
+
+
+    methods
+
+      %Getters/Setters
+
+      function res = get.id(obj)
+         %Gets the object |id|
+         res = obj.id;
+      end
+      function obj = set.id(obj,val)
+         %Sets the object |id|
+         obj.id = val;
+      end
+
+      function res = get.description(obj)
+         %Gets the object |description|
+         res = obj.description;
+      end
+      function obj = set.description(obj,val)
+         %Sets the object |description|
+         obj.description = val;
+      end
+
+
+      function res = get.nChannels(obj)
+         %Gets the object |nChannels|
+         res = obj.nChannels;
+      end
+      function obj = set.nChannels(obj,val)
+         %Sets the object |nChannels|
+        if (isscalar(val) && (floor(val)==val) ...
+                && val>=0)
+            if val > obj.nChannels
+                %Add new channels
+                obj.chLocations(end+1:val,:) = nan(val-obj.nChannels,3);
+                obj.pairings(end+1:val,:) = nan(val-obj.nChannels,2);
+                obj.chSurfacePositions(end+1:val) = {''};
+                obj.chStereotacticPositions(end+1:val,:) = ...
+                                             nan(val-obj.nChannels,3);
+                obj.chOptodeArrays(end+1:val) = nan(val-obj.nChannels,1);
+                obj.chProbeSets(end+1:val) = nan(val-obj.nChannels,1);
+            elseif val < obj.nChannels
+                %Discard the latter channels
+                obj.chLocations = obj.chLocations(1:val,:);
+                obj.pairings = obj.pairings(1:val,:);
+                obj.chSurfacePositions = obj.chSurfacePositions(1:val);
+                obj.chStereotacticPositions = ...
+                                obj.chStereotacticPositions(1:val,:);
+                obj.chOptodeArrays = obj.chOptodeArrays(1:val);
+                obj.chProbeSets = obj.chProbeSets(1:val);
+            end
+            obj.nChannels = val;
+        else
+            error('ICNNA:channelLocationMap:set:InvalidParameterValue',...
+                    'Value must be a positive integer or 0.');
+        end
+        assertInvariants(obj);
+      end
+
+
+      function res = get.nOptodes(obj)
+         %Gets the object |nOptodes|
+         res = obj.nOptodes;
+      end
+      function obj = set.nOptodes(obj,val)
+         %Sets the object |nOptodes|
+        if (isscalar(val) && (floor(val)==val) ...
+                && val>=0)
+            if val > obj.nOptodes
+                %Add new optodes
+                obj.optodesLocations(end+1:val,:) = nan(val-obj.nOptodes,3);
+                obj.optodesSurfacePositions(end+1:val) = {''};
+                obj.optodesOptodeArrays(end+1:val) = nan(val-obj.nOptodes,1);
+                obj.optodesProbeSets(end+1:val) = nan(val-obj.nOptodes,1);
+            elseif val < obj.nOptodes
+                %Discard the latter optodes
+                obj.optodesLocations = obj.optodesLocations(1:val,:);
+                obj.optodesSurfacePositions = obj.optodesSurfacePositions(1:val);
+                obj.optodesOptodeArrays = obj.optodesOptodeArrays(1:val);
+                obj.optodesProbeSets = obj.optodesProbeSets(1:val);
+            end
+            obj.nOptodes = val;
+        else
+            error('ICNNA:channelLocationMap:set:InvalidParameterValue',...
+                    'Value must be a positive integer or 0.');
+        end
+        assertInvariants(obj);
+      end
+
+
+      function res = get.surfacePositioningSystem(obj)
+         %Gets the object |surfacePositioningSystem|
+         res = obj.surfacePositioningSystem;
+      end
+      function obj = set.surfacePositioningSystem(obj,val)
+         %Sets the object |surfacePositioningSystem|
+         if (strcmpi(val,'10/20') ...
+                 || strcmpi(val,'UI 10/10'))
+             obj.surfacePositioningSystem=val;
+             %Unset those positions which are not part of the
+             %positioning system
+             [valid]=channelLocationMap.isValidSurfacePosition(...
+                 obj.surfacePositions,...
+                 obj.surfacePositioningSystem);
+             obj.surfacePositions(~valid)={''};
+         else
+             error('ICNA:channelLocationMap:set:InvalidParameterValue',...
+                 ['Currently valid surface positioning systems are: ' ...
+                 '''10/20'' and ''UI 10/10''.']);
+         end
+         assertInvariants(obj);
+      end
+
+
+
+      function res = get.stereotacticPositioningSystem(obj)
+         %Gets the object |stereotacticPositioningSystem|
+         res = obj.stereotacticPositioningSystem;
+      end
+      function obj = set.stereotacticPositioningSystem(obj,val)
+         %Sets the object |surfacePositioningSystem|
+         if (strcmpi(val,'MNI') ...
+                 || strcmpi(val,'Talairach'))
+             obj.stereotacticPositioningSystem=val;
+         else
+             error('ICNA:channelLocationMap:set:InvalidParameterValue',...
+                 ['Currently valid stereotactic positioning systems are: ' ...
+                 '''MNI'' and ''Talairach''.']);
+         end
+        assertInvariants(obj);
+
+      end
+
+
+
+    end
+
+
 end

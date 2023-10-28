@@ -6,7 +6,6 @@ function display(obj)
 %MATLAB output.
 %
 % Copyright 2021
-% @date: 23-Aug-2021
 % @author: Felipe Orihuela-Espina
 %
 % See also rawData_LSL, get, set
@@ -16,8 +15,15 @@ function display(obj)
 
 %% Log
 %
+% File created: 23-Aug-2021
+% File last modified (before creation of this log): N/A
+%
 % 23-Aug-2021 (FOE): 
 %	File created.
+%
+% 12-Oct-2021 (FOE): 
+%   + Got rid of old labels @date and @modified.
+%   + Migrated for struct like access to attributes.
 %
 
 
@@ -26,9 +32,9 @@ disp(' ');
 disp([inputname(1),'= ']);
 disp(' ');
 %Inherited
-disp(['   ID: ' num2str(get(obj,'ID'))]);
-disp(['   Description: ' get(obj,'Description')]);
-disp(['   date: ' get(obj,'Date')]);
+disp(['   ID: ' num2str(obj.id)]);
+disp(['   Description: ' obj.description]);
+disp(['   date: ' obj.date]);
 
 
 %Data

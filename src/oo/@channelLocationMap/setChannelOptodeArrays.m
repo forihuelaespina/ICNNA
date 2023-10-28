@@ -20,9 +20,7 @@ function obj=setChannelOptodeArrays(obj,idx,optArrays)
 %
 %
 % Copyright 2012-13
-% @date: 22-Dec-2012
 % @author: Felipe Orihuela-Espina
-% @modified: 12-Oct-2013
 %
 % See also getChannelOptodeArrays, setChannel3DLocations,
 %   setChannelSurfacePositions, setChannelStereotacticPositions,
@@ -31,6 +29,10 @@ function obj=setChannelOptodeArrays(obj,idx,optArrays)
 
 
 %% Log
+%
+%
+% File created: 22-Dec-2012
+% File last modified (before creation of this log): 12-Oct-2013
 %
 % 12-Oct-2013: Bugs fixed. Mislabelled property obj.optodesOptodeArrays.
 %       When enlarging the length of the optode arrays info, the 
@@ -47,17 +49,22 @@ function obj=setChannelOptodeArrays(obj,idx,optArrays)
 %       "links" of the See also
 %
 %
+% 21-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%
+%
 
 
 
 assert(numel(idx)==numel(optArrays),...
-        ['ICNA:channelLocationMap:setChannelOptodeArrays:InvalidParameterValue',...
+        ['ICNNA:channelLocationMap:setChannelOptodeArrays:InvalidParameterValue',...
          'Number of channel indexes mismatches number of associated ' ...
          'optode arrays.']);
 idx=reshape(idx,numel(idx),1); %Ensure both are vectors
 optArrays=reshape(optArrays,numel(optArrays),1);
 
-tempIdx=find(idx<1 | idx>get(obj,'nChannels'));
+tempIdx=find(idx<1 | idx>obj.nChannels);
 idx(tempIdx)=[];
 optArrays(tempIdx)=[];
 

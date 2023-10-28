@@ -1,14 +1,11 @@
 function [alpha,gamma]=optimizeDESWeights(s)
 %Optimize the double exponential smoothing weights alpha and gamma
-%%
-%%Date: 10-Jul-2007
-%%Author: Felipe Orihuela-Espina
-%%
+%
+%   [a,g]=optimizeDESWeights(s)
+%
 %
 % Optimize the double exponential smoothing weights alpha and gamma
 %using the Levenberg-Marquardt algorithm.
-%
-%   [a,g]=optimizeDESWeights(s)
 %
 % The Levenberg-Marquardt optimization algorithm is implemented
 %in the Optimization Toolbox of MATLAB in the function
@@ -29,17 +26,40 @@ function [alpha,gamma]=optimizeDESWeights(s)
 %
 %   http://www.math.umt.edu/bardsley/codes.html
 %
-%Parameters:
-%-----------
+%% Parameters:
+%
 %
 %   s - The signal (time-series) for which the model parameters
 %       alpha and gamma are to be optimized
 %
-%Output:
-%-------
+%% Output:
+%
 % The optimum values of alpha and gamma
 %
 %
+% 
+% Copyright 2007-23
+% @author: Felipe Orihuela-Espina
+%
+% See also nirs_neuroimage
+%
+
+
+
+
+%% Log
+%
+% File created: 10-Jul-2007
+% File last modified (before creation of this log): N/A. This method
+%   had not been modified since creation.
+%
+% 20-May-2023: FOE
+%   + Added this log. This method is so old it didn't even had the
+%       labels @date and @modified, instead there was just the creation
+%       date!!
+%   + Slightly some comments.
+%
+
 
 %Choose an x0=<alpha_0, gamma_0> initial solution
 x0=[0.5 0.5]';
@@ -64,3 +84,6 @@ gamma=x(2);
 
 %Clean
 nirs_neuroimage.sos_suddenChange;
+
+
+end

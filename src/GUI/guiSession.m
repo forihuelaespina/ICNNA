@@ -23,13 +23,27 @@ function [element,exitStatus]=guiSession(element)
 %   whether it has been modified or not.
 %   
 %
-% Copyright 2008-12
-% @date: 23-Apr-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 30-Jan-2012
 %
-% See also guiICNA, session
+% See also guiICNNA, session
 %
+
+%% Log
+%
+%
+% File created: 23-Apr-2008
+% File last modified (before creation of this log): 30-Jan-2012
+%
+% 24-May-2023: FOE
+%   + Added this log.
+%   + Got rid of old labels @date and @modified.
+%   + I have now addressed the long standing issue with accessing
+%   the icons folder when the working directory is not that of ICNNA
+%   using function mfilename. 
+%   + Started to update the get/set methods calls to struct like syntax
+%
+
 
 exitStatus=0;
 
@@ -85,8 +99,8 @@ menuTools = uimenu('Label','Tools',...
 
 %Toolbars
 toolbar = uitoolbar(f,'Tag','toolbar');
-%iconsFolder='C:\Program Files\MATLAB\R2007b\toolbox\matlab\icons\';
-iconsFolder='./GUI/icons/';
+[localDir,~,~] = fileparts(mfilename('fullpath'));
+iconsFolder=[localDir filesep 'icons' filesep];
 tempIcon=load([iconsFolder 'addDataSource.mat']);
     uipushtool(toolbar,'CData',tempIcon.cdata,...
         'Tag','toolbarButton_AddDataSource',...
@@ -222,9 +236,9 @@ else %Create a new one
     element=[];
 end
 
-def=get(handles.currentElement.data,'Definition');
-set(handles.nameText,'String',...
-    [num2str(get(def,'ID')) ':' get(def,'Name')]);
+tmpSession = handles.currentElement.data;
+def=tmpSession.definition;
+set(handles.nameText,'String', [num2str(def.id) ':' def.name]);
 clear def
 
 guidata(f,handles);
@@ -233,9 +247,9 @@ myRedraw(f);
  
 %% Make GUI visible
 if (isempty(element))
-    set(f,'Name','ICNA - Add Session');
+    set(f,'Name','ICNNA - Add Session');
 else
-    set(f,'Name','ICNA - Update Session');
+    set(f,'Name','ICNNA - Update Session');
 end
 set(f,'Visible','on');
 waitfor(f);
@@ -263,7 +277,7 @@ else
 %             newId=max(existingElements)+1;
 %         end
 %         s=set(s,'ID',newId);
-        if ismember(get(s,'ID'),existingElements)
+        if ismember(s.id,existingElements)
             warndlg(['Data source ID already being used. ' ...
                  'Nothing will be added'], ...
                 'Session','modal');
@@ -339,7 +353,7 @@ else
         s=guiDataSource(s);
         if (~isempty(s))
             handles.currentElement.data=...
-                setDataSource(handles.currentElement.data,get(s,'ID'),s);
+                setDataSource(handles.currentElement.data,s.id,s);
             handles.currentElement.saved=false;
             guidata(hObject,handles);
         end
@@ -408,7 +422,8 @@ handles=guidata(hObject);
 %The session needs to permit a nirs_neuroimage dataSource
 %so when the new datasource is added, then it comply with the
 %session definition.
-def=get(handles.currentElement.data,'Definition');
+tmpSession = handles.currentElement.data;
+def=tmpSession.definition;
 idSources=getSourceList(def);
 doImport=true;
 if (isempty(idSources))
@@ -537,13 +552,14 @@ function OnUpdateDefinition_Callback(hObject,eventData)
 %   for which the callback was triggered.  See GCBO
 % eventdata - Reserved for later use.
 handles=guidata(hObject);
-def=get(handles.currentElement.data,'Definition');
+tmpElement=handles.currentElement.data;
+def=tmpElement.definition;
 def=guiSessionDefinition(def);
 if (~isempty(def) ...
-     && ~(def==get(handles.currentElement.data,'Definition')))
+     && ~(def==tmpElement.definition))
  
     button='Yes';
-    if getNDataSources(handles.currentElement.data)~=0
+    if tmpElement.nDataSources~=0
         button = questdlg(['Modifying the session definition may result ' ...
             'in data loss, if sources of data do not comply with the '...
             'new definition. Would you like to proceed?'],...
@@ -552,12 +568,13 @@ if (~isempty(def) ...
     
     if (strcmp(button,'Yes'))
         s = warning('off','ICNA:session:set:sessionDefinition');
-        handles.currentElement.data=...
-            set(handles.currentElement.data,'Definition',def);
+        tmpElement=handles.currentElement.data;
+        tmpElement.definition = def;
+        handles.currentElement.data = tmpElement;
         warning(s);
         handles.currentElement.saved=false;
         set(handles.nameText,'String',...
-            [num2str(get(def,'ID')) ':' get(def,'Name')]);
+            [num2str(def.id) ':' def.name]);
         
         guidata(hObject,handles);
     end
@@ -574,7 +591,7 @@ function OnUpdateElement_Callback(hObject,eventData)
 % eventdata - Reserved for later use.
 handles=guidata(hObject);
 tmpElement=handles.currentElement.data;
-tmpElement=set(tmpElement,'Date',get(handles.dateEditBox,'String'));
+tmpElement.date = get(handles.dateEditBox,'String');
 handles.currentElement.data=tmpElement;
 handles.currentElement.saved=false;
 guidata(hObject,handles);
@@ -597,25 +614,25 @@ if (isempty(handles.currentElement.data)) %Clear
 
 else %Refresh the Information
     s=session(handles.currentElement.data);
-    def=get(s,'Definition');
-    set(handles.dateEditBox,'String',num2str(get(s,'Date')));
+    def=s.definition;
+    set(handles.dateEditBox,'String',num2str(s.date));
 
     dataSources=getDataSourceList(s);
-    data=cell(getNDataSources(s),4); %Four columns are currently displayed
+    data=cell(s.nDataSources,4); %Four columns are currently displayed
                             %Name,RawData,Lock,NStructured Data
-    rownames=zeros(1,getNDataSources(s));
+    rownames=zeros(1,s.nDataSources);
     pos=1;
     for ii=dataSources
         ds=getDataSource(s,ii);
-        rownames(pos)=get(ds,'ID');
-        data(pos,1)={get(ds,'Name')};
-        if (isempty(get(ds,'RawData')))
+        rownames(pos)=ds.id;
+        data(pos,1)={ds.name};
+        if (isempty(ds.rawData))
             data(pos,2)={'Not defined'};
         else
             data(pos,2)={'Defined'};
         end
         data(pos,3)={isLock(ds)};
-        data(pos,4)={getNStructuredData(ds)};
+        data(pos,4)={ds.nStructuredData};
         pos=pos+1;
     end
     set(handles.dataSourcesTable,'RowName',rownames);

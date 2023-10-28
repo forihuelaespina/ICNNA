@@ -23,8 +23,7 @@ function obj = run(obj)
 %
 %
 %
-% Copyright 2008
-% @date: 25-Jul-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also analysis, experimentSpace, getFeatureSpace, mena_metric,
@@ -32,9 +31,26 @@ function obj = run(obj)
 %
 
 
+
+%% Log
+%
+% File created: 25-Jul-2008
+% File last modified (before creation of this log): N/A. This class file
+%   had not been modified since creation.
+%
+% 7-Jun-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%   + Started to use get/set methods for struct like access.
+%   + Error codes updated from ICNA to ICNNA.
+%
+
+
+
+
 %1) Check that the Experiment Space has been computed
-if ~get(obj.F,'RunStatus')
-    error('ICNA:analysis:run:ExperimentSpaceNotComputed',...
+tmp = obj.F;
+if ~tmp.runStatus
+    error('ICNNA:analysis:run:ExperimentSpaceNotComputed',...
         'Experiment Space has not been computed.');
 end
 
@@ -44,20 +60,24 @@ obj.clusters=cell(1,0);
 %3) Compute the Feature Space
 obj=getFeatureSpace(obj);
 
+
 %4) Impose a metric of signal similarity to ambient
 %Euclidean Feature Space H to create a manifold.
 obj.D=mena_metric(obj.H,obj.metric);
 
 %5) Embed the data with MENA
 %obj=embed(obj);
-options.projectionDimensionality=obj.projectionDimensionality; %Output dimensionality
-options.embedding=obj.embedding;
+options.projectionDimensionality = obj.projectionDimensionality; %Output dimensionality
+options.embedding = obj.embedding;
 if (strcmp(obj.embedding,'cca'))
-    options.featureSpace=obj.H;
+    options.featureSpace = obj.H;
 end
-options.verbose=false;
-obj.Y=mena_embedding(obj.D,options);
+options.verbose = false;
+obj.Y = mena_embedding(obj.D,options);
 %5) set runStatus to true
-obj.runStatus=true;
+obj.runStatus = true;
 
 assertInvariants(obj);
+
+
+end

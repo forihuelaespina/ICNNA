@@ -15,8 +15,7 @@ function element=guiDataSource(element,id)
 %if the action is cancelled or the window close without saving.
 %
 %
-% Copyright 2008-19
-% @date: 12-May-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also guiExperiment, guiSubject, guiSession, dataSource,
@@ -25,16 +24,33 @@ function element=guiDataSource(element,id)
 
 %% Log
 %
-% 25-Apr-2018: FOE. Added link to NIRScout import. Rebranded window
+%
+% File created: 12-May-2008
+% File last modified (before creation of this log): 25-Apr-2018
+%
+% 25-Apr-2018: FOE.
+%   + Added link to NIRScout import. Rebranded window
 %   from ICNA to ICNNA.
 %
-% 23-Jan-2014: FOE. Conversion of rawData to structuredData now proceeds
+% 23-Jan-2014: FOE.
+%   + Conversion of rawData to structuredData now proceeds
 %   with overlapping behaviour.
 %
 % 30-Oct-2019: FOE.
 %   Bug fixed. OptViewStructuredData_Callback was incorrectly checking
 %   sessID.
 %
+% 24-May-2023: FOE
+%   + I have now addressed the long standing issue with accessing
+%   the icons folder when the working directory is not that of ICNNA
+%   using function mfilename. 
+%   + Started to update the get/set methods calls to struct like syntax
+%   + Dealt with new case. In the reporting of the importing of the
+%   rawData, the new rawData_Snirf does not have a property .nChannels,
+%   hence, in that case the informative text cannot report on the
+%   number of channels.
+%
+
 
 
 
@@ -129,8 +145,8 @@ menuIntegrity = uimenu(menuTools,'Label','Integrity...',...
 
 %Toolbars
 toolbar = uitoolbar(f,'Tag','toolbar');
-%iconsFolder='C:/Program Files/MATLAB/R2007b/toolbox/matlab/icons/';
-iconsFolder='./GUI/icons/';
+[localDir,~,~] = fileparts(mfilename('fullpath'));
+iconsFolder=[localDir filesep 'icons' filesep];
 tempIcon=load([iconsFolder 'delete.mat']);
     uipushtool(toolbar,'CData',tempIcon.cdata,...
         'Tag','toolbarButton_RemoveStructuredData',...
@@ -481,7 +497,8 @@ else
 
     if (importData)
         s=importfOSAfile(dataSource,[PathName FileName]);
-        set(s,'ID',get(handles.currentElement.data,'ID'));
+        tmpElement = handles.currentElement.data;
+        s.id = tmpElement.id;
         handles.currentElement.data=s;
         handles.currentElement.saved=false;
         guidata(hObject,handles);
@@ -766,7 +783,8 @@ if (isempty(handles.currentElement.data))
     warndlg('There''s no dataSource currently opened.',...
         'ICNNA','modal');
 else
-    activeID=get(handles.currentElement.data,'ActiveStructured');
+    tmpElement = handles.currentElement.data;
+    activeID=tmpElement.activeStructured;
     if (activeID==0)
         warndlg('Data not found.','ICNNA');
         return;
@@ -839,10 +857,10 @@ else
         return;
     end
     tM=getStructuredData(handles.currentElement.data,activeID);
-    t=get(tM,'Timeline');
+    t=tM.timeline;
     t=guiTimeline(t,'setTimelineLength','off');
     if ~isempty(t)
-        tM=set(tM,'Timeline',t);
+        tM.timeline = t;
         handles.currentElement.data=...
             setStructuredData(handles.currentElement.data,activeID,tM);
         handles.currentElement.saved=false;
@@ -864,7 +882,7 @@ tmpElement=dataSource(handles.currentElement.data);
 tmpId=str2double(get(handles.idEditBox,'String'));
 if isnan(tmpId)
     warndlg('Invalid ID.','Update Data Source');
-    set(handles.idEditBox,'String',get(tmpElement,'ID'));
+    set(handles.idEditBox,'String', tmpElement.id);
 else
     if (isreal(tmpId) && ~ischar(tmpId) && isscalar(tmpId) ...
             && floor(tmpId)==tmpId && tmpId>0)
@@ -874,12 +892,12 @@ else
     end
 end
 
-tmpElement=set(tmpElement,'Name',get(handles.nameEditBox,'String'));
+tmpElement.name = get(handles.nameEditBox,'String');
 
 devNum=str2double(get(handles.idEditBox,'String'));
 if isnan(devNum)
     warndlg('Invalid Device Number.','Update Data Source');
-    set(handles.idEditBox,'String',get(tmpElement,'ID'));
+    set(handles.idEditBox,'String',tmpElement.id);
 else
     if (isreal(devNum) && ~ischar(devNum) && isscalar(devNum) ...
             && floor(devNum)==devNum && devNum>0)
@@ -930,44 +948,49 @@ if (isempty(handles.currentElement.data)) %Clear
     
 else %Refresh the Information
     s=dataSource(handles.currentElement.data);
-    set(handles.idEditBox,'String',num2str(get(s,'ID')));
-    set(handles.nameEditBox,'String',get(s,'Name'));
-    set(handles.deviceNumberEditBox,'String',num2str(get(s,'DeviceNumber')));
+    set(handles.idEditBox,'String',num2str(s.id));
+    set(handles.nameEditBox,'String',s.name);
+    set(handles.deviceNumberEditBox,'String',num2str(s.deviceNumber));
     r=getRawData(s);
     if (isempty(r))
         set(handles.rawDataStatusText,'String','Not imported');
         set(handles.menuTools_OptConvertRawData,'Enable','off');
         set(handles.convertRawDataButton,'Enable','off');
     else
-        set(handles.rawDataStatusText,'String',...
-              ['Imported (' num2str(get(r,'nChannels')) ' channels)']);
+        %Not all raw data will have a property called .nChannels e.g. @rawData_Snirf
+        try
+            set(handles.rawDataStatusText,'String',...
+              ['Imported (' num2str(r.nChannels) ' channels)']);
+        catch
+            set(handles.rawDataStatusText,'String','Imported.');
+        end
         set(handles.menuTools_OptConvertRawData,'Enable','on');
         set(handles.convertRawDataButton,'Enable','on');
     end
     set(handles.lockStatusCheckbox,'Value',isLock(s));
     
     structuredData=getStructuredDataList(s);
-    data=cell(getNStructuredData(s),4); %Four columns are currently displayed
+    data=cell(s.nStructuredData,4); %Four columns are currently displayed
                             %Description, NSamples,
                             %NChannels, NSignals
-    rownames=zeros(1,getNStructuredData(s));
+    rownames=zeros(1,s.nStructuredData);
     pos=1;
     imTags=cell(1,0);
     for ii=structuredData
         elem=getStructuredData(s,ii);
-        rownames(pos)=get(elem,'ID');
-        data(pos,1)={get(elem,'Description')};
-        data(pos,2)={get(elem,'NSamples')};
-        data(pos,3)={get(elem,'NChannels')};
-        data(pos,4)={get(elem,'NSignals')};
-        imTags(pos)={num2str(get(elem,'ID'))};
-        if (get(s,'ActiveStructured')==ii), posFound=ii; end;
+        rownames(pos)=elem.id;
+        data(pos,1)={elem.description};
+        data(pos,2)={elem.nSamples};
+        data(pos,3)={elem.nChannels};
+        data(pos,4)={elem.nSignals};
+        imTags(pos)={num2str(elem.id)};
+        if (s.activeStructured==ii), posFound=ii; end;
         pos=pos+1;
     end
     set(handles.structuredDataTable,'RowName',rownames);
     set(handles.structuredDataTable,'Data',data);
     
-    if getNStructuredData(s)>0
+    if s.nStructuredData>0
         set(handles.menuStructuredData_OptViewStructuredData,'Enable','on');
         set(handles.menuStructuredData_OptRemoveStructuredData,'Enable','on');
     else

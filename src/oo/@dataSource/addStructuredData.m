@@ -1,7 +1,7 @@
-function obj=addStructuredData(obj,i)
+function obj=addStructuredData(obj,sd)
 % DATASOURCE/ADDSTRUCTUREDDATA Add a new structured data
 %
-% obj=addStructuredData(obj,i) Add a new structured data i to the
+% obj=addStructuredData(obj,sd) Add a new structured data i to the
 %   dataSource. If a structured data with the same ID has
 %   already been defined within
 %   the dataSource, then a warning is issued
@@ -13,37 +13,55 @@ function obj=addStructuredData(obj,i)
 %See dataSource for more information, otherwise a error is generated.
 %
 %
-% Copyright 2008-13
-% @date: 25-Apr-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 4-Jan-2013
 %
 % See also removeStructuredData, setStructuredData
 %
 
-type=get(obj,'Type');
+
+
+
+%% Log
+%
+% File created: 25-Apr-2008
+% File last modified (before creation of this log): 4-Jan-2013
+%
+% 24-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%
+
+
+
+type=obj.type;
 if (isempty(type))
-    if ~isa(i,'structuredData')
-        error('ICNA:dataSource:addStructuredData:InvalidParameterClass',...
+    if ~isa(sd,'structuredData')
+        error('ICNNA:dataSource:addStructuredData:InvalidParameterClass',...
               [inputname(2) ' is not a structured data']);
     end
 else
-    if ~isa(i,type)
-        error('ICNA:dataSource:addStructuredData:InvalidParameterType',...
+    if ~isa(sd,type)
+        error('ICNNA:dataSource:addStructuredData:InvalidParameterType',...
               [inputname(2) ' is not of valid ''Type''.']);
     end
 end    
     
 
-idx=findStructuredData(obj,get(i,'ID'));
+idx=findStructuredData(obj,sd.id);
 if isempty(idx)
-    if (isempty(obj.structured))
-        obj.activeStructured=get(i,'ID');
+    obj.structured(end+1)={sd};
+    tmpActive = obj.activeStructured;
+    if (~isempty(obj.structured))
+        tmpActive = sd.id;
     end
-    obj.structured(end+1)={i};
-
+    obj.activeStructured = tmpActive;
 else
-    warning('ICNA:dataSource:addStructuredData:RepeatedID',...
+    warning('ICNNA:dataSource:addStructuredData:RepeatedID',...
         'A structured data with the same ID has already been defined.');
 end
 assertInvariants(obj);
+
+
+
+end

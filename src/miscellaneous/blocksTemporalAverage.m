@@ -32,7 +32,7 @@ function averaged=blocksTemporalAverage(blocks)
 %----------------------------
 %
 %If any of the block has not got a block condition a error
-%is issued ('ICNA:blocksTemporalAverage:NotABlockStructure').
+%is issued ('ICNNA:blocksTemporalAverage:NotABlockStructure').
 %
 % Signals and channels are averaged in the same order that
 %they are arranged within the blocks, i.e. channel 1 is averaged
@@ -48,15 +48,14 @@ function averaged=blocksTemporalAverage(blocks)
 %(see structuredData.getBlock), but also that their conditions
 %are the same (they have the same tags). Therefore upon finding
 %different condition tags, a warning is issued
-%('ICNA:blocksTemporalAverage:DifferentConditions'), but the
+%('ICNNA:blocksTemporalAverage:DifferentConditions'), but the
 %averaging will still be done as if they were the same condition.
 %
 %In reconstructing the timeline, the duration of the single
 %episode is averaged across all durations.
 %
 %
-% Copyright 2008
-% @date: 4-Jul-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also experimentSpace, analysis, structuredData.getBlock
@@ -66,9 +65,24 @@ function averaged=blocksTemporalAverage(blocks)
 
 %% LOG
 %
+% File created: 4-Jul-2008
+% File last modified (before creation of this log): N/A This method has not
+%   been updated since creation until the creation of the log.
+%
 % 6-May-2019: FOE
 %   + Substituted deprecated call getNConditions for get(obj,'nConditions')
 %
+% 27-May-2023: FOE
+%   + Got rid of old label @date.
+%   + Updated some of the calls to get attributes using the struct like syntax
+%   Bug fixing
+%   + In some cases, averaged durations (calculated as duration/nBlocks)
+%   may exceed the length of the block (depending on cropping). This
+%   case was not being taken into account. Now, events exceeding the
+%   length of the timeline are crop in their durations.
+%
+
+
 
 averaged=[];
 nBlocks=length(blocks);
@@ -83,24 +97,25 @@ if nBlocks==1
 end
 
 %Get some initial values
-t=get(averaged,'Timeline');
-condTag=getConditionTag(t,1); %Remember that I'm assuming block structure
-events = getConditionEvents(t,condTag);
-if ((get(t,'nConditions')~=1) ...
+t = averaged.timeline;
+condTag = getConditionTag(t,1); %Remember that I'm assuming block structure
+events  = getConditionEvents(t,condTag);
+if ((t.nConditions ~= 1) ...
      || (size(events,1)~=1))
-    error('ICNA:blocksTemporalAverage:NotABlockStructure',...
+    error('ICNNA:blocksTemporalAverage:NotABlockStructure',...
         'Found data without block structure.');
 end
 onset = events(1);
 duration = events(2);
-data=get(averaged,'Data');
+data = averaged.data;
 [nSamples,nChannels,nSignals]=size(data);
 nValues = ones(nSamples,nChannels,nSignals);
 
 %Incremental calculation
 for ii=2:nBlocks
-    tmpData=get(blocks{ii},'Data');
-    tmpT=get(blocks{ii},'Timeline');
+    tmpBlock = blocks{ii};
+    tmpData  = tmpBlock.data;
+    tmpT     = tmpBlock.timeline;
     tmpCondTag=getConditionTag(tmpT,1);
     tmpEvents = getConditionEvents(tmpT,condTag);
     tmpOnset = events(1);
@@ -108,12 +123,12 @@ for ii=2:nBlocks
     [tmpNSamples,tmpNChannels,tmpNSignals]=size(tmpData);
 
     if ~(strcmp(condTag,tmpCondTag))
-        warning('ICNA:blocksTemporalAverage:DifferentConditions',...
+        warning('ICNNA:blocksTemporalAverage:DifferentConditions',...
                 'Different conditions found');
     end
-    if ((get(tmpT,'nConditions')~=1) ...
+    if ((tmpT.nConditions ~= 1) ...
             || (size(tmpEvents,1)~=1))
-        error('ICNA:blocksTemporalAverage:NotABlockStructure',...
+        error('ICNNA:blocksTemporalAverage:NotABlockStructure',...
             'Found data without block structure.');
     end
 
@@ -169,9 +184,17 @@ end
 %Finally average
 data=data./nValues;
 
-events=[onset round(duration/nBlocks)];
-t=timeline(nSamples,condTag,events);
-s = warning('off', 'ICNA:timeline:set:Length:EventsCropped');
-averaged=set(averaged,'Data',data);
-averaged=set(averaged,'Timeline',t);
+duration = round(duration/nBlocks);
+%Big fixing: 27-May-2023; crop duration if event lasts beyond the length
+duration = min(duration,nSamples-onset);
+
+events=[onset duration];
+t = timeline(nSamples,condTag,events);
+s = warning('off', 'ICNNA:timeline:set:Length:EventsCropped');
+averaged.data = data;
+averaged.timeline = t;
 warning(s);
+
+
+
+end

@@ -1,3 +1,6 @@
+classdef dataSource
+%Class dataSource
+%
 %A data source represent a stream of collected data during a session
 %and it is therefore inherently linked to a single raw data
 %of a certain type coming from one single device. The raw data is the data
@@ -52,15 +55,17 @@
 %
 %% Properties
 %
-%   .id - A numerical identifier.
-%   .name - The source's descriptor
+%   .id - Scalar integer. A numerical identifier.
+%   .name - String. The source's descriptor
 %   .deviceNumber - A device number to disambiguate in case
 %       of recording data from two or more equal devices. 
-%   .rawData - The experimental data recorded from one source
-%   .lock - Lock raw and structured data. True by default
-%   .activeStructured - A pointer (ID) to the currently active
+%   .rawData - A rawData object. The experimental data recorded from one source
+%       * Prior to ICNNA v1.1.5 this was defaulted to empty []
+%       * From ICNNA v1.2 this is defaulted to rawData_Snirf
+%   .lock - Boolean. Lock raw and structured data. True by default
+%   .activeStructured - Scalar integer. A pointer (ID) to the currently active
 %       structured data, or 0 if none exist.
-%   .structured - Set of structured data for this source.
+%   .structured - Cell array. Set of structured data for this source.
 %
 %% Invariants
 %
@@ -73,24 +78,57 @@
 %
 %
 %
-% Copyright 2008-10
-% @date: 17-Apr-2008
+% Copyright 2008-23
 % @author: Felipe Orihuela-Espina
-% @modified: 11-Nov-2010
 %
 % See also subject, session, rawData, structuredData
 %
-classdef dataSource
+
+
+
+%% Log
+%
+% File created: 17-Apr-2008
+% File last modified (before creation of this log): 11-Nov-2010
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Added property classVersion. Set to '1.0' by default.
+%   + Added get/set methods support for struct like access to attributes.
+%   + For those attributes above also started to simplify the set
+%   code replacing it with validation rules on the declaration.
+%   + Improved some comments.
+%   + Added dependent properties for;
+%       nStructuredData
+%   + Deprecated methods
+%       getNStructuredData
+%
+%
+
+    properties (Constant, Access=private)
+        classVersion = '1.0'; %Read-only. Object's class version.
+    end
+
+
+    properties %(SetAccess=private, GetAccess=private)
+        id(1,1) double {mustBeInteger, mustBeNonnegative}=1; %Numerical identifier to make the object identifiable.
+        name='DataSource0001'; %The dataSource's name
+        deviceNumber=1; %A device number to disambiguate in case of recording data from two or more equal devices.
+        rawData(1,1) rawData = rawData_Snirf(); % The experimental data recorded from one source
+        lock(1,1) logical =true; % Lock raw and structured data.
+        activeStructured(1,1) double {mustBeInteger, mustBeNonnegative}=0; % A pointer (ID) to the currently active @structuredData
+    end
+
+
     properties (SetAccess=private, GetAccess=private)
-        id=1;
-        name='DataSource0001';
-        deviceNumber=1;
-        rawData=[];
-        lock=true;
-        activeStructured=0;
         structured=cell(1,0);
     end
     
+    properties (Dependent)
+      type
+      nStructuredData % Number of @structuredData
+    end
+
     methods
         function obj=dataSource(varargin)
             %DATASOURCE dataSource class constructor
@@ -112,10 +150,9 @@ classdef dataSource
                 obj=varargin{1};
                 return;
             else
-                obj=set(obj,'ID',varargin{1});
+                obj.id = varargin{1};
             end
-            obj=set(obj,'Name',...
-                    ['DataSource' num2str(get(obj,'ID'),'%04i')]);
+            obj.name= ['DataSource' num2str(obj.id,'%04i')];
             if (nargin>1)
                 if (ischar(varargin{2}))
                     obj.name=varargin{2};
@@ -134,4 +171,118 @@ classdef dataSource
         idx=findStructuredData(obj,id);
     end
     
+    methods
+
+      %Getters/Setters
+
+      function res = get.id(obj)
+         %Gets the object |id|
+         res = obj.id;
+      end
+      function obj = set.id(obj,val)
+         %Sets the object |id|
+         obj.id =  val;
+         assertInvariants(obj);
+      end
+
+
+    function res = get.name(obj)
+         %Gets the object |name|
+         res = obj.name;
+      end
+      function obj = set.name(obj,val)
+         %Sets the object |name|
+         obj.name =  val;
+         assertInvariants(obj);
+      end
+
+    function res = get.deviceNumber(obj)
+         %Gets the object |deviceNumber|
+         res = obj.deviceNumber;
+      end
+      function obj = set.deviceNumber(obj,val)
+         %Sets the object |deviceNumber|
+         obj.deviceNumber =  val;
+         assertInvariants(obj);
+      end
+
+
+    function res = get.rawData(obj)
+         %Gets the object |rawData|
+         res = obj.rawData;
+      end
+      function obj = set.rawData(obj,val)
+         %Sets the object |rawData|
+         obj.rawData =  val;
+         assertInvariants(obj);
+      end
+
+    function res = get.lock(obj)
+         %Gets the object |lock|
+         res = obj.lock;
+      end
+      function obj = set.lock(obj,val)
+         %Sets the object |lock|
+         obj.lock =  val;
+         assertInvariants(obj);
+      end
+
+    
+    function res = get.activeStructured(obj)
+         %Gets the object |activeStructured|
+         res = obj.activeStructured;
+      end
+      function obj = set.activeStructured(obj,val)
+         %Sets the object |activeStructured|
+         obj.activeStructured =  val;
+         %assertInvariants(obj);
+      end
+
+    
+    function res = get.type(obj)
+         %Gets the object |type|
+         %Find the type on the fly
+         res='';
+         if ~(isempty(obj.structured))
+             if (obj.activeStructured == 0)
+                %While adding the first new structruedData, first the
+                %structured data is added and then the activeStructured
+                %is updated. In between these two operations,
+                %obj.structured is no longer empty, but obj.activeStructured
+                %is still pointing to 0. Hence, a direct call to:
+                %
+                % res=class(obj.structured{obj.activeStructured});
+                %
+                %...will fail. Instead, transiently access the first
+                %entry of obj.structured
+                res=class(obj.structured{1});
+             else
+                 %General case
+                res=class(obj.structured{obj.activeStructured});
+             end
+         else
+             %Try to guess it from the rawData if it has been defined.
+             r=obj.rawData;
+             if ~isempty(r)
+                 %fprintf(1,['Unable to establish dataSource type from structuredData. ' ...
+                 %           'Trying\nto guess it from rawData.\n']);
+                 warning off
+                 res=class(convert(r,'AllowOverlappingConditions',0));
+                     %Temporally allow for overlapping conditions
+                     %to make less restrictive.
+                 warning on
+             end
+         end
+      end
+
+    
+      function res = get.nStructuredData(obj)
+         %Gets the object |nStructuredData|
+         res = length(obj.structured);
+      end
+    
+    
+    end
+
+
 end

@@ -6,10 +6,8 @@ function obj=setConditionTag(obj,tag,newTag)
 %   is issued and nothing is done.
 %
 %
-% Copyright 2008-13
-% @date: 18-Apr-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 31-Oct-2013
 %
 % See also getCondition, addCondition, removeCondition, getConditionTag,
 % getConditionEvents, setConditionEvents, addConditionEvents,
@@ -18,9 +16,15 @@ function obj=setConditionTag(obj,tag,newTag)
 
 %% Log
 %
+% File created: 18-Apr-2008
+% File last modified (before creation of this log): 31-Oct-2013
+%
 % 31-Oct-2013 (FOE): Ammended bug in function documentation. Previously,
 %   the function call in the documentation read
 %               obj=getCondition(obj,tag,newTag)
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
 %
 
 idx=findCondition(obj,tag);
@@ -30,4 +34,5 @@ if (isempty(idx))
 else
     obj.conditions{idx}.tag=newTag;
 end
-assertInvariants(obj)
+assertInvariants(obj);
+end

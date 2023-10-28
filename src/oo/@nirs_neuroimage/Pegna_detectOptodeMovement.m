@@ -1,9 +1,5 @@
 function [idx,reconstructed]=Pegna_detectOptodeMovement(signal,options)
 %Peña's differences based algorithm for the detection of optode movement artefacts
-%%
-%%Date: 19-Jul-2007
-%%Author: Felipe Orihuela-Espina
-%%
 %
 % function [idx,reconstructed]=Pegna_detectOptodeMovement(signal)
 %
@@ -11,8 +7,8 @@ function [idx,reconstructed]=Pegna_detectOptodeMovement(signal,options)
 %optode movement artefacts (see [Pegna et al, 2003]).
 %
 %
-%Parameters:
-%-----------
+%% Parameters:
+%
 %
 % signal - The signal time serie. Please note that Pegna operates on the
 %   totalHb
@@ -24,6 +20,30 @@ function [idx,reconstructed]=Pegna_detectOptodeMovement(signal,options)
 %   .visualize: Plot the results. False by default.
 %
 %
+%
+%
+% 
+% Copyright 2007-23
+% @author: Felipe Orihuela-Espina
+%
+% See also nirs_neuroimage
+%
+
+
+
+
+%% Log
+%
+% File created: 19-Jul-2007
+% File last modified (before creation of this log): N/A. This method
+%   had not been modified since creation.
+%
+% 20-May-2023: FOE
+%   + Added this log. This method is so old it didn't even had the
+%       labels @date and @modified, instead there was just the creation
+%       date!!
+%
+
 
 
 %Deal with some options
@@ -64,4 +84,8 @@ if (opt.visualize)
         plot([idx(ii) idx(ii)],[getY(3) getY(4)],'k--','LineWidth',lineWidth)
     end
     box on, grid on
+end
+
+
+
 end

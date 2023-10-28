@@ -23,8 +23,7 @@ function structData=convert(obj,varargin)
 % varargin - Reserved for future usage
 %
 % 
-% Copyright 2021
-% @date: 23-Aug-2021
+% Copyright 2021-23
 % @author: Felipe Orihuela-Espina
 %
 % See also import, structuredData,
@@ -36,8 +35,15 @@ function structData=convert(obj,varargin)
 
 %% Log
 %
+% File created: 23-Aug-2021
+% File last modified (before creation of this log): N/A
+%
 % 23-Aug-2021 (FOE): 
 %	File created.
+%
+% 12-Oct-2021 (FOE): 
+%   + Got rid of old labels @date and @modified.
+%   + Migrated for struct like access to attributes.
 %
 
 k=1;
@@ -121,7 +127,7 @@ tmpData(:,:,1)=rawData';
 
 % Now proceed with conversion
 structData=structuredData(1,[nSamples,nChannels,nSignals]);
-structData=set(structData,'Data',tmpData);
+structData.data = tmpData;
 
 end
 
@@ -140,7 +146,7 @@ nSignals=2; %Eyes
 tmpData=nan(nSamples,nChannels,nSignals);
 
 
-theFileVersion=get(obj,'Fileversion');
+theFileVersion = obj.fileversion;
 %Get only the "numerical" part
 idx=find(theFileVersion==' ');
 theFileVersion(1:idx)=[];
@@ -250,7 +256,7 @@ if nSamples>0
     
 end
 
-structData=set(structData,'Data',tmpData);
+structData.data = tmpData;
 
 
 %% Set signal Tags
@@ -258,23 +264,22 @@ structData=setSignalTag(structData,1,'Left eye');
 structData=setSignalTag(structData,2,'Right eye');
 
 %% Set Timescale
-%structData=set(structData,'AbsoluteStartTime',get(obj,'RecordingTime'));
-structData=set(structData,'Timestamps',round(timestamps));
+%structData.qbsoluteStartTime = obj.recordingTime;
+structData.timestampts = round(timestamps);
 
 %% Assign rest of data
-events=get(obj,'Events');
-structData=set(structData,'Events',events);
-structData=set(structData,'FixationMethod','dwelltime');
-structData=set(structData,'FixationEye',get(obj,'FixationEye'));
-structData=set(structData,'FixationRadius',get(obj,'FixationRadius'));
-structData=set(structData,'FixationDuration',...
-                    get(obj,'FixationDuration'));
-structData=set(structData,'ScreenResolution',get(obj,'ScreenResolution'));
-structData=set(structData,'CoordinateUnits',get(obj,'CoordinateUnits'));
+events = obj.events;
+structData.events = events;
+structData.fixationMethod = 'dwelltime';
+structData.fixationEye = obj.fixationEye;
+structData.fixationRadius = obj.fixationRadius;
+structData.fixationDuration = obj.fixationDuration;
+structData.screenResolution = obj.screenResolution;
+structData.coordinateUnits = obj.coordinateUnits;
 
 %% Extract the timeline
 theTimeline=timeline(nSamples); %No conditions.
-theTimeline=set(theTimeline,'Timestamps',get(structData,'Timestamps'));
+theTimeline.timestamps = structData.timestamps;
 
 theTimeline=addCondition(theTimeline,'Fixations',[]);
 theTimeline=addCondition(theTimeline,'Saccades',[]);
@@ -333,7 +338,7 @@ if nSamples>0
             getSaccades(structData));
         
         %Set blinks condition to be non-exclusory with Fixations and Saccades
-        tmpT=get(structData,'Timeline');
+        tmpT= structData.timeline;
         tmpT=setExclusory(tmpT,'Blinks','Fixations',0);
         tmpT=setExclusory(tmpT,'Blinks','Saccades',0);
         structData=set(structData,'Timeline',tmpT);
@@ -385,8 +390,8 @@ if nSamples>0
 end
 
 
-nEvents=get(obj,'NEvents');
-events=get(obj,'Events');
+nEvents= obj.nEvents;
+events = obj.events;
 %In two steps; 1) first collect all the different events and add the
 %corresponding conditions, ensuring that they are non exclusory
 for ee=1:nEvents
@@ -396,7 +401,7 @@ for ee=1:nEvents
         %Note that this will only add a new condition if the
         %condition has not already been added
     catch ME
-        if strcmp(ME.identifier,'ICNA:timeline:addCondition:RepeatedTag')
+        if strcmp(ME.identifier,'ICNNA:timeline:addCondition:RepeatedTag')
             %Simply ignore
         else
             rethrow(ME);
@@ -406,7 +411,7 @@ end
 %2) Revisit the conditions to get the tags, and 
 %revisit the events picking up the relevant for each
 %condition
-nConds=get(theTimeline,'NConditions');
+nConds = theTimeline.nConditions;
 frames = 1:length(timestamps); %%FOE Debug: 3-May-2010
                                %%I no longer use the frames in rd to
                                %%extract the onset/duration of events
@@ -480,7 +485,7 @@ for ii=1:nConds
     end
 end
 
-structData=set(structData,'Timeline',theTimeline);
+structData.timeline = theTimeline;
 
 
 

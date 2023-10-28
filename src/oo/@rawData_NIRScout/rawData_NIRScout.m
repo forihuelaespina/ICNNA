@@ -1,3 +1,4 @@
+classdef rawData_NIRScout < rawData
 %Class rawData_NIRScout
 %
 %A rawData_NIRScout represents the experimentally recorded data
@@ -300,61 +301,73 @@
 % Type methods('rawData_NIRScout') for a list of methods
 %
 %
-% Copyright 2018
-% @date: 4-Apr-2018
+% Copyright 2018-23
 % @author: Felipe Orihuela-Espina
-% @modified: 25-Apr-2018
 %
 % See also rawData, rawData_NIRScout
 %
 
 %% Log
 %
+% File created: 4-Apr-2018
+% File last modified (before creation of this log): 25-Apr-2018
+%
 % 4/25-Apr-2018 (FOE): Class created.
 %
 % 30-Oct-2018 (FOE): Class should now recognize files for version 15.2
 %
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Added property classVersion. Set to '1.0' by default.
+%   + Added get/set methods support for struct like access to attributes.
+%   + For those attributes above also started to simplify the set
+%   code replacing it with validation rules on the declaration.
+%   + Improved some comments.
+%   + Remove some old inheritance code no longer used.
+%
 
 
-classdef rawData_NIRScout < rawData
-    properties (SetAccess=private, GetAccess=private)
+    properties (Constant, Access=private)
+        classVersion = '1.0'; %Read-only. Object's class version.
+    end
+
+
+    properties %(SetAccess=private, GetAccess=private)
         %General information
-        filename='NIRS-2018-01-01_001';
-        device='NIRScout 16x24';
-        source='LED';
-        studyTypeModulation='Human Subject';
-        fileVersion='14.2';
-        subjectIndex=1;
+        filename(1,:) char ='NIRS-2018-01-01_001'; %The filename (without extension).
+        device(1,:) char='NIRScout 16x24'; %Name of the acquisition device
+        source(1,:) char {mustBeMember(source,{'LED','LASER'})}='LED'; % Type of source used (LED or Laser).
+        studyTypeModulation(1,:) char='Human Subject';
+        fileVersion(1,:) char='14.2';
+        subjectIndex(1,1) double {mustBeInteger, mustBeNonnegative}=1;
 
         % Measurement information
         probesetInfo=struct('geom',[],'probes',[],'temphandles',[],...
                             'probeInforFileName',[],...
                             'probeInforFilePath',[])
         
-        nSources=16; %Number of source steps in measurement.
-        nDetectors=8; %Number of detector channels.
-        nChannels=0; %Number of channels.
-        nSteps=16; %Number of steps (illumination pattern).
-        wLengths=[780 830];%The nominal wavelengths at which the light
+        nSources(1,1) double {mustBeInteger, mustBeNonnegative}=16; %Number of source steps in measurement.
+        nDetectors(1,1) double {mustBeInteger, mustBeNonnegative}=8; %Number of detector channels.
+        nChannels(1,1) double {mustBeInteger, mustBeNonnegative}=0; %Number of channels.
+        nSteps(1,1) double {mustBeInteger, mustBeNonnegative}=16; %Number of steps (illumination pattern).
+        wLengths(1,2) double {mustBeInteger, mustBeNonnegative}=[780 830];%The nominal wavelengths at which the light
             %intensities were acquired in [nm] for a laser based
             %equipment.
-        nTriggerInputs=0; %Number of trigger inputs.
-        nTriggerOutputs=0; %Number of trigger outputs (only available for
+        nTriggerInputs(1,1) double {mustBeInteger, mustBeNonnegative}=0; %Number of trigger inputs.
+        nTriggerOutputs(1,1) double {mustBeInteger, mustBeNonnegative}=0; %Number of trigger outputs (only available for
                           %NIRScoutX).
-        nAnalogInputs =0; %Number of auxiliary analog inputs.
-        samplingRate = 1; % Sampling rate in Hz.
-        modulationAmplitudes =[0 0]; %Modulation amplitudes for illumination.
-        modulationThresholds =[0.0 0.0]; %Modulation thresholds used (?0 only
-                                    %for Laser).
+        nAnalogInputs(1,1) double {mustBeInteger, mustBeNonnegative} =0; %Number of auxiliary analog inputs.
+        samplingRate(1,1) double {mustBeNonnegative} = 1; % Sampling rate in Hz.
+        modulationAmplitudes(1,:) double =[0 0]; %Modulation amplitudes for illumination.
+        modulationThresholds(1,:) double =[0.0 0.0]; %Modulation thresholds used (?0 only for Laser).
 %         probesetInfo = struct('read',{},'type',{},'mode',{});
 %         repeatCount=0; %Repeat Count (e.g. Number of blocks)
 
 
-        % Paradigm Information
-        paradigmStimulusType='';
-
-        % Experimental Notes
-        notes='';
+        
+        paradigmStimulusType(1,:) char=''; % Paradigm Information
+        
+        notes(1,:) char=''; % Experimental Notes
 
         % Gain Settings
         %gains=6*ones(obj.nSources,obj.nDetectors); %I can't do this here...obj has not yet been created
@@ -374,18 +387,16 @@ classdef rawData_NIRScout < rawData
         
 
         
-        % Channel Distances
-        %channelDistance=nan(nChannels); %I can't do this here...obj has
-        %not yet been created and number of channels has not yet been
-        %"decoded"
-        channelDistances=nan(1,0);       
+        
+        channelDistances=nan(1,0); % Channel Distances
         
         
         
         %Subject Demographics
-        userName='';
-        userGender='U';
-        userAge=1;
+        userName(1,:) char=''; %Subject's name
+        userGender(1,1) char {mustBeMember(userGender,{'M','MALE','F','FEMALE','U','UNSET'})}='U'; %Subject's sex
+            %Deprecate the short formats.
+        userAge(1,1) double {mustBeInteger, mustBeNonnegative}=1;  %Subject's age in years
 %         userBirthDate=[]; % A date vector
 
         %The data itself!!
@@ -406,6 +417,19 @@ classdef rawData_NIRScout < rawData
 %         removalMarks=nan(0,0);%Removal marks
 %         preScan=nan(0,0);%preScan stamps
     end
+
+
+    properties (Dependent)
+        samplingPeriod
+        nominalWavelengthSet
+        probeSet
+        subjectName
+        subjectGender
+        subjectAge
+    end
+    
+
+
  
     methods    
         function obj=rawData_NIRScout(varargin)
@@ -449,5 +473,532 @@ classdef rawData_NIRScout < rawData
     methods (Static)
         coe=table_abscoeff;
     end
+
+
+
+
+    methods
+
+      %Getters/Setters
+
+          %General information
+
+
+      function res = get.filename(obj)
+         %Gets the object's |filename|
+         res = obj.filename;
+      end
+      function obj = set.filename(obj,val)
+         %Sets the object's |filename|
+        obj.filename = val;
+      end
+
+
+      function res = get.device(obj)
+         %Gets the object's |device|
+         res = obj.device;
+      end
+      function obj = set.device(obj,val)
+         %Sets the object's |device|
+        obj.device = val;
+      end
+
+
+      function res = get.source(obj)
+         %Gets the object's |source|
+         res = obj.source;
+      end
+      function obj = set.source(obj,val)
+         %Sets the object's |source|
+        obj.source = val;
+      end
+
+
+      function res = get.studyTypeModulation(obj)
+         %Gets the object's |studyTypeModulation|
+         res = obj.studyTypeModulation;
+      end
+      function obj = set.studyTypeModulation(obj,val)
+         %Sets the object's |studyTypeModulation|
+        obj.studyTypeModulation = val;
+      end
+
+
+      function res = get.fileVersion(obj)
+         %Gets the object's |fileVersion|
+         res = obj.fileVersion;
+      end
+      function obj = set.fileVersion(obj,val)
+         %Sets the object's |fileVersion|
+        obj.fileVersion = val;
+      end
+
+
+      function res = get.subjectIndex(obj)
+         %Gets the object's |subjectIndex|
+         res = obj.subjectIndex;
+      end
+      function obj = set.subjectIndex(obj,val)
+         %Sets the object's |subjectIndex|
+        obj.subjectIndex = val;
+      end
+
+
+        % Measurement information
+
+
+      function res = get.nSources(obj)
+         %Gets the object's |nSources|
+         res = obj.nSources;
+      end
+      function obj = set.nSources(obj,val)
+         %Sets the object's |nSources|
+        obj.nSources = val;
+      end
+
+
+      function res = get.nDetectors(obj)
+         %Gets the object's |nDetectors|
+         res = obj.nDetectors;
+      end
+      function obj = set.nDetectors(obj,val)
+         %Sets the object's |nDetectors|
+        obj.nDetectors = val;
+      end
+
+
+      function res = get.nSteps(obj)
+         %Gets the object's |nSteps|
+         res = obj.nSteps;
+      end
+      function obj = set.nSteps(obj,val)
+         %Sets the object's |nSteps|
+        obj.nSteps = val;
+      end
+
+
+
+      function res = get.wLengths(obj)
+         %Gets the object's |wLengths|
+         res = obj.wLengths;
+      end
+      function obj = set.wLengths(obj,val)
+         %Sets the object's |wLengths|
+        obj.wLengths = val;
+      end
+      function res = get.nominalWavelengthSet(obj)
+         %(DEPENDENT) Gets the object's |nominalWavelengthSet|
+         res = obj.wLengths;
+      end
+      function obj = set.nominalWavelengthSet(obj,val)
+         %(DEPENDENT) Sets the object's |nominalWavelengthSet|
+        obj.wLengths = val;
+      end
+
+
+      function res = get.nTriggerInputs(obj)
+         %Gets the object's |nTriggerInputs|
+         res = obj.nTriggerInputs;
+      end
+      function obj = set.nTriggerInputs(obj,val)
+         %Sets the object's |nTriggerInputs|
+        obj.nTriggerInputs = val;
+      end
+
+
+      function res = get.nTriggerOutputs(obj)
+         %Gets the object's |nTriggerOutputs|
+         res = obj.nTriggerOutputs;
+      end
+      function obj = set.nTriggerOutputs(obj,val)
+         %Sets the object's |nTriggerOutputs|
+        obj.nTriggerOutputs = val;
+      end
+
+
+      function res = get.nAnalogInputs(obj)
+         %Gets the object's |nAnalogInputs|
+         res = obj.nAnalogInputs;
+      end
+      function obj = set.nAnalogInputs(obj,val)
+         %Sets the object's |nAnalogInputs|
+        obj.nAnalogInputs = val;
+      end
+
+
+      function res = get.samplingPeriod(obj)
+         %(DEPENDENT) Gets or sets the object's |samplingPeriod|
+         res = 1/obj.samplingRate;
+      end
+      function obj = set.samplingPeriod(obj,val)
+         %(DEPENDENT) Sets the object's |samplingPeriod|
+        obj.samplingRate = 1/val;
+      end
+
+
+      function res = get.samplingRate(obj)
+         %Gets or sets the object's |samplingRate|
+         res = obj.samplingRate;
+      end
+      function obj = set.samplingRate(obj,val)
+         %Sets the object's |samplingRate|
+        obj.samplingRate = val;
+      end
+
+
+      function res = get.modulationAmplitudes(obj)
+         %Gets or sets the object's |modulationAmplitudes|
+         res = obj.modulationAmplitudes;
+      end
+      function obj = set.modulationAmplitudes(obj,val)
+         %Sets the object's |modulationAmplitudes|
+        obj.modulationAmplitudes = val;
+      end
+
+
+      function res = get.modulationThresholds(obj)
+         %Gets or sets the object's |modulationThresholds|
+         res = obj.modulationThresholds;
+      end
+      function obj = set.modulationThresholds(obj,val)
+         %Sets the object's |modulationThresholds|
+        obj.modulationThresholds = val;
+      end
+
+
+
+         %Measure information
+
+
+      function res = get.probesetInfo(obj)
+         %Gets or sets the object's |probesetInfo|
+         res = obj.probesetInfo;
+      end
+      function obj = set.probesetInfo(obj,val)
+          %Sets the object's |probesetInfo|
+          if (isstruct(val))
+              %The fields in this probeset struct are NOT always the
+              %same. So these have to be check everytime.
+              obj.probesetInfo = struct('probes',[],'geom',[],...
+                  'temphandles',[],'headmodel','',...
+                  'probeInforFileName','','probeInforFilePath','');
+              fields = fieldnames(val);
+              nFields = length(fields);
+              for ff=1:nFields
+                  fieldname = fields{ff};
+                  if isfield(obj.probesetInfo,fieldname)
+                      obj.probesetInfo.(fieldname) = val.(fieldname);
+                  else
+                      warning('ICNNA:rawData_NIRScout:set.probeSetInfo:UnexpectedParameterValue',...
+                          ['Unexpected field name ''' fieldname '''in probe set descriptor. Ignoring field.'])
+                  end
+              end
+
+              %Field setupType is not present in all file versions.
+              % I have found it in version 14.2 but not in 15.2
+              %but it was used for several things during conversion
+              %to structuredData.
+              if ~isfield(obj.probesetInfo.probes,'setupType')
+                  obj.probesetInfo.probes.setupType = 1;
+              end
+
+          else
+              error('ICNNA:rawData_NIRScout:set.probeSetInfo:InvalidParameterValue',...
+                  'Value must be a struct.');
+          end
+      end
+      function res = get.probeSet(obj)
+         %(DEPENDENT) Gets or sets the object's |probesetInfo|
+         res = obj.probesetInfo;
+      end
+      function obj = set.probeSet(obj,val)
+          %(DEPENDENT) Sets the object's |probesetInfo|
+          obj.probesetInfo = val;
+      end
+
+
+
+
+      function res = get.nChannels(obj)
+         %Gets or sets the object's |nChannels|
+         res = obj.nChannels;
+      end
+      function obj = set.nChannels(obj,val)
+         %Sets the object's |nChannels|
+        obj.nChannels = val;
+
+        %Ensure number of channelDistances matches the number of channels (visible
+        %in the mask)
+        sillyNChannels = get(obj,'nChannels');
+        if (numel(obj.channelDistances) < sillyNChannels)
+            %Add new distances and send warning
+            obj.channelDistances(end+1:end+sillyNChannels)=nan;
+            warning('Adding default channel distances to new channels.')
+        elseif (numel(obj.channelDistances) > sillyNChannels)
+            %Discard latter distances and send warning
+            obj.channelDistances(sillyNChannels+1:end)=[];
+            warning('Removing extra channel distances.')
+            %else %(obj.channelsDistances == sum(sum(obj.sdMask)))
+            %Do nothing
+        end
+
+
+      end
+
+
+
+         %Paradigm information
+
+      function res = get.paradigmStimulusType(obj)
+         %Gets or sets the object's |paradigmStimulusType|
+         res = obj.paradigmStimulusType;
+      end
+      function obj = set.paradigmStimulusType(obj,val)
+         %Sets the object's |paradigmStimulusType|
+        obj.paradigmStimulusType = val;
+      end
+
+
+
+         %Experimental notes
+
+      function res = get.notes(obj)
+         %Gets or sets the object's |notes|
+         res = obj.notes;
+      end
+      function obj = set.notes(obj,val)
+         %Sets the object's |notes|
+        obj.notes = val;
+      end
+
+
+
+         %Gain settings
+
+      function res = get.gains(obj)
+         %Gets or sets the object's |gains|
+         res = obj.gains;
+      end
+      function obj = set.gains(obj,val)
+         %Sets the object's |gains|
+        if any(any(val<0))
+            warning('ICNNA:rawData_NIRScout:set.gains:InvalidParameterValue',...
+                  'Nagative gain found.');
+        end
+        obj.gains = val;
+      end
+
+
+         %Markers Information
+
+      function res = get.eventTriggerMarkers(obj)
+         %Gets or sets the object's |eventTriggerMarkers|
+         res = obj.eventTriggerMarkers;
+      end
+      function obj = set.eventTriggerMarkers(obj,val)
+         %Sets the object's |eventTriggerMarkers|
+        if (size(val,2)==3 && all(all(floor(val(:,2:3))==val(:,2:3))) && all(all(val>=0)))
+            obj.eventTriggerMarkers = val;
+        else
+            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be a 3 columns matrix with the second and third columns being integer numbers.');
+        end
+      end
+
+
+         %Data Structure
+
+      function res = get.sdKey(obj)
+         %Gets or sets the object's |sdKey|
+         res = obj.sdKey;
+      end
+      function obj = set.sdKey(obj,val)
+         %Sets the object's |sdKey|
+        if (all(all(isnan(val))) || (all(all(floor(val)==val)) && all(all(val>=0))))
+            obj.sdKey = val;
+        else
+            error('ICNNA:rawData_NIRScout:set.sdKey:InvalidParameterValue',...
+                  'Value must be a matrix positive integers.');
+        end
+      end
+
+
+      function res = get.sdMask(obj)
+         %Gets or sets the object's |sdMask|
+         res = obj.sdMask;
+      end
+      function obj = set.sdMask(obj,val)
+         %Sets the object's |sdMask|
+        if (all(all(isnan(val))) || (all(all(ismember(val,[0,1])))))
+            obj.sdMask = val;
+        else
+            error('ICNNA:rawData_NIRScout:set.sdMask:InvalidParameterValue',...
+                  'Value must be a binary matrix (of 0s and 1s).');
+        end
+      end
+
+
+         %Channel Distances
+
+      function res = get.channelDistances(obj)
+         %Gets or sets the object's |channelDistances|
+         res = obj.channelDistances;
+      end
+      function obj = set.channelDistances(obj,val)
+         %Sets the object's |channelDistances|
+        if (all(all(val>=0)) && length(val)==obj.nChannels)
+            obj.channelDistances = val;
+        else
+            if (length(val)==obj.nChannels)
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Value must be a vector positive numbers.');
+            else
+                error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Number of channel distances is different from the number of channels.');
+            end
+        end
+
+        %Ensure number of channelDistances matches the number of channels (visible
+        %in the mask)
+        sillyNChannels = get(obj,'nChannels');
+        if (numel(obj.channelDistances) < sillyNChannels)
+            %Add new distances and send warning
+            obj.channelDistances(end+1:end+sillyNChannels)=nan;
+            warning('Adding default channel distances to new channels.')
+        elseif (numel(obj.channelDistances) > sillyNChannels)
+            %Discard latter distances and send warning
+            obj.channelDistances(sillyNChannels+1:end)=[];
+            warning('Removing extra channel distances.')
+            %else %(obj.channelsDistances == sum(sum(obj.sdMask)))
+            %Do nothing
+        end
+
+
+      end
+
+
+
+
+
+         %Patient Information
+
+      function res = get.userName(obj)
+         %Gets or sets the object's |userName|
+         res = obj.userName;
+      end
+      function obj = set.userName(obj,val)
+         %Sets the object's |userName|
+        obj.userName = val;
+      end
+      function res = get.subjectName(obj)
+         %Gets or sets the object's |userName|
+         res = obj.userName;
+      end
+      function obj = set.subjectName(obj,val)
+         %Sets the object's |userName|
+        obj.userName = val;
+      end
+
+
+      function res = get.userGender(obj)
+         %Gets or sets the object's |userGender|
+         res = obj.userGender;
+      end
+      function obj = set.userGender(obj,val)
+         %Sets the object's |userGender|
+        if isempty(val)
+            obj.userGender = 'UNSET';
+        elseif ischar(val)
+            %Try to decode the gender; if not possible, set to 'U'
+            %and issue a warning.
+            if ismember(upper(val),{'F','FEMALE','WOMAN'})
+                obj.userGender = 'FEMALE';
+            elseif ismember(upper(val),{'M','MALE','MAN'})
+                obj.userGender = 'MALE';
+            elseif ismember(upper(val),{'U','UNSET'})
+                obj.userGender = 'UNSET';
+            else
+                obj.userGender = 'UNSET';
+                warning('ICNNA:rawData_NIRScout:set.userGender:UnexpectedParameterValue',...
+                        ['Value for subject gender is not recognised. ' ...
+                        'It will be set to (U)nset. ' ...
+                        'Try common gender identifiers e.g. (M)ale or (F)emale.']);
+            end
+        else
+            error('ICNNA:rawData_NIRScout:set.userGender:InvalidParameterValue',...
+                  'Value must be a string.');
+        end
+      end
+      function res = get.subjectGender(obj)
+         %Gets or sets the object's |userGender|
+         res = obj.userGender;
+      end
+      function obj = set.subjectGender(obj,val)
+         %Sets the object's |userGender|
+        obj.userGender = val;
+      end
+
+
+      function res = get.userAge(obj)
+         %Gets the object's |subjectAge|
+         res = obj.userAge;
+      end
+      function obj = set.userAge(obj,val)
+         %Sets the object's |subjectAge|
+        obj.userAge = val;
+      end
+      function res = get.subjectAge(obj)
+         %(DEPENDENT) Gets the object's |subjectAge|
+         res = obj.userAge;
+      end
+      function obj = set.subjectAge(obj,val)
+         %(DEPENDENT) Sets the object's |subjectAge|
+        obj.userAge = val;
+      end
+
+
+
+
+
+
+
+         %The data itself
+
+      function res = get.lightRawData(obj)
+         %Gets or sets the object's |lightRawData|
+         res = obj.lightRawData;
+      end
+      function obj = set.lightRawData(obj,val)
+         %Sets the object's |lightRawData|
+        if (isreal(val) && size(val,3)==length(obj.probesetInfo))
+            obj.lightRawData = val;
+                %Note that the size along the 3rd dimension is expected to
+                %match the number of probes sets declared.
+                %See assertInvariants
+        else
+            error('ICNNA:rawData_NIRScout:set:InvalidParameterValue',...
+                  'Size of data is expected to match the number of probes sets declared.');
+        end
+      end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    end
+
+
 
 end

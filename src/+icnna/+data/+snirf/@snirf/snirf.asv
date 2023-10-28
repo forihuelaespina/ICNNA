@@ -1,0 +1,178 @@
+classdef snirf
+% icnna.data.snirf.snirf An snirf data object. 
+%
+% This is the main object to support .snirf data. A icnna.data.snirf.snirf
+%corresponds to the content of one .snirf file.
+%
+%% The Shared Near Infrared Spectroscopy Format (SNIRF).
+%
+% SNIRF is designed by the community in an effort to facilitate
+% sharing and analysis of NIRS data.
+%
+% https://github.com/fNIRS/snirf
+%
+% See snirf specifications
+% 
+%
+%% Properties
+%
+%
+%   .classVersion - (Private) The class version of the object
+%
+%   .formatVersion - The snirf file format version
+%   .nirs - An icnna.data.snirf.nirsDatasetGroup object. Default is null.
+%       Contains the fNIRS datasets.
+%
+%
+%
+%% Methods
+%
+% Type methods('icnna.data.snirf.snirf') for a list of methods
+% 
+% Copyright 2022-23
+% @author: Felipe Orihuela-Espina
+%
+% See also icnna.data.snirf.nirsDatasetGroup
+%
+
+
+%% Log
+%
+% 15-Jul-2022: FOE
+%   File and class created.
+%
+% 14-May-2023: FOE
+%   + Imported from my LaserLab sandbox code to ICNNA. Had to adjust the
+%   the package from; data.snirf.* to icnna.data.snirf.*
+%   + Added property classVersion. Set to '1.0' by default.
+%
+% 16-May-2023: FOE
+%   + Added validation rules to properties and simplified the code
+%   accordingly.
+%   + Added static method load to read an snirf file
+%
+% 19-May-2023: FOE
+%   + Added static method readHD5file to...well, read HD5 files.
+%   Simplified structure by substituting groups by array of objects;
+%   + Substituted icnna.data.snirf.stimGroup object for array of icnna.data.snirf.stim
+%
+
+    
+    properties (Constant, Access=private)
+        classVersion = '1.0'; %Read-only. Object's class version.
+    end
+
+    properties
+        formatVersion(1,:) char = '0.0'; %snirf file format version
+        %nirs(1,1) icnna.data.snirf.nirsDatasetGroup; %Root-group for 1 or more NIRS datasets
+        nirs(:,1) icnna.data.snirf.nirsDataset; %The NIRS datasets each of class @icnna.data.snirf.NIRSDataset
+    end
+
+    properties (Dependent)
+        nNirsDatasets;
+    end
+    
+    methods
+        function obj=snirf(varargin)
+            %ICNNA.DATA.SNIRF.SNIRF A icnna.data.snirf.snirf class constructor
+            %
+            % obj=icnna.data.snirf.snirf() creates a default snirf
+            %   with ID equals 1.
+            %
+            % obj=icnna.data.snirf.snirf(obj2) acts as a copy constructor of snirf
+            %
+            % 
+            % Copyright 2022
+            % @author: Felipe Orihuela-Espina
+            %
+            
+            if (nargin==0)
+                %Keep default values
+            elseif isa(varargin{1},'icnna.data.snirf.snirf')
+                obj=varargin{1};
+                return;
+            else
+                error('icnna.data.snirf.snirf:snirf:InvalidNumberOfParameters', ...
+                      'Unexpected number of parameters.');
+
+            end
+        end
+
+
+
+
+
+        %Gets/Sets
+
+        function val = get.formatVersion(obj)
+        %Retrieves the formatVersion
+            val = obj.formatVersion;
+        end
+        function obj = set.formatVersion(obj,val)
+        %Updates the formatVersion
+           obj.formatVersion = val;
+        end
+
+
+        function val = get.nirs(obj)
+        %Retrieves the NIRS datasets group
+            val = obj.nirs;
+        end
+        function obj = set.nirs(obj,val)
+        %Updates the NIRS datasets group
+           obj.nirs = val;
+        end
+        function val = get.nNirsDatasets(obj)
+        %Retrieves the number of NIRS datasets
+            val = length(obj.nirs);
+        end
+
+        
+
+        % Public methods
+
+
+        % function obj = clearNirsDataset(obj)
+        %     %Eliminates all existing icnna.data.snirf.nirsDataset
+        %     %
+        %     % obj = obj.clearNirsDataset()
+        %     %
+        %     obj.nirs(:,1)  = [];
+        % end
+        % function obj = addNirsDataset(obj,val)
+        %     %Adds a new icnna.data.snirf.nirsDataset
+        %     %
+        %     % obj = obj.addNirsDataset(val)
+        %     %
+        %     % val - A icnna.data.snirf.nirsDataset object to be added.
+        %     obj.nirs(end+1) = val;
+        % end
+        % function obj = setNirsDataset(obj,i,val)
+        %     %Adds a new icnna.data.snirf.nirsDataset
+        %     %
+        %     % obj = obj.setNirsDataset(val)
+        %     %
+        %     % i - The index of the nirsDataset object to be replaced.
+        %     % val - A icnna.data.snirf.nirsDataset object to be added.
+        %     obj.nirs(i) = val;
+        % end
+        % function obj = removeNirsDataset(obj,i,val)
+        %     %Adds a new icnna.data.snirf.nirsDataset
+        %     %
+        %     % obj = obj.setNirsDataset(val)
+        %     %
+        %     % i - The index of the nirsDataset object to be replaced.
+        %     % val - A icnna.data.snirf.nirsDataset object to be added.
+        %     obj.nirs(i) = val;
+        % end
+
+
+
+
+    end
+
+    methods (Static)
+        [res,info] = readHD5file(filename);
+    end
+
+end

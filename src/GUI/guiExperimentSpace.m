@@ -13,12 +13,27 @@ function element=guiExperimentSpace(varargin)
 % a=guiExperimentSpace(...,'OutputFilename',filename) where filename
 %   holds the name of the file onto which storing the experimentSpace.
 %
-% Copyright 2008-13
-% @date: 3-Jul-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 10-Feb-2012
 %
 % See also guiExperiment, guiExperimentSpace, wizExperimentSpace
+%
+
+
+%% Log
+%
+% File created: 3-Jul-2008
+% File last modified (before creation of this log): 10-Feb-2012
+%
+% 8-Jun-2023: FOE
+%   + Added this log. Got rid of the old labels @date and @modified.
+%   + Started to update the get/set methods calls to struct like syntax
+%   + Updated error codes from ICNA to ICNNA
+%   + Bug fixing
+%   * The element handles.currentElement.data can actually be empty.
+%   In such cases, the window won't close because the method OnClose
+%   yield an error for trying to access a property of the currentElement.
+%   I have added the check of being empty, and this is now corrected.
 %
 
 element=varargin{1};
@@ -665,8 +680,8 @@ handles = guihandles(f); %NOTE that only include those whose 'Tag' are not empty
 set(handles.experimentFilenameEditBox,'String',inputFilename);
 set(handles.experimentSpaceFilenameEditBox,'String',outputFilename);
 
-handles.currentElement.data=experimentSpace(element);
-handles.currentElement.saved=get(element,'RunStatus');
+handles.currentElement.data  = experimentSpace(element);
+handles.currentElement.saved = element.runStatus;
 guidata(f,handles);
 OnLoad(f);
 
@@ -686,7 +701,8 @@ function OnClose_Callback(hObject,eventData)
 % eventdata - Reserved for later use.
 handles=guidata(hObject);
 closeWindow=true;
-if (~get(handles.currentElement.data,'RunStatus'))
+tmp = handles.currentElement.data;
+if (~isempty(tmp) & ~tmp.runStatus )
     element=[];
     %Offer the possibility of saving
     button = questdlg(['Experiment Space has not been computed ' ...
@@ -739,7 +755,7 @@ function OnExperimentSpaceBrowse_Callback(hObject,eventData)
 
 handles=guidata(hObject);
 %Construct a default name 
-name=get(handles.currentElement.data,'Name');
+name= handles.currentElement.data.name;
 defName=[name '_' datestr(now,29) '.mat'];
 [FileName,PathName] = uiputfile('*.mat','WindowStyle',defName);
 if isequal(FileName,0)
@@ -760,7 +776,7 @@ function OnGenerateDatabase_Callback(hObject,eventData)
 handles=guidata(hObject);
 
 expSpace=handles.currentElement.data;
-if get(expSpace,'RunStatus')
+if expSpace.runStatus
 
     directory_name = uigetdir('','Select destination folder');
     if directory_name~=0
@@ -827,12 +843,12 @@ handles=guidata(hObject);
 
 s=handles.currentElement.data;
 
-set(handles.elementNameText,'String',get(element,'Name'));
+set(handles.elementNameText,'String', element.name);
 
-if (get(handles.currentElement.data,'RunStatus'))
+if (handles.currentElement.data.runStatus)
     set(handles.runStatusText,...
         'String',['COMPUTED (' ...
-        num2str(get(handles.currentElement.data,'NumPoints')) ')']);
+        num2str(handles.currentElement.data.nPoints) ')']);
     set(handles.generateDBButton,'Enable','on');
     set(handles.activityMatrixCheckBox,'Enable','on');
 else
@@ -840,25 +856,25 @@ else
     set(handles.generateDBButton,'Enable','off');
     set(handles.activityMatrixCheckBox,'Enable','off');
 end
-set(handles.baselineLengthEditBox,'String',get(s,'BaselineSamples'));
-set(handles.restLengthEditBox,'String',get(s,'RestSamples'));
+set(handles.baselineLengthEditBox,'String',s.baselineSamples);
+set(handles.restLengthEditBox,'String',s.restSamples);
 
-set(handles.onsetEditBox,'String',get(s,'WS_Onset'));
-set(handles.durationEditBox,'String',get(s,'WS_Duration'));
-set(handles.breakDelayEditBox,'String',get(s,'WS_BreakDelay'));
+set(handles.onsetEditBox,'String',s.ws_onset);
+set(handles.durationEditBox,'String',s.ws_duration);
+set(handles.breakDelayEditBox,'String',s.ws_breakDelay);
 
-set(handles.averageCheckbox,'Value',get(s,'Averaged'));
-set(handles.resampleCheckbox,'Value',get(s,'Resampled'));
-set(handles.normalizationCheckbox,'Value',get(s,'Normalized'));
+set(handles.averageCheckbox,'Value',s.averaged);
+set(handles.resampleCheckbox,'Value',s.resampled);
+set(handles.normalizationCheckbox,'Value',s.normalized);
 
-set(handles.baselineEditBox,'String',get(s,'RS_Baseline'));
-set(handles.taskEditBox,'String',get(s,'RS_Task'));
-set(handles.restEditBox,'String',get(s,'RS_Rest'));
+set(handles.baselineEditBox,'String',s.rs_baseline);
+set(handles.taskEditBox,'String',s.rs_task);
+set(handles.restEditBox,'String',s.rs_rest);
 
 
 
 %Enable/Disable controls
-if get(s,'Resampled')
+if s.resampled
     set(handles.baselineEditBox,'Enable','on');
     set(handles.taskEditBox,'Enable','on');
     set(handles.restEditBox,'Enable','on');
@@ -868,7 +884,7 @@ else
     set(handles.restEditBox,'Enable','off');
 end
 
-if get(s,'Normalized')
+if s.normalized
     set(handles.N_Sc_BlockIndividual_Rbutton,'Enable','on');
     set(handles.N_Sc_Individual_Rbutton,'Enable','on');
     set(handles.N_Sc_Collective_Rbutton,'Enable','on');
@@ -880,7 +896,7 @@ if get(s,'Normalized')
     set(handles.N_Method_Normal_Rbutton,'Enable','on');
     set(handles.N_Method_Range_Rbutton,'Enable','on');
 
-    switch get(s,'NormalizationMethod')
+    switch s.normalizationMethod
         case 'normal'
             set(handles.meanEditBox,'Enable','on');
             set(handles.varianceEditBox,'Enable','on');
@@ -892,7 +908,7 @@ if get(s,'Normalized')
             set(handles.minEditBox,'Enable','on');
             set(handles.maxEditBox,'Enable','on');
         otherwise
-            error('ICNA:guiExperimentSpace:OnLoad',...
+            error('ICNNA:guiExperimentSpace:OnLoad',...
                 'Unexpected normalization method.');
     end
 
@@ -932,7 +948,7 @@ set(handles.N_Sc_BlockIndividual_Rbutton,'Value',1);
 set(handles.N_Sc_Individual_Rbutton,'Value',0);
 set(handles.N_Sc_Collective_Rbutton,'Value',0);
 
-s=set(s,'NormalizationScope','blockIndividual');
+s.normalizationScope = 'blockIndividual';
 
 handles.currentElement.data=s;
 handles.currentElement.saved=false;
@@ -954,7 +970,7 @@ set(handles.N_Sc_BlockIndividual_Rbutton,'Value',0);
 set(handles.N_Sc_Individual_Rbutton,'Value',1);
 set(handles.N_Sc_Collective_Rbutton,'Value',0);
 
-s=set(s,'NormalizationScope','Individual');
+s.normalizationScope = 'individual';
 
 handles.currentElement.data=s;
 handles.currentElement.saved=false;
@@ -975,7 +991,7 @@ set(handles.N_Sc_BlockIndividual_Rbutton,'Value',0);
 set(handles.N_Sc_Individual_Rbutton,'Value',0);
 set(handles.N_Sc_Collective_Rbutton,'Value',1);
 
-s=set(s,'NormalizationScope','Collective');
+s.normalizationScope = 'collective';
 
 handles.currentElement.data=s;
 handles.currentElement.saved=false;
@@ -997,7 +1013,7 @@ set(handles.N_Dim_Channel_Rbutton,'Value',1);
 set(handles.N_Dim_Signal_Rbutton,'Value',0);
 set(handles.N_Dim_Combined_Rbutton,'Value',0);
 
-s=set(s,'NormalizationDimension','Channel');
+s.normalizationDimension = 'channel';
 
 handles.currentElement.data=s;
 handles.currentElement.saved=false;
@@ -1019,7 +1035,7 @@ set(handles.N_Dim_Channel_Rbutton,'Value',0);
 set(handles.N_Dim_Signal_Rbutton,'Value',1);
 set(handles.N_Dim_Combined_Rbutton,'Value',0);
 
-s=set(s,'NormalizationDimension','Signal');
+s.normalizationDimension = 'signal';
 
 handles.currentElement.data=s;
 handles.currentElement.saved=false;
@@ -1041,7 +1057,7 @@ set(handles.N_Dim_Channel_Rbutton,'Value',0);
 set(handles.N_Dim_Signal_Rbutton,'Value',0);
 set(handles.N_Dim_Combined_Rbutton,'Value',1);
 
-s=set(s,'NormalizationDimension','Combined');
+s.normalizationDimension = 'combined';
 
 handles.currentElement.data=s;
 handles.currentElement.saved=false;
@@ -1062,7 +1078,7 @@ s=experimentSpace(handles.currentElement.data);
 set(handles.N_Method_Normal_Rbutton,'Value',1);
 set(handles.N_Method_Range_Rbutton,'Value',0);
 
-s=set(s,'NormalizationMethod','Normal');
+s.normalizationMethod = 'normal';
 
 set(handles.meanEditBox,'Enable','on');
 set(handles.varianceEditBox,'Enable','on');
@@ -1089,7 +1105,7 @@ s=experimentSpace(handles.currentElement.data);
 set(handles.N_Method_Normal_Rbutton,'Value',0);
 set(handles.N_Method_Range_Rbutton,'Value',1);
 
-s=set(s,'NormalizationMethod','Range');
+s.normalizationMethod = 'range';
 
 set(handles.meanEditBox,'Enable','off');
 set(handles.varianceEditBox,'Enable','off');
@@ -1137,7 +1153,9 @@ else
 
     %Load experiment.
     h=waitbar(0,'Computing Experiment Space: Loading experiment dataset');
+    warning('off','ICNNA:nirs_neuroimage:probeMode:Deprecated');
     var=load(experimentFilename);
+    warning('on','ICNNA:nirs_neuroimage:probeMode:Deprecated');
     names = fieldnames(var);
     found=false;
     for ii=length(var):-1:1
@@ -1198,38 +1216,38 @@ s=experimentSpace(handles.currentElement.data);
 
 %Normalization parameters
 normalizationFlag=get(handles.normalizationCheckbox,'Value');
-s=set(s,'Normalized',normalizationFlag);
+s.normalized = normalizationFlag;
 
 if (get(handles.N_Sc_BlockIndividual_Rbutton,'Value')==1)
-    s=set(s,'NormalizationScope','BlockIndividual');
+    s.normalizationScope = 'blockIndividual';
 elseif (get(handles.N_Sc_Individual_Rbutton,'Value')==1)
-    s=set(s,'NormalizationScope','Individual');
+    s.normalizationScope = 'individual';
 elseif (get(handles.N_Sc_Collective_Rbutton,'Value')==1)
-    s=set(s,'NormalizationScope','Collective');
+    s.normalizationScope = 'collective';
 else
-    error('ICNA:guiExperimentSpace:OnUpdateNormalizationParameters_Callback',...
+    error('ICNNA:guiExperimentSpace:OnUpdateNormalizationParameters_Callback',...
         'Unexpected normalization scope.');
 end
 
 
 if (get(handles.N_Dim_Channel_Rbutton,'Value')==1)
-    s=set(s,'NormalizationDimension','Channel');
+    s.normalizationDimension = 'channel';
 elseif (get(handles.N_Dim_Signal_Rbutton,'Value')==1)
-    s=set(s,'NormalizationDimension','Signal');
+    s.normalizationDimension = 'signal';
 elseif (get(handles.N_Dim_Combined_Rbutton,'Value')==1)
-    s=set(s,'NormalizationDimension','Combined');
+    s.normalizationDimension = 'combined';
 else
-    error('ICNA:guiExperimentSpace:OnUpdateNormalizationParameters_Callback',...
+    error('ICNNA:guiExperimentSpace:OnUpdateNormalizationParameters_Callback',...
         'Unexpected normalization dimension.');
 end
 
 
 if (get(handles.N_Method_Normal_Rbutton,'Value')==1)
-    s=set(s,'NormalizationMethod','Normal');
+    s.normalizationMethod = 'normal';
 elseif (get(handles.N_Method_Range_Rbutton,'Value')==1)
-    s=set(s,'NormalizationMethod','Range');
+    s.normalizationMethod = 'range';
 else
-    error('ICNA:guiExperimentSpace:OnUpdateNormalizationParameters_Callback',...
+    error('ICNNA:guiExperimentSpace:OnUpdateNormalizationParameters_Callback',...
         'Unexpected normalization method.');
 end
 
@@ -1238,35 +1256,35 @@ if (~isscalar(tmp))
     warndlg(['Invalid normalization parameter Mean. ' ...
             'Not a valid mean for normalization.'],...
             'Experiment Space Construction');
-    set(handles.meanEditBox,'String',get(s,'NormalizationMean'));
+    set(handles.meanEditBox,'String',s.normalizationMean);
 else
-    s=set(s,'NormalizationMean',tmp);    
+    s.normalizationMean = tmp;    
 end
 tmp=str2double(get(handles.varianceEditBox,'String'));
 if (~isscalar(tmp) || tmp<0)
     warndlg(['Invalid normalization parameter Variance. ' ...
             'Not a valid variance for normalization.'],...
             'Experiment Space Construction');
-    set(handles.varianceEditBox,'String',get(s,'NormalizationVar'));
+    set(handles.varianceEditBox,'String',s.normalizationVar);
 else
-    s=set(s,'NormalizationVar',tmp);    
+    s.normalizationVar = tmp;    
 end
 tmp=str2double(get(handles.minEditBox,'String'));
 tmpM=str2double(get(handles.maxEditBox,'String'));
 minmaxerror=false;
 if (~isscalar(tmp) || tmp>tmpM)
     minmaxerror=true;
-    set(handles.minEditBox,'String',get(s,'NormalizationMin'));
+    set(handles.minEditBox,'String',s.normalizationMin);
 else
-    s=set(s,'NormalizationMin',tmp);    
+    s.normalizationMin = tmp;    
 end
 tmp=str2double(get(handles.maxEditBox,'String'));
 tmpM=str2double(get(handles.minEditBox,'String'));
 if (~isscalar(tmp) || tmp<tmpM)
     minmaxerror=true;
-    set(handles.maxEditBox,'String',get(s,'NormalizationMax'));
+    set(handles.maxEditBox,'String',s.normalizationMax);
 else
-    s=set(s,'NormalizationMax',tmp);    
+    s.normalizationMax = tmp;    
 end
 
 if minmaxerror
@@ -1296,9 +1314,9 @@ if (~isscalar(tmp) || ~(floor(tmp)==tmp) || tmp<=0)
     warndlg(['Invalid block splitting parameter. ' ...
             'Not a valid number of samples for baseline.'],...
             'Experiment Space Construction');
-    set(handles.baselineLengthEditBox,'String',get(s,'BaselineSamples'));
+    set(handles.baselineLengthEditBox,'String',s.baselineSamples);
 else
-    s=set(s,'BaselineSamples',tmp);   
+    s.baselineSamples = tmp;   
 end
 
 tmp=str2double(get(handles.restLengthEditBox,'String'));
@@ -1306,9 +1324,9 @@ if (~isscalar(tmp) || ~(floor(tmp)==tmp))
     warndlg(['Invalid block splitting parameter. ' ...
             'Not a valid maximum number of samples for rest.'],...
             'Experiment Space Construction');
-    set(handles.restLengthEditBox,'String',get(s,'RestSamples'));
+    set(handles.restLengthEditBox,'String',s.restSamples);
 else
-    s=set(s,'RestSamples',tmp);   
+    s.restSamples = tmp;   
 end
 
 %Window Selection parameters
@@ -1317,9 +1335,9 @@ if (~isscalar(tmp) || ~(floor(tmp)==tmp))
     warndlg(['Invalid window selection parameter. ' ...
             'Not a valid number of samples for window onset.'],...
             'Experiment Space Construction');
-    set(handles.onsetEditBox,'String',get(s,'WS_Onset'));
+    set(handles.onsetEditBox,'String',s.ws_onset);
 else
-    s=set(s,'WS_Onset',tmp);    
+    s.ws_onset = tmp;    
 end
 
 tmp=str2double(get(handles.durationEditBox,'String'));
@@ -1327,9 +1345,9 @@ if (~isscalar(tmp) || ~(floor(tmp)==tmp) || tmp<0)
     warndlg(['Invalid window selection parameter. ' ...
             'Not a valid number of samples for window duration.'],...
             'Experiment Space Construction');
-    set(handles.durationEditBox,'String',get(s,'WS_Duration'));
+    set(handles.durationEditBox,'String',s.ws_duration);
 else
-    s=set(s,'WS_Duration',tmp);    
+    s.ws_duration = tmp;    
 end
 
 tmp=str2double(get(handles.breakDelayEditBox,'String'));
@@ -1337,45 +1355,45 @@ if (~isscalar(tmp) || ~(floor(tmp)==tmp) || tmp<0)
     warndlg(['Invalid window selection parameter. ' ...
             'Not a valid number of samples for break delay.'],...
             'Experiment Space Construction');
-    set(handles.breakDelayEditBox,'String',get(s,'WS_BreakDelay'));
+    set(handles.breakDelayEditBox,'String',s.ws_breakDelay);
 else
-    s=set(s,'WS_BreakDelay',tmp);    
+    s.ws_breakDelay = tmp;    
 end
 
 %Resample parameters
 resampleFlag=get(handles.resampleCheckbox,'Value');
-s=set(s,'Resampled',resampleFlag);
+s.resampled = resampleFlag;
 
 tmp=str2double(get(handles.baselineEditBox,'String'));
 if (~isscalar(tmp) || ~(floor(tmp)==tmp) || tmp<0)
     warndlg(['Invalid resampling parameter. ' ...
             'Not a valid number of samples for baseline.'],...
             'Experiment Space Construction');
-    set(handles.baselineEditBox,'String',get(s,'RS_Baseline'));
+    set(handles.baselineEditBox,'String',s.rs_baseline);
 else
-    s=set(s,'RS_Baseline',tmp);   
+    s.rs_baseline = tmp;   
 end
 tmp=str2double(get(handles.taskEditBox,'String'));
 if (~isscalar(tmp) || ~(floor(tmp)==tmp) || tmp<0)
     warndlg(['Invalid resampling parameter. ' ...
             'Not a valid number of samples for task block.'],...
             'Experiment Space Construction');
-    set(handles.taskEditBox,'String',get(s,'RS_Task'));
+    set(handles.taskEditBox,'String',s.rs_task);
 else
-    s=set(s,'RS_Task',tmp);    
+    s.rs_task = tmp;    
 end
 tmp=str2double(get(handles.restEditBox,'String'));
 if (~isscalar(tmp) || ~(floor(tmp)==tmp) || tmp<0)
     warndlg(['Invalid resampling parameter. ' ...
             'Not a valid number of samples for post-task rest.'],...
             'Experiment Space Construction');
-    set(handles.restEditBox,'String',get(s,'RS_Rest'));
+    set(handles.restEditBox,'String',s.rs_rest);
 else
-    s=set(s,'RS_Rest',tmp);    
+    s.rs_rest = tmp;    
 end
 
 %Average parameters
-s=set(s,'Averaged',get(handles.averageCheckbox,'Value'));
+s.averaged = get(handles.averageCheckbox,'Value');
 
 handles.currentElement.data=s;
 handles.currentElement.saved=false;
@@ -1394,76 +1412,77 @@ function myRedraw(hObject)
 handles=guidata(hObject);
 
 s=handles.currentElement.data;
-if (get(handles.currentElement.data,'RunStatus'))
-    set(handles.runStatusText,...
-        'String',['COMPUTED (' ...
-        num2str(get(handles.currentElement.data,'nPoints')) ')']);
-    set(handles.generateDBButton,'Enable','on');
-    set(handles.activityMatrixCheckBox,'Enable','on');
-else
-    set(handles.runStatusText,'String','NOT COMPUTED');
-    set(handles.generateDBButton,'Enable','off');
-    set(handles.activityMatrixCheckBox,'Enable','off');
-end
-
-if get(s,'Resampled')
-    set(handles.baselineEditBox,'Enable','on');
-    set(handles.taskEditBox,'Enable','on');
-    set(handles.restEditBox,'Enable','on');
-else
-    set(handles.baselineEditBox,'Enable','off');
-    set(handles.taskEditBox,'Enable','off');
-    set(handles.restEditBox,'Enable','off');
-end
-
-if get(s,'Normalized')
-    set(handles.N_Sc_BlockIndividual_Rbutton,'Enable','on');
-    set(handles.N_Sc_Individual_Rbutton,'Enable','on');
-    set(handles.N_Sc_Collective_Rbutton,'Enable','on');
-
-    set(handles.N_Dim_Channel_Rbutton,'Enable','on');
-    set(handles.N_Dim_Signal_Rbutton,'Enable','on');
-    set(handles.N_Dim_Combined_Rbutton,'Enable','on');
-
-    set(handles.N_Method_Normal_Rbutton,'Enable','on');
-    set(handles.N_Method_Range_Rbutton,'Enable','on');
-
-    switch get(s,'NormalizationMethod')
-        case 'normal'
-            set(handles.meanEditBox,'Enable','on');
-            set(handles.varianceEditBox,'Enable','on');
-            set(handles.minEditBox,'Enable','off');
-            set(handles.maxEditBox,'Enable','off');
-        case 'range'
-            set(handles.meanEditBox,'Enable','off');
-            set(handles.varianceEditBox,'Enable','off');
-            set(handles.minEditBox,'Enable','on');
-            set(handles.maxEditBox,'Enable','on');
-        otherwise
-            error('ICNA:guiExperimentSpace:myRedraw',...
-                'Unexpected normalization method.');
+if ~isempty(s)
+    if (s.runStatus)
+        set(handles.runStatusText,...
+            'String',['COMPUTED (' ...
+            num2str( handles.currentElement.data.nPoints) ')']);
+        set(handles.generateDBButton,'Enable','on');
+        set(handles.activityMatrixCheckBox,'Enable','on');
+    else
+        set(handles.runStatusText,'String','NOT COMPUTED');
+        set(handles.generateDBButton,'Enable','off');
+        set(handles.activityMatrixCheckBox,'Enable','off');
+    end
+    
+    if s.resampled
+        set(handles.baselineEditBox,'Enable','on');
+        set(handles.taskEditBox,'Enable','on');
+        set(handles.restEditBox,'Enable','on');
+    else
+        set(handles.baselineEditBox,'Enable','off');
+        set(handles.taskEditBox,'Enable','off');
+        set(handles.restEditBox,'Enable','off');
+    end
+    
+    if s.normalized
+        set(handles.N_Sc_BlockIndividual_Rbutton,'Enable','on');
+        set(handles.N_Sc_Individual_Rbutton,'Enable','on');
+        set(handles.N_Sc_Collective_Rbutton,'Enable','on');
+    
+        set(handles.N_Dim_Channel_Rbutton,'Enable','on');
+        set(handles.N_Dim_Signal_Rbutton,'Enable','on');
+        set(handles.N_Dim_Combined_Rbutton,'Enable','on');
+    
+        set(handles.N_Method_Normal_Rbutton,'Enable','on');
+        set(handles.N_Method_Range_Rbutton,'Enable','on');
+    
+        switch s.normalizationMethod
+            case 'normal'
+                set(handles.meanEditBox,'Enable','on');
+                set(handles.varianceEditBox,'Enable','on');
+                set(handles.minEditBox,'Enable','off');
+                set(handles.maxEditBox,'Enable','off');
+            case 'range'
+                set(handles.meanEditBox,'Enable','off');
+                set(handles.varianceEditBox,'Enable','off');
+                set(handles.minEditBox,'Enable','on');
+                set(handles.maxEditBox,'Enable','on');
+            otherwise
+                error('ICNNA:guiExperimentSpace:myRedraw',...
+                    'Unexpected normalization method.');
+        end
+    
+    else
+        set(handles.N_Sc_BlockIndividual_Rbutton,'Enable','off');
+        set(handles.N_Sc_Individual_Rbutton,'Enable','off');
+        set(handles.N_Sc_Collective_Rbutton,'Enable','off');
+    
+        set(handles.N_Dim_Channel_Rbutton,'Enable','off');
+        set(handles.N_Dim_Signal_Rbutton,'Enable','off');
+        set(handles.N_Dim_Combined_Rbutton,'Enable','off');
+    
+        set(handles.N_Method_Normal_Rbutton,'Enable','off');
+        set(handles.N_Method_Range_Rbutton,'Enable','off');
+    
+        set(handles.meanEditBox,'Enable','off');
+        set(handles.varianceEditBox,'Enable','off');
+        set(handles.minEditBox,'Enable','off');
+        set(handles.maxEditBox,'Enable','off');
+    
     end
 
-else
-    set(handles.N_Sc_BlockIndividual_Rbutton,'Enable','off');
-    set(handles.N_Sc_Individual_Rbutton,'Enable','off');
-    set(handles.N_Sc_Collective_Rbutton,'Enable','off');
-
-    set(handles.N_Dim_Channel_Rbutton,'Enable','off');
-    set(handles.N_Dim_Signal_Rbutton,'Enable','off');
-    set(handles.N_Dim_Combined_Rbutton,'Enable','off');
-
-    set(handles.N_Method_Normal_Rbutton,'Enable','off');
-    set(handles.N_Method_Range_Rbutton,'Enable','off');
-
-    set(handles.meanEditBox,'Enable','off');
-    set(handles.varianceEditBox,'Enable','off');
-    set(handles.minEditBox,'Enable','off');
-    set(handles.maxEditBox,'Enable','off');
-
 end
-
-
 
 end
 

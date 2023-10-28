@@ -18,7 +18,7 @@ if ~isa(dsd,'dataSourceDefinition')
 end    
 
 
-idx=findSource(obj,get(dsd,'ID'));
+idx=findSource(obj,dsd.id);
 if isempty(idx)
     obj.sources(end+1)={dsd};
 else

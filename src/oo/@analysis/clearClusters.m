@@ -11,5 +11,8 @@ function obj=clearClusters(obj)
 % See also addCluster, setCluster, removeCluster
 %
 
-obj.Clusters=cell(1,0);
+obj.clusters=cell(1,0);
 assertInvariants(obj);
+
+
+end

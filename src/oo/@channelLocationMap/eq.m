@@ -6,18 +6,25 @@ function res=eq(obj,obj2)
 % res=eq(obj1,obj2) Compares two objects.
 %
 %
-% Copyright 2012-13
-% @date: 26-Nov-2012
+% Copyright 2012-23
 % @author: Felipe Orihuela-Espina
-% @modified: 8-Sep-2013
 %
 % See also channelLocationMap
 %
 
 %% Log
 %
+%
+% File created: 26-Nov-2012
+% File last modified (before creation of this log): 8-Sep-2013
+%
 % 8-Sep-2013: Support for comparing optodes related information as well
 %       as pairings.
+%   + Added this log.
+%
+% 20-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
 %
 
 
@@ -28,12 +35,12 @@ if ~isa(obj2,'channelLocationMap')
     return
 end
 
-res = res && (get(obj,'ID')==get(obj2,'ID'));
-res = res && (strcmp(get(obj,'Description'),get(obj2,'Description')));
+res = res && (obj.id==obj2.id);
+res = res && (strcmp(obj.description,obj2.description));
 
 
-res = res && (get(obj,'nChannels')==get(obj2,'nChannels'));
-res = res && (get(obj,'nOptodes')==get(obj2,'nOptodes'));
+res = res && (obj.nChannels==obj2.nChannels);
+res = res && (obj.nOptodes==obj2.nOptodes);
 if ~res
     return
 end
@@ -77,21 +84,21 @@ if ~res
     return
 end
 
-res = res && (strcmpi(get(obj,'SurfacePositioningSystem'),...
-                      get(obj2,'SurfacePositioningSystem')));
-res = res && (strcmpi(get(obj,'StereotacticPositioningSystem'),...
-                      get(obj2,'StereotacticPositioningSystem')));
+res = res && (strcmpi(obj.surfacePositioningSystem,...
+                      obj2.surfacePositioningSystem));
+res = res && (strcmpi(obj.stereotacticPositioningSystem,...
+                      obj2.stereotacticPositioningSystem));
 if ~res
     return
 end
 clm1_surface=getChannelSurfacePositions(obj);
 clm2_surface=getChannelSurfacePositions(obj2);
-for ch=1:get(obj,'nChannels')
+for ch=1:obj.nChannels
     res = res && (strcmpi(clm1_surface{ch},clm2_surface{ch}));
 end
 clm1_surface=getOptodeSurfacePositions(obj);
 clm2_surface=getOptodeSurfacePositions(obj2);
-for ch=1:get(obj,'nOptodes')
+for ch=1:obj.nOptodes
     res = res && (strcmpi(clm1_surface{ch},clm2_surface{ch}));
 end
 if ~res

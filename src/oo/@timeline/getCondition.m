@@ -9,15 +9,25 @@ function cond=getCondition(obj,c)
 %   This form of the function is useful for iterating through different
 %   conditions.
 %
-% Copyright 2008-13
-% @date: 18-Apr-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 10-Feb-2013
 %
 % See also addCondition, removeCondition, setConditionTag,
 % getConditionEvents, setConditionEvents, addConditionEvents,
 % removeConditionEvents
 %
+
+
+%% Log
+%
+% File created: 18-Apr-2008
+% File last modified (before creation of this log): 10-Feb-2013
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%
+
 
 cond=[];
 
@@ -29,7 +39,11 @@ if (ischar(c))
     end
 
 else
-    if ((c>0) && (c<=get(obj,'NConditions')))
+    if ((c>0) && (c<=obj.nConditions))
         cond=obj.conditions{c};
     end
+end
+
+
+
 end

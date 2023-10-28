@@ -14,15 +14,30 @@ function found=existSessionDefinitionConflicts(obj,def)
 %In all cases, the function return true if a conflict has been
 %found or false if no conflicts has been found (free of conflicts).
 %
-% Copyright 2008
-% @date: 11-Jul-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also experiment, subject, sessionDefinition, assertInvariants
 
+
+
+%% Log
+%
+% File created: 11-Jul-2008
+% File last modified (before creation of this log): N/A. This class file
+%   had not been modified since creation.
+%
+% 23-May-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%   + Started to use get/set methods for struct like access.
+%
+
+
+
+
 found=false; %true if a conflict has been found.
 if isa(def,'sessionDefinition')
-    id=get(def,'ID');
+    id=def.id;
     expDef=getSessionDefinition(obj,id);
     if (~isempty(expDef))
         found = ~(def == expDef);
@@ -42,3 +57,7 @@ else %Must be a cell array of sessionDefinitions
     end
 end
     
+
+
+
+end

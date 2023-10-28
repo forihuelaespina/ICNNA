@@ -1,5 +1,5 @@
 function val = get(obj, propName)
-%CHANNELLOCATIONMAP/GET Get properties from the specified object
+%CHANNELLOCATIONMAP/GET DEPRECATED. Get properties from the specified object
 %and return the value
 %
 % val = get(obj, propName) Gets value of the property propName 
@@ -18,10 +18,8 @@ function val = get(obj, propName)
 %       positioning system used for reference.
 %
 %
-% Copyright 2012-13
-% @date: 26-Nov-2012
+% Copyright 2012-23
 % @author: Felipe Orihuela-Espina
-% @modified: 8-Sep-2013
 %
 % See also set, display
 %
@@ -29,8 +27,27 @@ function val = get(obj, propName)
 
 %% Log
 %
+%
+% File created: 26-Nov-2012
+% File last modified (before creation of this log): 8-Sep-2013
+%
 % 8-Sep-2013: Support for retrieving the number of optodes
 %
+% 20-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + As I started to add get/set methods for struct like access
+%   to attributes in the main class file, I also updated this
+%   method to simply redirect to those.
+%   + Declare method as DEPRECATED.
+%
+
+
+warning('ICNNA:channelLocationMap:get:Deprecated',...
+        ['DEPRECATED. Use struct like syntax for accessing the attribute ' ...
+         'e.g. channelLocationMap.' lower(propName) '.']); 
+    %Maintain method by now to accept different capitalization though.
+
+
 
 
 switch lower(propName)

@@ -55,8 +55,7 @@ function obj=import(obj,filename)
 % filename - A LSL data file to import
 %
 % 
-% Copyright 2021
-% @date: 23-Aug-2021
+% Copyright 2021-23
 % @author: Felipe Orihuela-Espina
 %
 %
@@ -68,8 +67,15 @@ function obj=import(obj,filename)
 
 %% Log
 %
+% File created: 23-Aug-2021
+% File last modified (before creation of this log): N/A
+%
 % 23-Aug-2021 (FOE): 
 %	File created.
+%
+% 12-Oct-2021 (FOE): 
+%   + Got rid of old labels @date and @modified.
+%
 %
 
 %Delegate in standard importer load_xdf

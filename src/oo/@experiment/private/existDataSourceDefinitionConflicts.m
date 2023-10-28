@@ -35,15 +35,30 @@ function found=existDataSourceDefinitionConflicts(obj,def)
 %
 %
 %
-% Copyright 2008
-% @date: 21-Jul-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also experiment, sessionDefinition, dataSourceDefinition, assertInvariants
 
+
+
+
+%% Log
+%
+% File created: 21-Jul-2008
+% File last modified (before creation of this log): N/A. This class file
+%   had not been modified since creation.
+%
+% 24-May-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%   + Started to update get/set methods calls for struct like access
+%
+
+
+
 found=false; %true if a conflict has been found.
 if isa(def,'dataSourceDefinition')
-    id=get(def,'ID');
+    id=def.id;
     expDef=getDataSourceDefinition(obj,id);
     if (~isempty(expDef))
         found = ~(def == expDef);
@@ -61,5 +76,9 @@ else %Must be a cell array of dataSourceDefinitions
             break
         end
     end
+end
+
+
+
 end
     

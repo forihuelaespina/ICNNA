@@ -87,10 +87,8 @@ function [db]=generateDB_withBreak(expSpace,options)
 % (see MATLAB's trapz function)
 %
 %
-% Copyright 2008-2014
-% @date: 28-Nov-2008
+% Copyright 2008-2023
 % @author: Felipe Orihuela-Espina
-% @modified: 15-May-2014
 %
 % See also experimentSpace, getDBConstants, generateDBHelpFile
 %
@@ -98,20 +96,27 @@ function [db]=generateDB_withBreak(expSpace,options)
 
 %% Log
 %
-% 15-May-2014: Added option to remove outliers.
+% File created: 28-Nov-2008
+% File last modified (before creation of this log): 15-May-2014
+%
+% 15-May-2014:
+%   + Added this log.
+%   + Added option to remove outliers.
+%
+% 20-Jun-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Adapted calls of get/set methods for struct like access
 %
 
-
-assert(get(expSpace,'RunStatus'),...
-    'Experiment Space has not been run yet.');
+assert(expSpace.runStatus,'Experiment Space has not been run yet.');
 
 %% Deal with options
 opt.save=false;
-opt.outputFilename=['./data/' get(expSpace,'Name') '_DB.csv'];
+opt.outputFilename=['.' filesep 'data' filesep expSpace.name '_DB.csv'];
 opt.saveHelp=false;
-opt.helpFilename=['./data/' get(expSpace,'Name') '_DB_Help.txt'];
+opt.helpFilename=['.' filesep 'data' filesep expSpace.name '_DB_Help.txt'];
 %opt.breakSamples=0;
-opt.breakSamples=get(expSpace,'WS_BreakDelay');
+opt.breakSamples= expSpace.ws_breakDelay;
 opt.includeHbT=false;
 opt.includeHbDiff=false;
 opt.removeOutliers=false;
@@ -154,8 +159,8 @@ end
 % end
 % if get(expSpace,'Windowed')
 nBaselineSamples=0;
-if (get(expSpace,'WS_Onset')<0)
-    nBaselineSamples=-1*get(expSpace,'WS_Onset');
+if (expSpace.ws_onset < 0)
+    nBaselineSamples=-1*expSpace.ws_onset;
 end
 %end
 
@@ -218,10 +223,10 @@ if opt.removeOutliers
     idxDeoxy=find(db(:,dbCons.COL_SIGNAL)==nirs_neuroimage.DEOXY);
     
     %Calculate mean and std
-    oxyMean = nanmean(db(idxOxy,dbCons.COL_MEAN_TASK));
+    oxyMean   = nanmean(db(idxOxy,dbCons.COL_MEAN_TASK));
     deoxyMean = nanmean(db(idxDeoxy,dbCons.COL_MEAN_TASK));
-    oxyStd = nanstd(db(idxOxy,dbCons.COL_MEAN_TASK));
-    deoxyStd = nanstd(db(idxDeoxy,dbCons.COL_MEAN_TASK));
+    oxyStd    = nanstd(db(idxOxy,dbCons.COL_MEAN_TASK));
+    deoxyStd  = nanstd(db(idxDeoxy,dbCons.COL_MEAN_TASK));
     
     %Identify outliers
     tmpIdx = find(db(idxOxy,dbCons.COL_MEAN_TASK)<(oxyMean-3*oxyStd));
@@ -236,7 +241,7 @@ if opt.removeOutliers
                             idxOutliersDeoxy_Lower),idxOutliersDeoxy_Upper);
     
     %Eliminate outliers
-    db(idxOutliers,:)=[];
+    db(idxOutliers,:)    =[];
     Findex(idxOutliers,:)=[];
     Fvectors(idxOutliers)=[];
     
@@ -378,3 +383,8 @@ if (opt.saveHelp)
 end
 
 close(hbar);
+
+
+
+
+end

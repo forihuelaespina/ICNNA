@@ -3,12 +3,25 @@ function guiExperiment()
 %
 % guiExperiment
 %
-% Copyright 2008-2013
-% @date: 16-Apr-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 4-Jan-2013
 %
 % See also icnna, guiAnalysis, guiExperimentSpace
+%
+
+%% Log
+%
+%
+% File created: 16-Apr-2008
+% File last modified (before creation of this log): 4-Jan-2013
+%
+% 24-May-2023: FOE
+%   + Added this log.
+%   + Got rid of old labels @date and @modified.
+%   + I have now addressed the long standing issue with accessing
+%   the icons folder when the working directory is not that of ICNNA
+%   using function mfilename. 
+%   + Started to update the get/set methods calls to struct like syntax
 %
 
 %% Initialize the figure
@@ -107,12 +120,9 @@ menuHelp = uimenu('Label','Help',...
 
 %Toolbars
 toolbar = uitoolbar(f,'Tag','toolbar');
-%iconsFolder='C:/Program Files/MATLAB\R2007b\toolbox\matlab\icons\';
-iconsFolder='.\GUI\icons\';
-if ~ispc
-    idx = iconsFolder=='\';
-    iconsFolder(idx)='/';
-end
+[localDir,~,~] = fileparts(mfilename('fullpath'));
+iconsFolder=[localDir filesep 'icons' filesep];
+
 tempIcon=load([iconsFolder 'newdoc.mat']);
 	uipushtool(toolbar,'CData',tempIcon.cdata,...
         'Tag','toolbarButton_New',...
@@ -418,9 +428,9 @@ function AppUpdateCurrentDocument_Callback(hObject,eventData)
 handles=guidata(hObject);
 if (~isempty(handles.currentDoc.data))
     e=experiment(handles.currentDoc.data);
-    e=set(e,'Name',get(handles.nameEditBox,'String'));
-    e=set(e,'Description',get(handles.descriptionEditBox,'String'));
-    e=set(e,'Date',get(handles.dateEditBox,'String'));
+    e.name = get(handles.nameEditBox,'String');
+    e.description = get(handles.descriptionEditBox,'String');
+    e.date = get(handles.dateEditBox,'String');
     handles.currentDoc.data=e;
     handles.currentDoc.saved=false;
     guidata(hObject,handles);
@@ -714,7 +724,7 @@ else
 %             newId=max(existingElements)+1;
 %         end
 %         s=set(s,'ID',newId);
-        if ismember(get(s,'ID'),existingElements)
+        if ismember(s.id,existingElements)
             warndlg('ID already being used. Nothing will be added', ...
                     'Add Session Definition','modal');
         else
@@ -845,7 +855,7 @@ else
 %             newId=max(existingElements)+1;
 %         end
 %         s=set(s,'ID',newId);
-        if ismember(get(s,'ID'),existingElements)
+        if ismember(s.id,existingElements)
             warndlg('Subject ID already being used. Nothing will be added', ...
                     'Add Subject','modal');
         else
@@ -921,7 +931,7 @@ else
         s=guiSubject(s);
         if (~isempty(s))
             handles.currentDoc.data=...
-                setSubject(handles.currentDoc.data,get(s,'ID'),s);
+                setSubject(handles.currentDoc.data,s.id,s);
             handles.currentDoc.saved=false;
             handles.redrawSubjectsTable=true;
             guidata(hObject,handles);
@@ -1105,21 +1115,21 @@ if (isempty(handles.currentDoc.data)) %Clear
     set(handles.subjectsTable,'Data',[]);
 else %Refresh the Information
     e=experiment(handles.currentDoc.data);
-    set(handles.nameEditBox,'String',get(e,'Name'));
-    set(handles.descriptionEditBox,'String',get(e,'Description'));
-    set(handles.dateEditBox,'String',get(e,'Date'));
+    set(handles.nameEditBox,'String',e.name);
+    set(handles.descriptionEditBox,'String',e.description);
+    set(handles.dateEditBox,'String',e.date);
 
     %%%%Refresh Data Source Definitions
-    data=cell(getNDataSourceDefinitions(e),2); %Two columns
+    data=cell(e.nDataSourceDefinitions,2); %Two columns
     %Type and Device number
     dataSourceDefinitions=getDataSourceDefinitionList(e);
-    rownames=zeros(1,getNDataSourceDefinitions(e));
+    rownames=zeros(1,e.nDataSourceDefinitions);
     pos=1;
     for ii=dataSourceDefinitions
         s=getDataSourceDefinition(e,ii);
-        rownames(pos)=get(s,'ID');
-        data(pos,1)={get(s,'Type')};
-        data(pos,2)={get(s,'DeviceNumber')};
+        rownames(pos)=s.id;
+        data(pos,1)={s.type};
+        data(pos,2)={s.deviceNumber};
         pos=pos+1;
     end
     set(handles.dataSourceDefinitionsTable,'RowName',rownames);
@@ -1128,16 +1138,16 @@ else %Refresh the Information
     
     
     %%%%Refresh Session Definitions
-    data=cell(getNSessionDefinitions(e),2); %Two columns
+    data=cell(e.nSessionDefinitions,2); %Two columns
     %Name and Number of Sources
     sessionDefinitions=getSessionDefinitionList(e);
-    rownames=zeros(1,getNSessionDefinitions(e));
+    rownames=zeros(1,e.nSessionDefinitions);
     pos=1;
     for ii=sessionDefinitions
         s=getSessionDefinition(e,ii);
-        rownames(pos)=get(s,'ID');
-        data(pos,1)={get(s,'Name')};
-        data(pos,2)={getNSources(s)};
+        rownames(pos)=s.id;
+        data(pos,1)={s.name};
+        data(pos,2)={s.nDataSources};
         pos=pos+1;
     end
     set(handles.sessionDefinitionsTable,'RowName',rownames);
@@ -1149,7 +1159,7 @@ else %Refresh the Information
     
     %%%%Refresh Subjects
     set(handles.showSubjectsText,'String',...
-        ['Show/hide subjects (' num2str(getNSubjects(e)) ')']);
+        ['Show/hide subjects (' num2str(e.nSubjects) ')']);
 
     %Only repaint if neccessary
     if (handles.redrawSubjectsTable ...
@@ -1179,11 +1189,11 @@ else %Refresh the Information
                 barProgress=barProgress+step;
             end
             s=getSubject(e,ii);
-            rownames(pos)=get(s,'ID');
-            data(pos,1)={get(s,'Name')};
-            data(pos,2)={get(s,'Age')};
-            data(pos,3)={get(s,'Sex')};
-            data(pos,4)={getNSessions(s)};
+            rownames(pos)=s.id;
+            data(pos,1)={s.name};
+            data(pos,2)={s.age};
+            data(pos,3)={s.sex};
+            data(pos,4)={s.nSessions};
             pos=pos+1;
         end
         if (plotWaitBar)

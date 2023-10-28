@@ -105,17 +105,30 @@ function [emdDistances]=emd(obj,highlow)
 %   4-7 Jan Bombay India, DOI: 10.1109/ICCV.1998.710701
 %
 %
-% Copyright 2008-12
+% Copyright 2008-23
 % Copyright EMD Rubner et al
-% @date: 12-Aug-2008
 % @author: Felipe Orihuela Espina
-% @modified: 23-Aug-2012
 %
 % See also: analysis, run, mena_metric
 %
 
-if ~get(obj,'RunStatus')
-    error('ICNA:analysis:emd:AnalysisNotRun',...
+
+
+%% Log
+%
+% File created: 12-Aug-2008
+% File last modified (before creation of this log): 23-Aug-2012
+%
+% 7-Jun-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Started to use get/set methods for struct like access.
+%   + Error codes changed from ICNA to ICNNA.
+%
+
+
+
+if ~obj.runStatus
+    error('ICNNA:analysis:emd:AnalysisNotRun',...
         'Analysis must be run prior to computing EMD.');
 end
 
@@ -129,7 +142,7 @@ if exist('highlow','var')
         case 'high'
             HL=highlow;
         otherwise
-            warning('ICNA:analysis:emd:InvalidParameterValue',...
+            warning('ICNNA:analysis:emd:InvalidParameterValue',...
                 ['Invalid parameter value. ' ...
                  'Use ''high'' or ''low'' for the Feature and ' ...
                  'Projection Space respectively.']);
@@ -150,8 +163,8 @@ else
 end
 
 %% Compute cluster pairwise EMD
-clusters=getClusterList(obj);
-nClusters=length(clusters);
+clusters = obj.getClusterList;
+nClusters= obj.nClusters;
 x=0.05;
 waitbar(x,hWait,['Computing EMD - ' num2str(round(x*100)) '%']);
 nSteps=nClusters*(nClusters-1)/2;
@@ -161,7 +174,8 @@ pos=1;
 for cl1Idx=1:nClusters-1
     cl1=clusters(cl1Idx);
     %disp(['-- Cluster 1=' num2str(cl1) ' ---'])
-    idx1=get(getCluster(obj,cl1),'PatternIndexes');
+    tmp1 = obj.getCluster(cl1);
+    idx1 = tmp1.patternIndexes;
         %Indexes of points belonging to Cluster 1
         
     %Construct weights for cluster 1.
@@ -169,13 +183,14 @@ for cl1Idx=1:nClusters-1
     %%%weight
     weights1(1:length(idx1))=1/length(idx1);
     for cl2Idx=(cl1Idx+1):nClusters
-        cl2=clusters(cl2Idx);
-        idx2=get(getCluster(obj,cl2),'PatternIndexes');
+        cl2 = clusters(cl2Idx);
+        tmp2 = obj.getCluster(cl2);
+        idx2 = tmp2.patternIndexes;
             %Indexes of points belonging to Class 2
             
         
         if (isempty(idx1) || isempty(idx2))
-            warning('ICNA:analysis:emd',...
+            warning('ICNNA:analysis:emd',...
                     ['Empty cluster. Setting distance ' ...
                     'between clusters ' num2str(cl1) ' and ' ...
                     num2str(cl2)' to -1.']);

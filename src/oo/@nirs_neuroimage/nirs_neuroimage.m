@@ -1,3 +1,4 @@
+classdef nirs_neuroimage < neuroimage
 %Class nirs_neuroimage
 %
 %An fNIRS (functional Near InfraRed Spectrocopy) neuroimage.
@@ -27,21 +28,48 @@
 %
 % Type methods('nirs_neuroimage') for a list of methods
 % 
-% Copyright 2008-12
-% @date: 13-May-2008
+% Copyright 2008-23
 % @author: Felipe Orihuela-Espina
-% @modified: 22-Dec-2012
 %
 % See also neuroimage
 %
-classdef nirs_neuroimage < neuroimage
-    properties (SetAccess=private, GetAccess=private)
-        probeMode='3x3'; %DEPRECATED. See superclass neuroimage channelLocationMap
+
+
+
+
+%% Log
+%
+% File created: 13-May-2008
+% File last modified (before creation of this log): 22-Dec-2012
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Added property classVersion. Set to '1.0' by default.
+%   + Added get/set methods support for struct like access to attributes.
+%
+% 30-Aug-2023: FOE
+%   + Activated the constant for CYTOCHROME (Kept classVersion to '1.0'
+%       because ICNNA version has not yet been released).
+%
+
+    properties (Constant, Access=private)
+        classVersion = '1.0'; %Read-only. Object's class version.
+    end
+
+
+
+    properties %(SetAccess=private, GetAccess=private)
+        %probeMode(:,1) char {mustBeMember(probeMode,{'3x3','4x4','3x5'})} = '3x3'; %DEPRECATED. See superclass neuroimage channelLocationMap
+                    %Constraint mustBeMember does NOT work when the string
+                    %contains a mixture of letters and numbers. So I can't
+                    %use it here, and I need to check this "manually" in
+                    % the set method.
+        probeMode(:,1) char  = '3x'; %DEPRECATED. See superclass neuroimage channelLocationMap
     end
     properties (Constant=true, GetAccess=public)
         OXY=1;
         DEOXY=2;
-        %CYTOCHROME=3;
+        CYTOCHROME=3;
         TOTALHB=4;
         HBDIFF=5;
     end
@@ -74,16 +102,18 @@ classdef nirs_neuroimage < neuroimage
             %
             
             obj = obj@neuroimage(varargin{:});
+
+            %obj.probeMode = '3x3';
             if (nargin==0)
                 %Keep default values
             elseif isa(varargin{1},'nirs_neuroimage')
                 obj=varargin{1};
                 return;
             else
-                obj=set(obj,'ID',varargin{1});
+                obj.id = varargin{1};
                 if (nargin>1) %Image size also provided
                     if ((isnumeric(varargin{2})) && (length(varargin{2})==3))
-                        obj=set(obj,'Data',zeros(varargin{2}));
+                        obj.data = zeros(varargin{2});
                     else
                         error(['Not a valid size vector; ' ...
                             '[nSamples, nChannels, nSignals].']);
@@ -91,8 +121,7 @@ classdef nirs_neuroimage < neuroimage
                 end
 
             end
-            obj=set(obj,'Description',...
-                    ['NIRSImage' num2str(get(obj,'ID'),'%04i')]);
+            obj.description = ['NIRSImage' num2str(obj.id,'%04i')];
             %assertInvariants(obj);
         end
 
@@ -111,5 +140,35 @@ classdef nirs_neuroimage < neuroimage
         %Pegna's optode movement detection algorithm
         [idx,reconstructed,idxPeaks]=Pegna_detectOptodeMovement(signal,options);
     end
+
+
+    methods
+
+
+      %Getters/Setters
+
+      function res = get.probeMode(obj)
+         %Gets the object |probeMode|
+         warning('ICNNA:nirs_neuroimage:probeMode:Deprecated',...
+             ['Use of probeMode has now been deprecated. ' ...
+             'Please refer to neuroimage.channelLocationMap.']);
+         res = obj.probeMode;
+      end
+      function obj = set.probeMode(obj,val)
+         %Sets the object |probeMode|
+         warning('ICNNA:nirs_neuroimage:probeMode:Deprecated',...
+             ['Use of probeMode has now been deprecated. ' ...
+             'Please refer to neuroimage.channelLocationMap.']);
+         if ismember(val,{'3x3','4x4','3x5'})
+            obj.probeMode = val;
+         else
+             error('ICNA:nirs_neuroimage:probeMode:InvalidParameterValue',...
+                'ProbeMode must be a string ''3x3'', ''4x4'' etc.');
+         end
+         assertInvariants(obj);
+      end
+
+    end
+
 
 end

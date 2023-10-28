@@ -23,22 +23,43 @@ function assertInvariants(obj)
 %       are defined in the experiment sessionDefinitions
 %
 %
-% Copyright 2008
-% date: 20-Apr-2008
+% Copyright 2008-23
 % Author: Felipe Orihuela-Espina
 %
 % See also experiment
 %
 
+
+
+
+%% Log
+%
+% File created: 20-Apr-2008
+% File last modified (before creation of this log): N/A. This class file
+%   had not been modified since creation.
+%
+% 24-May-2023: FOE
+%   + Added this log. Got rid of old label @date .
+%   + Updated calls to get attributes using the struct like syntax
+%   + Some class invariants have been relaxed to warnings or removed.
+%   + Error codes using 'ICNA' have been updated to 'ICNNA'
+%   + Improved some comments.
+%
+
+
+
+
+
 nElements=length(obj.dataSourceDefinitions);
 ids=zeros(1,nElements);
 %Collect IDs
 for ii=1:nElements
-    ids(ii)=get(obj.dataSourceDefinitions{ii},'ID');
+    tmp = obj.dataSourceDefinitions{ii};
+    ids(ii)=tmp.id;
 end
 %And check that there are no repetitions
 assert(length(ids)==length(unique(ids)), ...
-        ['experiment.assertInvariants: ' ...
+        ['ICNNA:experiment:assertInvariants:InvariantViolation: ' ...
          'IDs repeated for data source definitions.']);
 
 
@@ -46,29 +67,29 @@ nElements=length(obj.sessionDefinitions);
 ids=zeros(1,nElements);
 %Collect IDs
 for ii=1:nElements
-    ids(ii)=get(obj.sessionDefinitions{ii},'ID');
+    sessDef = obj.sessionDefinitions{ii};
+    ids(ii)=sessDef.id;
 
     %Take advantage and check that all its dataSource definitions
     %are defined in the experiment
-    srcID=getSourceList(obj.sessionDefinitions{ii});
+    srcID=getSourceList(sessDef);
     for src=srcID
-        def=getSource(obj.sessionDefinitions{ii},src);
-        tmpSrcDefIdx=findDataSourceDefinition(obj,get(def,'ID'));
+        def=getSource(sessDef,src);
+        tmpSrcDefIdx=findDataSourceDefinition(obj,def.id);
         assert(~isempty(tmpSrcDefIdx),...
-                ['experiment.assertInvariants: ' ...
+                ['ICNNA:experiment:assertInvariants:InvariantViolation: ' ...
                  'Undefined data source definitions ' ...
-                 num2str(get(def,'ID')) ...
+                 num2str(def.id) ...
                 'for session definition ' num2str(ids(ii))]);
-        assert(def==getDataSourceDefinition(obj,get(def,'ID')),...
-                ['experiment.assertInvariants: ' ...
-                'Undefined data source definitions ' ...
-                num2str(get(def,'ID')) ...
+        assert(def==getDataSourceDefinition(obj,def.id),...
+                ['ICNNA:experiment:assertInvariants:InvariantViolation: ' ...
+                'Undefined data source definitions ' num2str(def.id) ...
                 'for session definition ' num2str(ids(ii))]);
     end
 end
 %And check that there are no repetitions
 assert(length(ids)==length(unique(ids)), ...
-        ['experiment.assertInvariants: ' ...
+        ['ICNNA:experiment:assertInvariants:InvariantViolation: ' ...
          'IDs repeated for session definitions.']);
 
 
@@ -76,21 +97,23 @@ nElements=length(obj.subjects);
 ids=zeros(1,nElements);
 %Collect Subjects IDs
 for ii=1:nElements
-    ids(ii)=get(obj.subjects{ii},'ID');
+    tmpSubject = obj.subjects{ii};
+    ids(ii)=tmpSubject.id;
     
     %Take advantage and check that all the subject sessions
     %are defined in the experiment
-    sessID=getSessionList(obj.subjects{ii});
+    sessID=getSessionList(tmpSubject);
     for sess=sessID
-        def=get(getSession(obj.subjects{ii},sess),'Definition');
-        tmpSessDefIdx=findSessionDefinition(obj,get(def,'ID'));
+        tmpSess = getSession(tmpSubject,sess);
+        def=tmpSess.definition;
+        tmpSessDefIdx=findSessionDefinition(obj,def.id);
         assert(~isempty(tmpSessDefIdx),...
-                ['experiment.assertInvariants: ' ...
-                'Undefined session definitions ' num2str(get(def,'ID')) ...
+                ['ICNNA:experiment:assertInvariants:InvariantViolation: ' ...
+                'Undefined session definitions ' num2str(def.id) ...
                 'for subject ' num2str(ids(ii))]);
-        assert(def==getSessionDefinition(obj,get(def,'ID')),...
-                ['experiment.assertInvariants: ' ...
-                'Undefined session definitions ' num2str(get(def,'ID')) ...
+        assert(def==getSessionDefinition(obj,def.id),...
+                ['ICNNA:experiment:assertInvariants:InvariantViolation: ' ...
+                'Undefined session definitions ' num2str(def.id) ...
                 'for subject ' num2str(ids(ii))]);
     end    
     
@@ -98,4 +121,8 @@ for ii=1:nElements
 end
 %And check that there are no repetitions
 assert(length(ids)==length(unique(ids)), ...
-        'experiment.assertInvariants: IDs repeated for subjects.');
+        'ICNNA:experiment:assertInvariants:InvariantViolation: IDs repeated for subjects.');
+
+
+
+end

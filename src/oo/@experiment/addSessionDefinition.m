@@ -11,22 +11,38 @@ function obj=addSessionDefinition(obj,newSessionDefinitions)
 %using a cell array of sessionDefinitions in s.
 %
 %
-% Copyright 2008
-% @date: 10-Jul-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also removeSessionDefinition, setSessionDefinition
 %
+
+
+
+
+%% Log
+%
+% File created: 10-Jul-2008
+% File last modified (before creation of this log): N/A. This class file
+%   had not been modified since creation.
+%
+% 24-May-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%   + Started to update get/set methods calls for struct like access
+%
+
+
+
 
 if (length(newSessionDefinitions)==1 ...
         && isa(newSessionDefinitions,'sessionDefinition'))
     %Insert single sessionDefinition
     s=newSessionDefinitions;
 
-    idx=findSessionDefinition(obj,get(s,'ID'));
+    idx=findSessionDefinition(obj,s.id);
     if isempty(idx)
         if existDataSourceDefinitionConflicts(obj,s)
-            warning('ICNA:experiment:addSessionDefinition:DataSourceDefinitionConflict',...
+            warning('ICNNA:experiment:addSessionDefinition:DataSourceDefinitionConflict',...
                 ['Data source definition conflict found. ' ...
                  'Session definition not added.']);
         else
@@ -36,7 +52,7 @@ if (length(newSessionDefinitions)==1 ...
             obj.sessionDefinitions(end+1)={s};
         end
     else
-        warning('ICNA:experiment:addSessionDefinition:RepeatedID',...
+        warning('ICNNA:experiment:addSessionDefinition:RepeatedID',...
             ['A session definition with the same ID ' ...
             'has already been defined. ' ...
             'Session definition not added.']);
@@ -53,11 +69,12 @@ for ii=1:numel(newSessionDefinitions)
 %     waitbar(barProgress,h,['Adding multiple sessionDefinitions - Check Stage - ' ...
 %                     num2str(round(barProgress*100)) '%']);
 %     barProgress=barProgress+step;
-    if isa(newSessionDefinitions{ii},'sessionDefinition')
-        if isempty(findSessionDefinition(obj,get(newSessionDefinitions{ii},'ID')))
+    tmpSessDef = newSessionDefinitions{ii};
+    if isa(tmpSessDef,'sessionDefinition')
+        if isempty(findSessionDefinition(obj,tmpSessDef.id))
             %Check possible dataSourceDefinitions coflicts
-            if existDataSourceDefinitionConflicts(obj,newSessionDefinitions{ii})
-                warning(['ICNA:experiment:addSessionDefinition:'...
+            if existDataSourceDefinitionConflicts(obj,tmpSessDef)
+                warning(['ICNNA:experiment:addSessionDefinition:'...
                     'DataSourceDefintionConflict'],...
                     ['Data source definition conflict found. ' ...
                     'Session defintion in position ' num2str(ii) ...
@@ -65,18 +82,17 @@ for ii=1:numel(newSessionDefinitions)
             else
                 %Collect the new data sources definitions
                 defs=collectDataSourceDefinitionsFromSessionDefinition(obj,...
-                            newSessionDefinitions{ii},1);
+                            tmpSessDef,1);
                 obj=addDataSourceDefinition(obj,defs);
                 idxs=[idxs ii];
             end
         else
              warning('ICNA:experiment:addSessionDefinition:RepeatedID',...
-                ['A sessionDefinition with ID=' ...
-                     num2str(get(newSessionDefinitions{ii},'ID')) ...
+                ['A sessionDefinition with ID=' num2str(tmpSessDef.id) ...
                      ' has already been defined.']);
         end
     else
-        warning('ICNA:experiment:addSessionDefinition:InvalidParameter',...
+        warning('ICNNA:experiment:addSessionDefinition:InvalidParameter',...
                 ['Element in position ' num2str(ii) ...
                  ' is not a sessionDefinition.']);
     end
@@ -94,3 +110,7 @@ else
     error('Invalid input sessionDefinition/s. For multiple sessionDefinitions use a cell array');
 end
 assertInvariants(obj);
+
+
+
+end

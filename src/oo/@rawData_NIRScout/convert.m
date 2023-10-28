@@ -1,10 +1,10 @@
 function nimg=convert(obj,varargin)
 %RAWDATA_NIRScout/CONVERT Convert raw light intensities to a neuroimage
 %
-% obj=convert(obj) Convert raw light intensities to a fNIRS
+% nimg=convert(obj) Convert raw light intensities to a fNIRS
 %   neuroimage, using the modified Beer-Lambert law (MBLL).
 %
-% obj=convert(obj,optionName,optionValue) Convert raw light
+% nimg=convert(obj,optionName,optionValue) Convert raw light
 %   intensities to a fNIRS neuroimage, using the modified
 %   Beer-Lambert law (MBLL) with additional options specified
 %   by one or more optionName, optionValue pair arguments.
@@ -54,9 +54,7 @@ function nimg=convert(obj,varargin)
 % 
 % Copyright 2018
 % Copyright over some comments belong to their authors.
-% @date: 25-Apr-2018
 % @author: Felipe Orihuela-Espina
-% @modified: 25-Apr-2018
 % 
 %
 % See also rawData_NIRScout, import, neuroimage, NIRS_neuroimage, mbll
@@ -66,6 +64,8 @@ function nimg=convert(obj,varargin)
 
 %% Log
 %
+% File created: 25-Apr-2008
+% File last modified (before creation of this log): 25-Apr-2012
 %
 % 17-May-2018: FOE. IMPORTANT NOTE: The code in ICNNA version 1.1.3
 %   assumed that marks were coupled. Apparently, this
@@ -76,6 +76,11 @@ function nimg=convert(obj,varargin)
 %   now that reconstruction is made in an external function (mbll).
 %
 % 25-Apr-2018: FOE. Method created
+%
+%
+% 13-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
 %
 
 
@@ -263,8 +268,8 @@ end
 %Some basic initialization
 nSamples=size(obj.lightRawData,1);
 nSignals=length(obj.wLengths);
-nChannels = get(obj,'nChannels');
-nWlengths=length(get(obj,'nominalWavelengthSet'));
+nChannels = obj.nChannels;
+nWlengths=length(obj.nominalWavelengthSet);
 nimg=nirs_neuroimage(1,[nSamples,nChannels,nSignals]);
 
 
@@ -307,12 +312,12 @@ oaInfo(oa).mode = ['NIRScout_' num2str(obj.probesetInfo.probes.setupType)];
 oaInfo(oa).type = num2str(obj.probesetInfo.probes.setupType);
 tmpChCoords = obj.probesetInfo.probes.coords_c3;
 [nRows,nCols]=size(tmpChCoords);
-nRows = min(nRows,get(obj,'nChannels'));
-oaInfo.chTopoArrangement = nan(get(obj,'nChannels'),nCols);
+nRows = min(nRows,obj.nChannels);
+oaInfo.chTopoArrangement = nan(obj.nChannels,nCols);
 oaInfo.chTopoArrangement(1:nRows,:) = tmpChCoords(1:nRows,:);
 
-oa_nCh=get(obj,'nChannels'); %size(oaInfo(oa).chTopoArrangement,1);
-probeSet_nCh=get(obj,'nChannels');
+oa_nCh=obj.nChannels; %size(oaInfo(oa).chTopoArrangement,1);
+probeSet_nCh=obj.nChannels;
 oaInfo.optodesTopoArrangement = obj.probesetInfo.probes.coords_c2;
 
 chOptodeArrays = [chOptodeArrays; oa*ones(oa_nCh,1)];
@@ -325,9 +330,9 @@ chProbeSets = [chProbeSets; pp*ones(probeSet_nCh,1)];
 %wwait=waitbar(0,'Converting intensities->Hb data... 0%');
 
 %Filter only the acquired channels
-tmpLRD = get(obj,'LightRawData');
-tmpSDKey = get(obj,'SDKey');
-tmpSDMask = get(obj,'SDMask');
+tmpLRD = obj.lightRawData;
+tmpSDKey = obj.sdKey;
+tmpSDMask = obj.sdMask;
 chIdx = sort(tmpSDKey(find(tmpSDMask)));
 
 %Apply MBLL
@@ -440,11 +445,10 @@ end
 
 
 %... and now the same with the timestamps
-tmpTimestamps=(1:nSamples)*get(obj,'samplingperiod');
-theTimeline=set(theTimeline,'Timestamps',tmpTimestamps');
-
-theTimeline=set(theTimeline,'StartTime',get(obj,'Date'));
-theTimeline=set(theTimeline,'NominalSamplingRate',get(obj,'SamplingRate'));
+tmpTimestamps=(1:nSamples)*obj.samplingPeriod;
+theTimeline.timestamps = tmpTimestamps';
+theTimeline.startTime  = obj.date;
+theTimeline.nominalSamplingRate  = obj.samplingRate;
 
 nimg=set(nimg,'Timeline',theTimeline);
 

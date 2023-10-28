@@ -6,16 +6,30 @@ function idList=getStructuredDataList(obj)
 %
 % It is possible to navigate through the structured data using the idList
 %
-% Copyright 2008
-% @date: 25-Apr-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also findStructuredData, getStructuredData, getNStructuredData
 %
 
-nElements=getNStructuredData(obj);
+
+%% Log
+%
+% File created: 25-Apr-2008
+% File last modified (before creation of this log): N/A. This class file
+%   had not been modified since creation.
+%
+% 24-May-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%   + Started to use get/set methods for struct like access.
+%
+
+nElements=obj.nStructuredData;
 idList=zeros(1,nElements);
 for ii=1:nElements
-    idList(ii)=get(obj.structured{ii},'ID');
+    tmpElement = obj.structured{ii};
+    idList(ii)=tmpElement.id;
 end
 idList=sort(idList);
+
+end

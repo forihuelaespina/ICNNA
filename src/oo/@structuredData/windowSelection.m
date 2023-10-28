@@ -51,55 +51,76 @@ function obj=windowSelection(obj,condTag,eventNum,...
 %
 %
 %
-% Copyright 2008-13
-% @date: 4-Jul-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 3-Jan-2013
 %
 % See also structuredData, crop, getBlock, experimentSpace, analysis,
 %   blockResample, blocksTemporalAverage
 %
 
+
+
+
+%% Log
+%
+% File created: 4-Jul-2008
+% File last modified (before creation of this log): 3-Jan-2013
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%
+%   Bug fixing
+%   + Several errors were not yet using error codes.
+%
+
+
+
+
 if (windowDuration<0)
-    error('Wrong parameter value; negative window duration')
+    error('ICNNA:structuredData:windowSelection:InvalidParameterValue',...
+            'Wrong parameter value; negative window duration')
 end
 if (floor(windowDuration)~=windowDuration)
-    error('Wrong parameter value; duration must be positive integer or 0.')
+    error('ICNNA:structuredData:windowSelection:InvalidParameterValue',...
+            'Wrong parameter value; duration must be positive integer or 0.')
 end
 if (floor(windowOnset)~=windowOnset)
-    error('Wrong parameter value; windowOnset must be integer.')
+    error('ICNNA:structuredData:windowSelection:InvalidParameterValue',...
+            'Wrong parameter value; windowOnset must be integer.')
 end
 if (floor(eventNum)~=eventNum)
-    error(['Wrong parameter value; ' ...
+    error('ICNNA:structuredData:windowSelection:InvalidParameterValue',...
+            ['Wrong parameter value; ' ...
             'event number must be a positive integer.']);
 end
 
 %Get some initial values
-t=get(obj,'Timeline');
+t = obj.timeline;
 events = getConditionEvents(t,condTag);
 if ((eventNum<=0) || (getNEvents(t,condTag)<eventNum))
-    warning('ICNA:structuredData:windowSelection:UndefinedEvent',...
+    warning('ICNNA:structuredData:windowSelection:UndefinedEvent',...
             'Undefined event for the seleted condition.');
     obj=[];
     return
 end
 onset = events(eventNum,1);
-duration = events(eventNum,2);
-data=get(obj,'Data');
-[nSamples,nChannels,nSignals]=size(data);
+%duration = events(eventNum,2);
+data = obj.data;
+[d_nSamples,d_nChannels,d_nSignals]=size(data);
 
 
 winStart=onset+windowOnset;
-s = warning('off', 'ICNA:timeline:set:Length:EventsCropped');
+s = warning('off', 'ICNNA:timeline:set:Length:EventsCropped');
 
-if (winStart > nSamples)
+if (winStart > d_nSamples)
     %The window is beyond the current data limits
     winStart=1;
     winEnd=windowDuration;
     data(winStart:winEnd,:,:)=0;
     tmpT=timeline(windowDuration);
     %...and replicate the conditions...
-    nCond=get(t,'NConditions');
+    nCond = t.nConditions;
     for cc=1:nCond
         tmpCondTag=getConditionTag(t,cc);
         tmpT=addCondition(tmpT,tmpCondTag);
@@ -114,12 +135,12 @@ else
         %Do nothing
     elseif (winStart<0)
         %Pad some zeros at the beginning
-        data=[zeros(1:-winStart,nChannels,nSignals); ...
+        data=[zeros(1:-winStart,d_nChannels,d_nSignals); ...
             data];
-        t=set(t,'Length',nSamples-winStart);
+        t.length = d_nSamples-winStart;
         %And shift the onsets accordingly
         %...no need to remove or correct any event.
-        nCond=get(t,'NConditions');
+        nCond = t.nConditions;
         for cc=1:nCond
             tmpCondTag=getConditionTag(t,cc);
             [events,eventsInfo]=getConditionEvents(t,tmpCondTag);
@@ -129,9 +150,9 @@ else
     elseif (winStart>0)
         %Crop the first winStart-1 samples
         data(1:winStart-1,:,:)=[];
-        t=set(t,'Length',nSamples-(winStart-1));
+        t.length = d_nSamples-(winStart-1);
         %Shift the onsets accordingly
-        nCond=get(t,'NConditions');
+        nCond= t.nConditions;
         for cc=1:nCond
             tmpCondTag=getConditionTag(t,cc);
             [events,eventsInfo]=getConditionEvents(t,tmpCondTag);
@@ -154,24 +175,27 @@ else
     end
     
     %Deal with the window end
-    [nSamples,nChannels,nSignals]=size(data);
-    assert(nSamples==get(t,'Length'),...
+    [d_nSamples,d_nChannels,d_nSignals]=size(data);
+    assert(d_nSamples==t.length,...
             'Problem found while arrangeing window start.');
-    if (nSamples < windowDuration)
+    if (d_nSamples < windowDuration)
         %Pad some zeros at the end
         data=[data; ...
-              zeros(windowDuration-nSamples,nChannels,nSignals)];
-    elseif (nSamples > windowDuration)
+              zeros(windowDuration-d_nSamples,d_nChannels,d_nSignals)];
+    elseif (d_nSamples > windowDuration)
         %Note that now it is simply a matter of cropping
         %and the set function takes care of
         %cropping the timeline appropriately
         data=data(1:windowDuration,:,:);
     end
-    t=set(t,'Length',windowDuration);
+    t.length =windowDuration;
         
 end
 
-obj=set(obj,'Data',data);
-obj=set(obj,'Timeline',t);
+obj.data = data;
+obj.timeline = t;
 warning(s);
+
+
+end
 

@@ -21,6 +21,18 @@ function obj=setAllExclusory(obj,exclusoryState)
 % See also switchExclusory, setExclusory
 %
 
+
+%% Log
+%
+% File created: 29-May-2008
+% File last modified (before creation of this log): N/A. This method
+%   had not been modified since creation.
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date.
+%
+
+
 if (~exist('exclusoryState','var'))
     exclusoryState=1;
 end
@@ -33,3 +45,5 @@ else
     return;
 end
 assertInvariants(obj);
+
+end

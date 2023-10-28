@@ -6,12 +6,28 @@ function res=eq(obj,obj2)
 % res=eq(obj1,obj2) Compares two objects.
 %
 %
-% Copyright 2008
-% @date: 17-Nov-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also cluster
 %
+
+
+%% Log
+%
+% File created: 17-Nov-2008
+% File last modified (before creation of this log): N/A. This method had
+%   not been modified since creation.
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%   + Updated calls to get attributes using the struct like syntax
+%   + Added support for new attribute classVersion
+%
+
+
+
+
 
 res=true;
 if ~isa(obj2,'cluster')
@@ -19,79 +35,74 @@ if ~isa(obj2,'cluster')
     return
 end
 
-res = res && get(obj,'ID')==get(obj2,'ID');
-res = res && strcmp(get(obj,'Tag'),get(obj2,'Tag'));
-res = res && strcmp(get(obj,'Description'),get(obj2,'Description'));
-res = res && all(get(obj,'PatternIndexes')==...
-                     get(obj2,'PatternIndexes'));
-res = res && get(obj,'Visible')==get(obj2,'Visible');
+res = res && strcmp(obj.classVersion,obj2.classVersion);
+res = res && (obj.id==obj2.id);
+res = res && strcmp(obj.tag,obj2.tag);
+res = res && strcmp(obj.description,obj2.description);
+res = res && all(obj.patternIndexes==obj2.patternIndexes);
+res = res && (obj.visible==obj2.visible);
 if ~res
     return
 end
 
-res = res && all(get(obj,'SubjectsID')==get(obj2,'SubjectsID'));
-res = res && all(get(obj,'SessionsID')==get(obj2,'SessionsID'));
-res = res && all(get(obj,'StimuliID')==get(obj2,'StimuliID'));
-res = res && all(get(obj,'BlocksID')==get(obj2,'BlocksID'));
-res = res && all(get(obj,'ChannelGroupsID')==get(obj2,'ChannelGroupsID'));
+res = res && all(obj.subjectsID==obj2.subjectsID);
+res = res && all(obj.sessionsID==obj2.sessionsID);
+res = res && all(obj.stimuliID==obj2.stimuliID);
+res = res && all(obj.blocksID==obj2.blocksID);
+res = res && all(obj.channelGroupsID==obj2.channelGroupsID);
 if ~res
     return
 end
 
-res = res && all(get(obj,'Centroid')==get(obj2,'Centroid'));
-res = res && strcmp(get(obj,'CentroidCriteria'),...
-                    get(obj2,'CentroidCriteria'));
-res = res && get(obj,'FurthestPoint')==get(obj2,'FurthestPoint');
-res = res && get(obj,'AverageDistance')==get(obj2,'AverageDistance');
-res = res && get(obj,'MaximumDistance')==get(obj2,'MaximumDistance');
+res = res && all(obj.centroid==obj2.centroid);
+res = res && strcmp(obj.centroidCriteria,...
+                    obj2.centroidCriteria);
+res = res && (obj.furthestPoint==obj2.furthestPoint);
+res = res && (obj.averageDistance==obj2.averageDistance);
+res = res && (obj.maximumDistance==obj2.maximumDistance);
 if ~res
     return
 end
 
-res = res && get(obj,'ShowPatternPoints')==get(obj2,'ShowPatternPoints');
-res = res && get(obj,'ShowCentroid')==get(obj2,'ShowCentroid');
-res = res && get(obj,'ShowFurthestPoint')==get(obj2,'ShowFurthestPoint');
-res = res && get(obj,'ShowLink')==get(obj2,'ShowLink');
-res = res && get(obj,'ShowAverageDistance')==get(obj2,'ShowAverageDistance');
+res = res && (obj.showPatternPoints==obj2.showPatternPoints);
+res = res && (obj.showCentroid==obj2.showCentroid);
+res = res && (obj.showFurthestPoint==obj2.showFurthestPoint);
+res = res && (obj.showLink==obj2.showLink);
+res = res && (obj.showAverageDistance==obj2.showAverageDistance);
 if ~res
     return
 end
 
 
-res = res && all(get(obj,'DataColor')==get(obj2,'DataColor'));
-res = res && strcmp(get(obj,'DataMarker'),get(obj2,'DataMarker'));
-res = res && get(obj,'DataMarkerSize')==get(obj2,'DataMarkerSize');
+res = res && all(obj.dataColor==obj2.dataColor);
+res = res && strcmp(obj.dataMarker,obj2.dataMarker);
+res = res && (obj.dataMarkerSize==obj2.dataMarkerSize);
 if ~res
     return
 end
 
-res = res && all(get(obj,'CentroidColor')==get(obj2,'CentroidColor'));
-res = res && strcmp(get(obj,'CentroidMarker'),get(obj2,'CentroidMarker'));
-res = res && get(obj,'CentroidMarkerSize')==get(obj2,'CentroidMarkerSize');
+res = res && all(obj.centroidColor==obj2.centroidColor);
+res = res && strcmp(obj.centroidMarker,obj2.centroidMarker);
+res = res && (obj.centroidMarkerSize==obj2.centroidMarkerSize);
 if ~res
     return
 end
 
-res = res && all(get(obj,'FurthestPointColor')==...
-                 get(obj2,'FurthestPointColor'));
-res = res && strcmp(get(obj,'FurthestPointMarker'),...
-                 get(obj2,'FurthestPointMarker'));
-res = res && get(obj,'FurthestPointMarkerSize')==...
-                 get(obj2,'FurthestPointMarkerSize');
+res = res && all(obj.furthestPointColor==obj2.furthestPointColor);
+res = res && strcmp(obj.furthestPointMarker,obj2.furthestPointMarker);
+res = res && (obj.furthestPointMarkerSize==obj.furthestPointMarkerSize);
 if ~res
     return
 end
 
-res = res && all(get(obj,'LinkColor')==get(obj2,'LinkColor'));
-res = res && get(obj,'LinkLineWidth')==get(obj2,'LinkLineWidth');
+res = res && all(obj.linkColor==obj2.linkColor);
+res = res && (obj.linkLineWidth==obj2.linkLineWidth);
 if ~res
     return
 end
 
-res = res && all(get(obj,'AverageDistanceColor')==...
-                 get(obj2,'AverageDistanceColor'));
-res = res && get(obj,'AverageDistanceLineWidth')==...
-                 get(obj2,'AverageDistanceLineWidth');
+res = res && all(obj.averageDistanceColor==obj2.averageDistanceColor);
+res = res && (obj.averageDistanceLineWidth==obj2.averageDistanceLineWidth);
 if ~res
     return
 end

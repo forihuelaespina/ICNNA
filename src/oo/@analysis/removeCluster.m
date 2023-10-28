@@ -16,3 +16,5 @@ if (~isempty(idx))
     obj.clusters(idx)=[];
 end
 assertInvariants(obj);
+
+end

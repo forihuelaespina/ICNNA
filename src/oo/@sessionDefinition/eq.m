@@ -6,12 +6,26 @@ function res=eq(obj,obj2)
 % res=eq(obj1,obj2) Compares two sessionDefinition objects.
 %
 %
-% Copyright 2008
-% @date: 11-Jul-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also sessionDefinition
 %
+
+
+%% Log
+%
+% File created: 11-Jul-2008
+% File last modified (before creation of this log): N/A. This class file
+%   had not been modified since creation.
+%
+% 21-May-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%   + Updated calls to get attributes using the struct like syntax
+%   + Removed some old commented code no longer in use.
+%   + Added support for new property classVersion
+%
+
 
 res=true;
 if ~isa(obj2,'sessionDefinition')
@@ -19,11 +33,12 @@ if ~isa(obj2,'sessionDefinition')
     return
 end
 
-res = res && (get(obj,'ID')==get(obj2,'ID'));
-res = res && (strcmp(get(obj,'Name'),get(obj2,'Name')));
-res = res && (strcmp(get(obj,'Description'),get(obj2,'Description')));
+res = res && (strcmp(obj.classVersion,obj2.classVersion));
+res = res && (obj.id==obj2.id);
+res = res && (strcmp(obj.name,obj2.name));
+res = res && (strcmp(obj.description,obj2.description));
 
-res = res && (getNSources(obj)==getNSources(obj2));
+res = res && (obj.nDataSources==obj2.nDataSources);
 
 if ~res
     return
@@ -41,4 +56,8 @@ for ss=ids1
     if ~res
         return
     end
+end
+
+
+
 end

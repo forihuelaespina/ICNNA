@@ -1,5 +1,5 @@
 function obj = set(obj,varargin)
-% SESSION/SET Set object properties and return the updated object
+% SESSION/SET DEPRECATED (v1.2). Set object properties and return the updated object
 %
 % obj = set(obj,varargin) Set object properties and return 
 %   the updated object
@@ -14,13 +14,33 @@ function obj = set(obj,varargin)
 % 'Name' - The session name
 % 'Description' - The session description
 %
-% Copyright 2008-12
-% @date: 12-May-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 12-Jun-2012
 %
 % See also session, get
 %
+
+
+
+
+
+%% Log
+%
+% File created: 12-May-2008
+% File last modified (before creation of this log): 12-Jun-2012
+%
+% 24-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Started to update the get/set methods calls for struct like access
+%   + Declare method as DEPRECATED (v1.2).
+%
+
+
+
+warning('ICNNA:session:set:Deprecated',...
+        ['DEPRECATED (v1.2). Use struct like syntax for setting the attribute ' ...
+         'e.g. session.' lower(varargin{1}) ' = ... ']); 
+
 propertyArgIn = varargin;
 while length(propertyArgIn) >= 2,
    prop = propertyArgIn{1};
@@ -31,12 +51,13 @@ while length(propertyArgIn) >= 2,
         if (isa(val,'sessionDefinition'))
             obj.definition = val;
             IDList=getSourceList(obj.definition);
-            warning('ICNA:session:set:sessionDefinition',...
+            warning('ICNNA:session:set:sessionDefinition',...
                 ['Updating the definition may result in sources ' ...
                 'being removed.']);
             nElements=length(obj.sources);
             for ii=nElements:-1:1
-                id=get(obj.sources{ii},'ID');
+                tmpDS = obj.sources{ii};
+                id=tmpDS.id;
 
                 %Check that it complies with the definition
                 if ~(ismember(id,IDList))
@@ -44,14 +65,15 @@ while length(propertyArgIn) >= 2,
                     obj.sources(ii)=[];
                 elseif ~(strcmp(...
                         get(getSource(obj.definition,id),'Type'),...
-                        get(obj.sources{ii},'Type')))
+                        tmpDS.type))
                     %Remove this source
                     obj.sources(ii)=[];
                 end
             end
                         
         else
-            error('Value must be a sessionDefinition');
+            error('ICNNA:session:set:sessionDefinition',...
+                  'Value must be a sessionDefinition');
         end
 
     case 'date'
@@ -59,14 +81,24 @@ while length(propertyArgIn) >= 2,
 
 %From the definition
     case 'id'
-        obj.definition = set(obj.definition,'ID',val);
+        tmp = obj.definition;
+        tmp.id = val;
+        obj.definition = tmp;
     case 'name'
-        obj.definition = set(obj.definition,'Name',val);
+        tmp = obj.definition;
+        tmp.name = val;
+        obj.definition = tmp;
     case 'description'
-        obj.definition = set(obj.definition,'Description',val);
+        tmp = obj.definition;
+        tmp.description = val;
+        obj.definition = tmp;
 
     otherwise
-      error(['Property ' prop ' not valid.'])
+      error('ICNNA:session:set:InvalidProperty',...
+                  ['Property ' prop ' not found.'])
    end
 end
 assertInvariants(obj);
+
+
+end

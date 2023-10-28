@@ -50,12 +50,25 @@ function c=mirroring(x,y,init,ws,tolerance)
 %peaks at zero-lag and this peak value is greater or equal
 %than 1-tolerance. 0 otherwise.
 %
-% Copyright 2007
-% @date: 19-Nov-2007
+% Copyright 2007-23
 % @author Felipe Orihuela-Espina
 %
 % See also detectMirroringv3
 %
+
+
+
+
+%% Log
+%
+% File created: 19-Nov-2007
+% File last modified (before creation of this log): N/A. This method had
+%   not been modified since creation.
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%
+
 
 %Check that init and ws are positive
 %%%I know, I'm assuming they are integers..
@@ -112,3 +125,7 @@ else
     end
     
 end %if ((init>length(x)) | (init>length(y)))
+
+
+
+end

@@ -35,11 +35,28 @@ function [C,episodes]=detectMirroringv3(x,y,options)
 %holds the location, and second column holds the duration of
 %the episodes
 %
-% Copyright 2007-2008
+% Copyright 2007-23
 % @date: 19-Nov-2007
 % @author Felipe Orihuela-Espina
 %
 % See also mirroring.m
+
+
+
+%% Log
+%
+%
+% File created: 19-Nov-2007
+% File last modified (before creation of this log): N/A. This method
+%   had not been modified since creation.
+%
+% 20-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%
+
+
+
 
 %Deal with some options
 opt.tolerance=0;

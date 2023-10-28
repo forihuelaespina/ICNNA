@@ -6,13 +6,22 @@ function obj=removeConditionEvents(obj,tag)
 %   has not been defined, a warning is issued and nothing is done.
 %
 % Copyright 2008-12
-% @date: 18-Apr-2008
 % @author Felipe Orihuela-Espina
-% @date: 28-Dec-2012
 %
 % See also getCondition, addCondition, removeCondition, setConditionTag,
 % getConditionEvents, setConditionEvents, addConditionEvents
 %
+
+
+%% Log
+%
+% File created: 18-Apr-2008
+% File last modified (before creation of this log): 28-Dec-2012
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date.
+%
+
 
 idx=findCondition(obj,tag);
 if (isempty(idx))

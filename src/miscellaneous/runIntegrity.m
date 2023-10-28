@@ -47,14 +47,24 @@ function element=runIntegrity(element,options)
 %   
 %
 %
-% Copyright 2008-10
-% @date: 8-Jul-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 29-Oct-2010
 %
 % See also structuredData.checkIntegrity, getIntegrityReport,
 %   addVisualIntegrity
 %
+
+
+%% Log
+%
+% File created: 8-Jul-2008
+% File last modified (before creation of this log): 29-Oct-2010
+%
+% 24-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Started to update the get/set methods calls for struct like access.
+%
+
 
 optTestInRawWhenPossible=true;
 optVerbose=true;
@@ -99,29 +109,32 @@ if (isa(element,'structuredData'))
 	
 elseif (isa(element,'dataSource'))
 	%Get the active data if any
-	activeIdx=get(element,'ActiveStructured');
+	activeIdx=element.activeStructured;
 	if (activeIdx~=0)
         if (optVerbose)
             disp([datestr(now,13) ': runIntegrity - Active Data ']);
         end
 
         child=getStructuredData(element,activeIdx);
-        theStatus = get(child,'Integrity');
+        theStatus = child.integrity;
+
+        classType=class(child);
+        flagSuccess.(classType) = struct();
             
         flagTested = false;
         if (optTestInRawWhenPossible)
-            rawChild = get(element,'RawData');
+            rawChild = element.rawData;
             if ~isempty(rawChild)
                 [theStatusInRaw,flagSuccess] = ...
                         runIntegrityOnRaw(rawChild,theStatus,options);
                 flagTested = true;
             end
         end
-        
+
         if flagTested
             %Ignore those tests successfully run in raw data
             tmpOptions = options;
-            classType=class(child);
+            
             names = fieldnames(flagSuccess.(classType));
             for nn=1:length(names)
                 if (isfield(flagSuccess.(classType),names{nn}) ...
@@ -133,13 +146,13 @@ elseif (isa(element,'dataSource'))
             %Run only those test which have not been run yet
             child=runIntegrity(child,tmpOptions);
             %Finally, conciliate the integrity results
-            theStatus2 = get(child,'Integrity');
+            theStatus2 = child.integrity;
             tmpIntegrityInRawValues = getStatus(theStatusInRaw);
             tmpIntegrityIdx = find(tmpIntegrityInRawValues ...
                                     ~= integrityStatus.FINE);
             theStatus2 = setStatus(theStatus2,tmpIntegrityIdx,...
                                   tmpIntegrityInRawValues(tmpIntegrityIdx));
-            child = set(child,'Integrity',theStatus2);
+            child.integrity = theStatus2;
             
         else %Proceed to normal test
             child=runIntegrity(child,options);
@@ -194,4 +207,9 @@ elseif (isa(element,'experiment'))
 		child=runIntegrity(child,options);
 		element=setSubject(element,childID,child);
 	end
+end
+
+
+
+
 end

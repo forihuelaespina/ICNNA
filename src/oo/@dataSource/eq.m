@@ -6,12 +6,27 @@ function res=eq(obj,obj2)
 % res=eq(obj1,obj2) Compares two objects.
 %
 %
-% Copyright 2008
-% @date: 11-Jul-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also dataSource
 %
+
+
+%% Log
+%
+% File created: 11-Jul-2008
+% File last modified (before creation of this log): N/A. This class file
+%   had not been modified since creation.
+%
+% 21-May-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%   + Updated calls to get attributes using the struct like syntax
+%   + Removed some old commented code no longer in use.
+%   + Added support for new property classVersion
+%
+
+
 
 res=true;
 if ~isa(obj2,'dataSource')
@@ -19,11 +34,11 @@ if ~isa(obj2,'dataSource')
     return
 end
 
-res = res && (get(obj,'ID')==get(obj2,'ID'));
-res = res && (strcmp(get(obj,'Name'),get(obj2,'Name')));
-res = res && (get(obj,'DeviceNumber')==get(obj2,'DeviceNumber'));
-res = res && (get(obj,'Lock')==get(obj2,'Lock'));
-res = res && (get(obj,'ActiveStructured')==get(obj2,'ActiveStructured'));
+res = res && (obj.id==obj2.id);
+res = res && (strcmp(obj.name,obj2.name));
+res = res && (obj.deviceNumber==obj2.deviceNumber);
+res = res && (obj.lock==obj2.lock);
+res = res && (obj.activeStructured==obj2.activeStructured);
 if ~res
     return
 end
@@ -42,12 +57,12 @@ elseif (~isempty(r1) && ~isempty(r2))
     res = res && (r1==r2);
 end
 
-res = res && (getNStructuredData(obj)==getNStructuredData(obj2));
+res = res && (obj.nStructuredData==obj2.nStructuredData);
 if ~res
     return
 end
 
-nElements=getNStructuredData(obj);
+nElements=obj.nStructuredData;
 for cc=1:nElements
     c1=getStructuredData(obj,cc);
     c2=getStructuredData(obj2,cc);
@@ -67,4 +82,9 @@ for cc=1:nElements
     if ~res
         return
     end
+end
+
+
+
+
 end

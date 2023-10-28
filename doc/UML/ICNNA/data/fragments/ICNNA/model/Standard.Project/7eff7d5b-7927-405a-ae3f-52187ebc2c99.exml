@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<!--GENERATED FILE, PLEASE DO NOT EDIT!!!--><EXT object="ICNNA" version="4">
+  <OBJECT>
+    <ID name="ICNNA" mc="Standard.Project" uid="7eff7d5b-7927-405a-ae3f-52187ebc2c99"/>
+    <ATTRIBUTES>
+      <ATT name="ProjectContext"></ATT>
+      <ATT name="ProjectDescr"></ATT>
+      <ATT name="Name"><![CDATA[ICNNA]]></ATT>
+      <ATT name="status">1970354901745664</ATT>
+    </ATTRIBUTES>
+    <DEPENDENCIES>
+      <COMP relation="Model">
+        <COMPID name="icnna" mc="Standard.Package" uid="ffd4c3a1-8d36-4b01-9921-3440ebbae915"/>
+      </COMP>
+      <COMP relation="DiagramRoot">
+        <COMPID name="ICNNA" mc="Infrastructure.DiagramSet" uid="a5fd7b13-c2a4-44bb-8933-8608cfa3987d"/>
+      </COMP>
+    </DEPENDENCIES>
+  </OBJECT>
+</EXT>

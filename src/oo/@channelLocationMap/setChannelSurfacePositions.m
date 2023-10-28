@@ -25,10 +25,8 @@ function obj=setChannelSurfacePositions(obj,idx,positions)
 %  
 %
 %
-% Copyright 2012-13
-% @date: 26-Nov-2012
+% Copyright 2012-23
 % @author: Felipe Orihuela-Espina
-% @modified: 8-Sep-2013
 %
 % See also getChannelSurfacePositions, setChannel3DLocations,
 %   setChannelStereotacticPositions,
@@ -38,22 +36,30 @@ function obj=setChannelSurfacePositions(obj,idx,positions)
 
 %% Log
 %
+%
+% File created: 26-Nov-2012
+% File last modified (before creation of this log): 8-Sep-2013
+%
 % 8-Sep-2013: Method name changed from getSurfacePositions to
 %       getChannelSurfacePositions. Also updated the property accessed
 %       from .surfacePositions to .chSurfacePositions. Updated "links"
 %       of the See also section
+%
+% 21-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
 %
 
 
 
 
 if ~iscell(positions)
-    error('ICNA:channelLocationMap:setChannelSurfacePositions:InvalidParameterValue',...
+    error('ICNNA:channelLocationMap:setChannelSurfacePositions:InvalidParameterValue',...
           'Positions must be a cell array.');
 end
     
 assert(numel(idx)==numel(positions),...
-        ['ICNA:channelLocationMap:setSurfacePositions:InvalidParameterValue',...
+        ['ICNNA:channelLocationMap:setSurfacePositions:InvalidParameterValue',...
          'Number of channel indexes mismatches number of positions.']);
 idx=reshape(idx,numel(idx),1); %Ensure both are vectors
 positions=reshape(positions,numel(positions),1);
@@ -62,7 +68,7 @@ positions=reshape(positions,numel(positions),1);
 [valid]=channelLocationMap.isValidSurfacePosition(positions,...
                                 get(obj,'SurfacePositioningSystem'));
 if ~all(valid)
-    warning('ICNA:channelLocationMap:setSurfacePositions:InvalidPosition',...
+    warning('ICNNA:channelLocationMap:setSurfacePositions:InvalidPosition',...
         'Invalid positions found. Only valid positions will be updated.');
     tempIdx=find(~valid);
     idx(tempIdx)=[];
@@ -70,7 +76,7 @@ if ~all(valid)
 end
 
 
-tempIdx=find(idx<1 | idx>get(obj,'nChannels'));
+tempIdx=find(idx<1 | idx> obj.nChannels);
 idx(tempIdx)=[];
 positions(tempIdx)=[];
 

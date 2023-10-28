@@ -1,3 +1,4 @@
+classdef analysis
 %Manifold Embedding Neuroimage Analysis (MENA).
 %An analysis defines a Feature Space H and its embedding into
 %a Projection Space Y.
@@ -279,6 +280,11 @@
 %
 %
 %
+%% Dependent properties
+%
+%   .nPatterns - Number of points (patterns) included in the analysis.
+%   .nClusters - Number of clusters declared in the analysis.
+%
 %% References
 %
 % 1) Leff, D.R.; Orihuela-Espina, F.; Atallah, L.; Darzi, A.W.;
@@ -313,50 +319,97 @@
 % 
 %
 %
-% Copyright 2008-9
-% date: 23-Apr-2008
-% last update: 28-Nov-2008
-% Author: Felipe Orihuela-Espina
+% Copyright 2008-23
+% @author: Felipe Orihuela-Espina
 %
 % See also experiment, experimentSpace, cluster
 %
-classdef analysis
-    properties (SetAccess=private, GetAccess=private)
-        id=1;
-	    name='Analysis0001';
-        description='';
-        metric='geo_euclidean'; %Distance Metric
-        embedding='cmds'; %Embedding Technique
-        projectionDimensionality=2;
-        
-        F=experimentSpace; %The Experiment Space.
-        H=zeros(0,0); %The Feature Space. Each pattern is a row. Each
-              %feature a column
-        I=zeros(0,5); %The index register
-        Y=zeros(0,2); %The 2D/3D Projection Space
-        D=zeros(0,0); %Matrix of pairwise distances (in Feature Space)
-        runStatus=false;
-        
+
+
+
+%% Log
+%
+% File created: 23-Apr-2008
+% File last modified (before creation of this log): 28-Nov-2008
+%
+% 7-Jun-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Added property classVersion. Set to '1.0' by default.
+%   + Added get/set methods support for struct like access to attributes.
+%   + For those attributes above also started to simplify the set
+%   code replacing it with validation rules on the declaration.
+%   + Dependent properties nPatterns and nClusters are now
+%   explicitly declared as such. Also added comments for these
+%   in the class description.
+%
+%
+% 11-Jun-2023: FOE
+%   + Method assertInvariants changed from private to protected.
+%   + Private metods are now explicitly declared as private in this
+%   class especification rather than put in the folder private/ as
+%   before.
+%   + Static metods are now explicitly declared as static in this
+%   class especification rather than put in the folder private/ as
+%   before.
+%
+%
+
+    properties (Constant, Access=private)
+        classVersion = '1.0'; %Read-only. Object's class version.
+    end
+
+
+    properties %(SetAccess=private, GetAccess=private)
+        id(1,1) double {mustBeInteger, mustBeNonnegative}=1; %Numerical identifier to make the object identifiable.
+	    name(1,:) char='Analysis0001'; %A name for the analysis
+        description(1,:) char=''; %A short description for the object
+        metric(1,:) char {mustBeMember(metric,{'euclidean','corr','jsm','geo_euclidean','geo_corr','geo_jsm'})}='geo_euclidean'; %Distance Metric
+        embedding(1,:) char {mustBeMember(embedding,{'cmds','cca'})}='cmds'; %Embedding Technique
+        projectionDimensionality(1,1) double {mustBePositive}=2;
+
         %for Experiment Space data filtering
-        subjectsIncluded=[];
-        sessionsIncluded=[];
+        subjectsIncluded=[]; %Subjects included in the data filtering of the ExperimentSpace
+        sessionsIncluded=[]; %Sessions included in the data filtering of the ExperimentSpace
         
         %for Feature vector construction
-        channelGrouping=[];
-        signalDescriptors=[]; %Mx2 <dataSource, signal>
-                               %matrix of signal descriptors
+        channelGrouping=[];  %Channel groups included in the data filtering of the ExperimentSpace
+        signalDescriptors=[]; %Mx2 <dataSource, signal>; matrix of signal descriptors
+    end
         
-        clusters=cell(1,0);
+    properties (SetAccess=private)
+        runStatus(1,1) logical =false; %Flag indicating whether the analysis results have been computed for the current configuration.
+    end
+        
+    properties (SetAccess=private, GetAccess=private)
+        F(1,1) experimentSpace = experimentSpace; %The Experiment Space.
+        H(:,:) double=zeros(0,0); %The Feature Space. Each pattern is a row. Each feature is a column.
+        I(:,:) double=zeros(0,5); %The patterns index register
+        Y(:,:) double=zeros(0,2); %The 2D/3D Projection Space
+        D(:,:) double=zeros(0,0); %Matrix of pairwise distances between patterns (in Feature Space)
+        clusters=cell(1,0); %Collection of clusters declared for the analysis
     end
     
     properties (Constant=true, SetAccess=private, GetAccess=protected)
-        COL_SUBJECT=1;
-        COL_SESSION=2;
-        COL_STIMULUS=3;
-        COL_BLOCK=4;
-        COL_CHANNELGROUP=5;
+        COL_SUBJECT=1; %Identifies the column for storing the subject ID in the index register
+        COL_SESSION=2; %Identifies the column for storing the session ID in the index register
+        COL_STIMULUS=3; %Identifies the column for storing the stimulus (condition) ID in the index register
+        COL_BLOCK=4; %Identifies the column for storing the block or trial number within the stimulus in the index register
+        COL_CHANNELGROUP=5; %Identifies the column for storing the channel group in the index register
     end
     
+    properties (Dependent)
+      nPatterns % Number of points (patterns) included in the analysis.
+      nClusters % Number of clusters declared in the analysis.
+
+
+      %Some (read-only) aliases
+      experimentSpace   %The Experiment Space (F).
+      featureSpace      %The Feature Space (H).
+      projectionSpace   %The Projection Space (I).
+      patternDistances  %Distances among patterns (D).
+      patternIndexes    %The patterns index register (I).
+    end
+
     methods
         function obj=analysis(varargin)
         %ANALYSIS Analysis class constructor
@@ -390,27 +443,298 @@ classdef analysis
             obj=varargin{1};
             return;
         else
-            obj=set(obj,'ID',varargin{1});
-            obj.name=['Analysis' num2str(obj.id,'%04i')];
+            obj.id = varargin{1};
+            obj.name = ['Analysis' num2str(obj.id,'%04i')];
             if (nargin>1)
-                obj=set(obj,'Name',varargin{2});
+                obj.name =  varargin{2};
             end
             if (nargin>2)
-                obj=set(obj,'Metric',varargin{3});
+                obj.metric = varargin{3};
             end
             if (nargin>3)
-                obj=set(obj,'Embedding',varargin{4});
+                obj.embedding = varargin{4};
             end
             if (nargin>4)
-                obj=set(obj,'ProjectionDimensionality',varargin{5});
+                obj.projectionDimensionality = varargin{5};
             end
         end
         obj.Y=zeros(0,obj.projectionDimensionality);
-        obj.F=set(obj.F,'Name',get(obj,'Name'));
-        obj.F=set(obj.F,'Description',get(obj,'Description'));
+        tmp = obj.F;
+        tmp.name = obj.name;
+        tmp.description = obj.description;
+        obj.F = tmp;
         assertInvariants(obj);
         end
     end
     
+
+
+
+    methods
+
+        %Getters/Setters
+
+        function res = get.id(obj)
+            %Gets the object |id|
+            res = obj.id;
+        end
+        function obj = set.id(obj,val)
+            %Sets the object |id|
+            obj.id =  val;
+        end
+
+
+        function res = get.name(obj)
+            %Gets the object |name|
+            res = obj.name;
+        end
+        function obj = set.name(obj,val)
+            %Sets the object |name|
+            obj.name =  val;
+            tmp = obj.F;
+            tmp.name = val;
+            obj.F = tmp;
+        end
+
+
+        function res = get.description(obj)
+            %Gets the object |description|
+            res = obj.description;
+        end
+        function obj = set.description(obj,val)
+            %Sets the object |description|
+            obj.description =  val;
+            tmp = obj.F;
+            tmp.description = val;
+            obj.F = tmp;
+        end
+
+
+        function res = get.metric(obj)
+            %Gets the object |metric|
+            res = obj.metric;
+        end
+        function obj = set.metric(obj,val)
+            %Sets the object |metric|
+            if strcmpi(val,'euc'), val = 'euclidean'; end
+            obj.metric =  lower(val);
+            obj.runStatus=false;
+        end
+
+
+        function res = get.embedding(obj)
+            %Gets the object |embedding|
+            res = obj.embedding;
+        end
+        function obj = set.embedding(obj,val)
+            %Sets the object |embedding|
+            obj.embedding =  lower(val);
+            obj.runStatus=false;
+        end
+
+
+        function res = get.projectionDimensionality(obj)
+            %Gets the object |projectionDimensionality|
+            res = obj.projectionDimensionality;
+        end
+        function obj = set.projectionDimensionality(obj,val)
+            %Sets the object |projectionDimensionality|
+            obj.projectionDimensionality =  val;
+            obj.runStatus=false;
+        end
+
+
+        function res = get.subjectsIncluded(obj)
+            %Gets the object |subjectsIncluded|
+            res = obj.subjectsIncluded;
+        end
+        function obj = set.subjectsIncluded(obj,val)
+            %Sets the object |subjectsIncluded|
+
+            %Should be a vector of IDs
+            if isempty(val)
+                obj.subjectsIncluded=[];
+            elseif (isreal(val) && ~ischar(val)...
+                    && all(all(floor(val)==val)) && all(all(val>0)))
+                %It is not check whether the selected channels
+                %exist
+                obj.subjectsIncluded=unique(reshape(val,1,numel(val)));
+            else
+                error('ICNNA:analysis:set:SubjectsIncluded:InvalidInput',...
+                    'Subjects included must be a matrix of positive integers.');
+            end
+            obj.runStatus=false;
+        end
+
+
+        function res = get.sessionsIncluded(obj)
+            %Gets the object |sessionsIncluded|
+            res = obj.sessionsIncluded;
+        end
+        function obj = set.sessionsIncluded(obj,val)
+            %Sets the object |sessionsIncluded|
+            
+            %Should be a vector of IDs
+            if isempty(val)
+                obj.sessionsIncluded=[];
+            elseif (isreal(val) && ~ischar(val)...
+                    && all(all(floor(val)==val)) && all(all(val>0)))
+                %It is not check whether the selected channels
+                %exist
+                obj.sessionsIncluded=unique(reshape(val,1,numel(val)));
+            else
+                error('ICNNA:analysis:set:SessionsIncluded:InvalidInput',...
+                      'Sessions included must be a matrix of positive integers.');
+            end
+            obj.runStatus=false;
+        end
+
+
+
+        function res = get.channelGrouping(obj)
+            %Gets the object |channelGrouping|
+            res = obj.channelGrouping;
+        end
+        function obj = set.channelGrouping(obj,val)
+            %Sets the object |channelGrouping|
+            
+            %Should be a matrix where
+            %each row is a group, and 
+            %each value is a channel.
+            if isempty(val)
+                obj.channelGrouping=val;
+            elseif (isreal(val) && ~ischar(val)...
+                    && all(all(floor(val)==val)) && all(all(val>0)))
+                %It is not check whether the selected channels
+                %exist
+                obj.channelGrouping=val;
+            else
+                error('ICNNA:analysis:set:ChannelGroups:InvalidInput',...
+                      'Channel groups must be a matrix of positive integers.');
+            end
+            obj.runStatus=false;
+        end
+
+
+        function res = get.signalDescriptors(obj)
+            %Gets the object |signalDescriptors|
+            res = obj.signalDescriptors;
+        end
+        function obj = set.signalDescriptors(obj,val)
+            %Sets the object |signalDescriptors|
+            
+            %An Mx2 matrix of signal descriptors <dataSource,signal Idx>
+            %Note that by now it only accepts 1 data source
+            %See "the curse of the data source" in analysis.
+            if isempty(val)
+                obj.signalDescriptors=val;
+            elseif (isreal(val) && ~ischar(val) && size(val,2)==2 ...
+                    && all(all(floor(val)==val)) && all(all(val>0)))
+                %Accept only 1 data source (i.e. all data Source are the same)
+                tmpVal=val(:,1);
+                tmpVal=tmpVal-tmpVal(1);
+                if (all(tmpVal==0))
+                    obj.signalDescriptors=val;
+                else
+                    error('ICNNA:analysis:set:SignalDescriptors:SingleDataSourceViolation',...
+                      ['Current version requires all signals '...
+                       'to belong to the same dataSource. Please'...
+                       'type ''help analysis'' for more information.']);
+                end
+            else
+                error('ICNNA:analysis:set:SignalDescriptors:InvalidInput',...
+                      ['Signal descriptor must be a Mx2 matrix '...
+                       '<dataSource,signal Idx>.']);
+            end
+            obj.runStatus=false;
+        end
+
+
+        function res = get.experimentSpace(obj)
+            %Gets the object |experimentSpace| (read-only)
+            res = obj.F;
+        end
+        function obj = set.experimentSpace(obj,val)
+            %Sets the object |experimentSpace|
+            obj.F =  val;
+            obj.runStatus=false;
+        end
+
+        %Some "read-only" properties
+
+        function res = get.runStatus(obj)
+            %Gets the object |runStatus| (read-only)
+            res = obj.runStatus;
+        end
+
+
+        function res = get.featureSpace(obj)
+            %Gets the object |featureSpace| (read-only)
+            res = obj.H;
+        end
+
+        function res = get.projectionSpace(obj)
+            %Gets the object |projectionSpace| (read-only)
+            res = obj.Y;
+        end
+
+        function res = get.patternDistances(obj)
+            %Gets the object |PatternDistances| (read-only)
+            res = obj.D;
+        end
+
+        function res = get.patternIndexes(obj)
+            %Gets the object |patternIndexes| (read-only)
+            res = obj.I;
+        end
+
+
+
+        %Derived properties
     
+
+        function res = get.nPatterns(obj)
+            %Gets the object |nPatterns|
+            res = size(obj.H,1);
+        end
+    
+
+        function res = get.nClusters(obj)
+            %Gets the object |nPatterns|
+            res = length(obj.clusters);
+        end
+    
+
+
+    end
+
+
+
+
+    methods (Access=protected)
+        assertInvariants(obj);
+    end
+    
+    methods (Static, Access=private)
+        %External
+        n2 = dist2(x, c);
+        [centres, options, post, errlog] = kmeans(centres, data, options);
+        
+        %Mine
+        [cost] = emd_calculateCosts(XX,YY,s);
+        d  = ic_jsm(s1,s2); %DEPRECATED. Use jsm instead.
+        Y  = ic_pdist(X,s);
+        Y  = mena_embedding(D,options);
+        D  = mena_geodesic(H, n_fcn, n_size); %DEPRECATED. See also geodesic
+        DD = mena_getGroundCosts(D,cluster1Idx,cluster2Idx);
+        D = mena_metric(H,s);
+    end
+
+    methods (Access=private)
+        obj=getFeatureSpace(obj);
+    end
+
+
+
+
 end

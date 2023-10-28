@@ -5,6 +5,8 @@
 ## 13-Jan-2021 (v0.1): Log of this file started.
 ## 		Added the initial patterns:
 ##
+## 9-May-2023 (v0.2): Added directory src2 towards ICNNA 2.0
+##
 ##
 
 
@@ -25,4 +27,9 @@ doc/ICAFv1.0.pdf
 doc/ICAFv1.1.pdf
 doc/ICAFv1.0.pdf
 doc/ICNNA-MENA*.pdf
+
+
+## ICNNA 2.0
+src2/**
+rubbish/**
 

@@ -1,4 +1,4 @@
-function obj=setStructuredData(obj,id,i)
+function obj=setStructuredData(obj,id,sd)
 % DATASOURCE/SETSTRUCTUREDDATA Replace a structured data element
 %
 % obj=setStructuredData(obj,id,newStructuredData) Replace structured
@@ -10,21 +10,34 @@ function obj=setStructuredData(obj,id,i)
 %See dataSource for more information, otherwise a error is generated.
 %
 %
-% Copyright 2008
-% @date: 25-Apr-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also addStructuredData, removeStructuredData, getStructuredData
 %
 
 
-type=get(obj,'Type');
+%% Log
+%
+% File created: 25-Apr-2008
+% File last modified (before creation of this log): N/A. This had not
+%   been modified since creation
+%
+% 25-May-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%   + Started to update the get/set methods calls for struct like access.
+%
+
+
+
+
+type=obj.type;
 if (isempty(type))
-    if ~isa(i,'structuredData')
+    if ~isa(sd,'structuredData')
         error([inputname(2) ' is not a structured data']);
     end
 else
-    if ~isa(i,type)
+    if ~isa(sd,type)
         error([inputname(2) ' is not of valid ''Type''.']);
     end
 end    
@@ -32,6 +45,9 @@ end
 
 idx=findStructuredData(obj,id);
 if (~isempty(idx))
-    obj.structured(idx)={i};
+    obj.structured(idx)={sd};
 end
 assertInvariants(obj);
+
+
+end

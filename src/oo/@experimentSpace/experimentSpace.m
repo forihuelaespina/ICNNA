@@ -1,3 +1,4 @@
+classdef experimentSpace
 %Class ExperimentSpace
 %
 %An experimentSpace split experiment data into its atomic pieces
@@ -340,6 +341,11 @@
 %   .DIM_STIMULUS   =7;  - a.k.a. as condition
 %   .DIM_BLOCK      =8;  - a.k.a. as trial
 %
+%% Dependent properties
+%
+%   .numPoints - DEPRECATED. Number of points in the Experiment Space. Use .nPoints instead
+%   .nPoints - Number of points in the Experiment Space.
+%
 %% Invariants
 %
 % See private/assertInvariants
@@ -348,50 +354,83 @@
 %
 % Type methods('experimentSpace') for a list of methods
 % 
-% Copyright 2008-13
-% @date: 12-Jun-2008
+% Copyright 2008-23
 % @author: Felipe Orihuela-Espina
-% @modified: 4-Jan-2013
 %
 % See also structuredData.getBlock, compute, analysis, generateDB
 %
 
-classdef experimentSpace
-    properties (SetAccess=private, GetAccess=private)
-        id=1;
-        name='ExperimentSpace0001';
-        description='';
-        Fvectors=cell(0,1);
-        Findex=zeros(0,8);
-        sessionNames=struct('sessID',{},'name',{});
-        %experimentSpace parameters
-        runStatus =false;
-        performAveraging = false;
-        performResampling = false;
-        performFixWindow = true; %DEPRECATED
-        performNormalization = false;
-        %Block splitting stage parameters
-        baselineSamples=15;
-        restSamples=-1;
-        %Resampling stage parameters
-        rsBaseline = 0;
-        rsTask = 20;
-        rsRest = 0;
-        %Window Selection stage parameters
-        fwOnset = -5;
-        fwDuration = 25; %20 secs task + 5 secs baseline
-        fwBreakDelay = 0;
-        %Normalization stage parameters
-        normalizationMethod='normal';
-        normalizationMean=0;
-        normalizationVar=1;
-        normalizationMin=0;
-        normalizationMax=1;
-        normalizationScope='collective';
-        normalizationDimension='combined';
+
+
+%% Log
+%
+% File created: 12-Jun-2008
+% File last modified (before creation of this log): 4-Jan-2013
+%
+% 7-Jun-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Added property classVersion. Set to '1.0' by default.
+%   + Added get/set methods support for struct like access to attributes.
+%   + For those attributes above also started to simplify the set
+%   code replacing it with validation rules on the declaration.
+%   + Dependent properties numPoints and nPoints are now
+%   explicitly declared as such. Also added comments for these
+%   in the class description.
+%
+%
+
+    properties (Constant, Access=private)
+        classVersion = '1.0'; %Read-only. Object's class version.
     end
-    
-    properties (Constant=true, SetAccess=private, GetAccess=public)
+
+
+
+    properties %(SetAccess=private, GetAccess=private)
+        id(1,1) double {mustBeInteger, mustBeNonnegative}=1; %Numerical identifier to make the object identifiable.
+        name(1,:) char='ExperimentSpace0001'; %A name for the experimentSpace
+        description(1,:) char=''; %A short description for the object
+        sessionNames(1,:) struct = struct('sessID',{},'name',{}); %Collection of session names
+
+        %experimentSpace parameters
+        performAveraging(1,1) logical = false; %Flag indicating whether to average or not.
+        performResampling(1,1) logical = false; %Flag indicating whether to resample or not.
+        performFixWindow(1,1) logical = true; %DEPRECATED
+        performNormalization(1,1) logical = false;  %Flag indicating whether to normalize or not.
+        %Block splitting stage parameters
+        baselineSamples(1,1) double {mustBeInteger} = 15;
+        restSamples(1,1) double {mustBeInteger} = -1;
+        %Resampling stage parameters
+        rsBaseline(1,1) double {mustBeInteger} = 0;
+        rsTask(1,1) double {mustBeInteger}  = 20;
+        rsRest(1,1) double {mustBeInteger}  = 0;
+        %Window Selection stage parameters
+        fwOnset(1,1) double {mustBeInteger}  = -5;
+        fwDuration(1,1) double {mustBeInteger}  = 25; %20 secs task + 5 secs baseline
+        fwBreakDelay(1,1) double {mustBeInteger}  = 0;
+        %Normalization stage parameters
+        normalizationMethod(1,:) char {mustBeMember(normalizationMethod,{'normal','range'})} = 'normal';
+        normalizationMean(1,1) double = 0;
+        normalizationVar(1,1) double  = 1;
+        normalizationMin(1,1) double  = 0;
+        normalizationMax(1,1) double  = 1;
+        normalizationScope(1,:) char {mustBeMember(normalizationScope,{'collective','blockIndividual','individual'})} = 'collective';
+        normalizationDimension(1,:) char {mustBeMember(normalizationDimension,{'channel','signal','combined'})} = 'combined';
+    end
+
+
+    properties  (SetAccess=private)
+        runStatus(1,1) logical = false; %Boolean flag to indicate whether the experimentSpace has been computed with the current configuration
+    end
+
+
+    properties  (SetAccess=private, GetAccess=private)
+        Fvectors(:,1) cell = cell(0,1); %A cell array with the Experimental Space vectors
+        Findex(:,8) double {mustBeInteger, mustBeNonnegative} = zeros(0,8); %The index to locations of the vectors within theExperimental Space
+    end
+
+
+
+    properties (Constant=true, GetAccess=public)
         %Columns indexes
         DIM_SUBJECT=1;
         DIM_SESSION=2;
@@ -402,7 +441,28 @@ classdef experimentSpace
         DIM_STIMULUS=7;
         DIM_BLOCK=8;
     end
-        
+
+
+    properties (Dependent)
+      numPoints % DEPRECATED. Number of points in the Experiment Space. Use .nPoints instead
+      nPoints   % Number of points in the Experiment Space.
+
+      %Some aliases
+      averaged       %Equivalent to performAveraging
+      resampled      %Equivalent to performResampling
+      normalized     %Equivalent to performNormalization
+
+      rs_baseline   %Equivalent to rsBaseline
+      rs_task       %Equivalent to rsTask
+      rs_rest       %Equivalent to rsRest
+
+      ws_onset      %Equivalent to fwOnset
+      ws_duration   %Equivalent to fwDuration
+      ws_breakDelay %Equivalent to fwBreakDelay
+    end
+
+
+
     methods
         function obj=experimentSpace(varargin)
             %EXPERIMENTSPACE experimentSpace class constructor
@@ -433,4 +493,387 @@ classdef experimentSpace
         assertInvariants(obj);
     end
     
+    
+
+
+
+    methods
+
+        %Getters/Setters
+
+        function res = get.id(obj)
+            %Gets the object |id|
+            res = obj.id;
+        end
+        function obj = set.id(obj,val)
+            %Sets the object |id|
+            obj.id =  val;
+        end
+
+
+        function res = get.name(obj)
+            %Gets the object |name|
+            res = obj.name;
+        end
+        function obj = set.name(obj,val)
+            %Sets the object |name|
+            obj.name =  val;
+        end
+
+
+        function res = get.description(obj)
+            %Gets the object |description|
+            res = obj.description;
+        end
+        function obj = set.description(obj,val)
+            %Sets the object |description|
+            obj.description =  val;
+        end
+
+
+        function res = get.sessionNames(obj)
+            %Gets the object |sessionNames| (read-only)
+            res = obj.sessionNames;
+        end
+        function obj = set.sessionNames(obj,val)
+            %Sets the object |sessionNames|
+            obj.sessionNames =  val;
+        end
+
+
+
+        
+
+        function res = get.performAveraging(obj)
+            %Gets the object |performAveraging|
+            res = obj.performAveraging;
+        end
+        function obj = set.performAveraging(obj,val)
+            %Sets the object |performAveraging|
+            obj.performAveraging =  val;
+            obj.runStatus = false;
+        end
+
+
+        function res = get.performResampling(obj)
+            %Gets the object |performResampling|
+            res = obj.performResampling;
+        end
+        function obj = set.performResampling(obj,val)
+            %Sets the object |performResampling|
+            obj.performResampling =  val;
+            obj.runStatus = false;
+        end
+
+
+        function res = get.performNormalization(obj)
+            %Gets the object |performNormalization|
+            res = obj.performNormalization;
+        end
+        function obj = set.performNormalization(obj,val)
+            %Sets the object |performNormalization|
+            obj.performNormalization =  val;
+            obj.runStatus = false;
+        end
+
+
+
+        function res = get.baselineSamples(obj)
+            %Gets the object |baselineSamples|
+            res = obj.baselineSamples;
+        end
+        function obj = set.baselineSamples(obj,val)
+            %Sets the object |baselineSamples|
+            obj.baselineSamples =  val;
+            obj.runStatus = false;
+        end
+
+
+
+        function res = get.restSamples(obj)
+            %Gets the object |restSamples|
+            res = obj.restSamples;
+        end
+        function obj = set.restSamples(obj,val)
+            %Sets the object |restSamples|
+            obj.restSamples =  val;
+            obj.runStatus = false;
+        end
+
+
+        function res = get.rsBaseline(obj)
+            %Gets the object |rsBaseline|
+            res = obj.rsBaseline;
+        end
+        function obj = set.rsBaseline(obj,val)
+            %Sets the object |rsBaseline|
+            obj.rsBaseline =  val;
+            obj.runStatus = false;
+        end
+
+
+        function res = get.rsTask(obj)
+            %Gets the object |rsTask|
+            res = obj.rsTask;
+        end
+        function obj = set.rsTask(obj,val)
+            %Sets the object |rsTask|
+            obj.rsTask =  val;
+            obj.runStatus = false;
+        end
+
+
+        function res = get.rsRest(obj)
+            %Gets the object |rsRest|
+            res = obj.rsRest;
+        end
+        function obj = set.rsRest(obj,val)
+            %Sets the object |rsRest|
+            obj.rsRest =  val;
+            obj.runStatus = false;
+        end
+
+
+        function res = get.fwOnset(obj)
+            %Gets the object |fwOnset|
+            res = obj.fwOnset;
+        end
+        function obj = set.fwOnset(obj,val)
+            %Sets the object |fwOnset|
+            obj.fwOnset =  val;
+            obj.runStatus = false;
+        end
+
+
+        function res = get.fwDuration(obj)
+            %Gets the object |fwDuration|
+            res = obj.fwDuration;
+        end
+        function obj = set.fwDuration(obj,val)
+            %Sets the object |fwDuration|
+            obj.fwDuration =  val;
+            obj.runStatus = false;
+        end
+
+
+        function res = get.fwBreakDelay(obj)
+            %Gets the object |fwBreakDelay|
+            res = obj.fwBreakDelay;
+        end
+        function obj = set.fwBreakDelay(obj,val)
+            %Sets the object |fwBreakDelay|
+            obj.fwBreakDelay =  val;
+            obj.runStatus = false;
+        end
+
+
+        function res = get.normalizationMethod(obj)
+            %Gets the object |normalizationMethod|
+            res = obj.normalizationMethod;
+        end
+        function obj = set.normalizationMethod(obj,val)
+            %Sets the object |normalizationMethod|
+            obj.normalizationMethod =  val;
+            obj.runStatus = false;
+        end
+
+
+
+        function res = get.normalizationMean(obj)
+            %Gets the object |normalizationMean|
+            res = obj.normalizationMean;
+        end
+        function obj = set.normalizationMean(obj,val)
+            %Sets the object |normalizationMean|
+            obj.normalizationMean =  val;
+            obj.runStatus = false;
+        end
+
+
+        function res = get.normalizationVar(obj)
+            %Gets the object |normalizationVar|
+            res = obj.normalizationVar;
+        end
+        function obj = set.normalizationVar(obj,val)
+            %Sets the object |normalizationVar|
+            obj.normalizationVar =  val;
+            obj.runStatus = false;
+        end
+
+
+        function res = get.normalizationMin(obj)
+            %Gets the object |normalizationMin|
+            res = obj.normalizationMin;
+        end
+        function obj = set.normalizationMin(obj,val)
+            %Sets the object |normalizationMin|
+            obj.normalizationMin =  val;
+            obj.runStatus = false;
+        end
+
+
+
+        function res = get.normalizationMax(obj)
+            %Gets the object |normalizationMax|
+            res = obj.normalizationMax;
+        end
+        function obj = set.normalizationMax(obj,val)
+            %Sets the object |normalizationMax|
+            obj.normalizationMax =  val;
+            obj.runStatus = false;
+        end
+
+
+
+        function res = get.normalizationScope(obj)
+            %Gets the object |normalizationScope|
+            res = obj.normalizationScope;
+        end
+        function obj = set.normalizationScope(obj,val)
+            %Sets the object |normalizationScope|
+            obj.normalizationScope =  val;
+            obj.runStatus = false;
+        end
+
+
+        function res = get.normalizationDimension(obj)
+            %Gets the object |normalizationDimension|
+            res = obj.normalizationDimension;
+        end
+        function obj = set.normalizationDimension(obj,val)
+            %Sets the object |normalizationDimension|
+            obj.normalizationDimension =  val;
+            obj.runStatus = false;
+        end
+
+
+
+
+
+
+
+        
+
+        %Some "read-only" properties
+
+        function res = get.runStatus(obj)
+            %Gets the object |runStatus| (read-only)
+            res = obj.runStatus;
+        end
+
+
+
+
+        function res = get.averaged(obj)
+            %Gets the object |averaged|
+            res = obj.performAveraging;
+        end
+        function obj = set.averaged(obj,val)
+            %Sets the object |averaged|
+            obj.performAveraging =  val;
+        end
+
+
+        function res = get.resampled(obj)
+            %Gets the object |resampled|
+            res = obj.performResampling;
+        end
+        function obj = set.resampled(obj,val)
+            %Sets the object |resampled|
+            obj.performResampling =  val;
+        end
+
+
+        function res = get.normalized(obj)
+            %Gets the object |normalized|
+            res = obj.performNormalization;
+        end
+        function obj = set.normalized(obj,val)
+            %Sets the object |normalized|
+            obj.performNormalization =  val;
+        end
+
+
+        function res = get.rs_baseline(obj)
+            %Gets the object |rs_baseline|
+            res = obj.rsBaseline;
+        end
+        function obj = set.rs_baseline(obj,val)
+            %Sets the object |rs_baseline|
+            obj.rsBaseline =  val;
+        end
+
+
+        function res = get.rs_task(obj)
+            %Gets the object |rs_task|
+            res = obj.rsTask;
+        end
+        function obj = set.rs_task(obj,val)
+            %Sets the object |rs_task|
+            obj.rsTask =  val;
+        end
+
+
+        function res = get.rs_rest(obj)
+            %Gets the object |rs_rest|
+            res = obj.rsRest;
+        end
+        function obj = set.rs_rest(obj,val)
+            %Sets the object |rs_rest|
+            obj.rsRest =  val;
+        end
+
+
+        function res = get.ws_onset(obj)
+            %Gets the object |ws_onset|
+            res = obj.fwOnset;
+        end
+        function obj = set.ws_onset(obj,val)
+            %Sets the object |ws_onset|
+            obj.fwOnset =  val;
+        end
+
+
+        function res = get.ws_duration(obj)
+            %Gets the object |ws_duration|
+            res = obj.fwDuration;
+        end
+        function obj = set.ws_duration(obj,val)
+            %Sets the object |ws_duration|
+            obj.fwDuration =  val;
+        end
+
+
+        function res = get.ws_breakDelay(obj)
+            %Gets the object |ws_breakDelay|
+            res = obj.fwBreakDelay;
+        end
+        function obj = set.ws_breakDelay(obj,val)
+            %Sets the object |ws_breakDelay|
+            obj.fwBreakDelay =  val;
+        end
+
+
+        %Derived properties
+    
+
+        function res = get.numPoints(obj)
+            %Gets the object |numPoints|
+            warning('ICNNA:experimentSpace:get.numPoints:Deprecated',...
+                ['The use of numPoints has now been deprecated. ' ...
+                 'Please use obj.nPoints instead.']);
+            res = size(obj.Findex,1);
+        end
+    
+        function res = get.nPoints(obj)
+            %Gets the object |nPoints|
+            res = size(obj.Findex,1);
+        end
+    
+
+
+
+
+    end
+
 end

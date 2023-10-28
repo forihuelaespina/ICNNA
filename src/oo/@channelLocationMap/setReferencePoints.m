@@ -37,10 +37,8 @@ function obj=setReferencePoints(obj,idx,rpInfo)
 %
 %
 %
-% Copyright 2013
-% @date: 27-Aug-2013
+% Copyright 2013-23
 % @author: Felipe Orihuela-Espina
-% @modified: 8-Sep-2013
 %
 % See also getReferencePoints, addReferencePoints, removeReferencePoints,
 %
@@ -48,8 +46,17 @@ function obj=setReferencePoints(obj,idx,rpInfo)
 
 %% Log
 %
-% 8-Sep-2013: Updated "links" of the See also section
+% File created: 27-Aug-2013
+% File last modified (before creation of this log): 8-Sep-2013
 %
+% 8-Sep-2013: Updated "links" of the See also section
+%   + Added this log.
+%
+% 20-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%
+
 
 
 if isempty(rpInfo)
@@ -146,3 +153,4 @@ obj.referencePoints(idx)=rpInfo;
 end
 assertInvariants(obj);
 
+end

@@ -43,13 +43,26 @@ function [I,R]=getIntegrityReport(element,options)
 %
 %
 % 
-% Copyright 2009
-% date: 1-Dec-2009
-% Author: Felipe Orihuela-Espina
-% modified: 1-Dec-2009
+% Copyright 2009-23
+% @author: Felipe Orihuela-Espina
 %
 % See also runIntegrity, addVisualIntegrity
 %
+
+
+%% Log
+%
+% File created: 1-Dec-2009
+% File last modified (before creation of this log): N/A. This had not
+%   been modified since creation
+%
+% 25-May-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%   + Started to update the get/set methods calls for struct like access.
+%
+
+
+
 
 
 
@@ -64,17 +77,17 @@ end
 if (isa(element,'structuredData'))
 	%Base case
     I = nan(1,3);
-    R = double(get(element,'Integrity'));
+    R = double(element.integrity);
 	
 elseif (isa(element,'dataSource'))
     %Treat as base case
-    I = [NaN NaN get(element,'ID')];
+    I = [NaN NaN element.id];
     R = [];
 	%Get the active data if any
-	activeIdx=get(element,'ActiveStructured');
+	activeIdx=element.activeStructured;
 	if (activeIdx~=0)
         child=getStructuredData(element,activeIdx);
-        R = double(get(child,'Integrity'));
+        R = double(child.integrity);
 	end
 
 elseif (isa(element,'session'))
@@ -93,11 +106,11 @@ elseif (isa(element,'session'))
 		child=getDataSource(element,childID);
         if isempty(R)
             [I,R]=getIntegrityReport(child,opt);
-            sessdefinition = get(element,'Definition');
-            I(:,2) = get(sessdefinition,'ID');
+            sessdefinition = element.definition;
+            I(:,2) = sessdefinition.id;
         else
             [tmpI,tmpR]=getIntegrityReport(child,opt);
-            tmpI(:,2) = get(element,'ID');
+            tmpI(:,2) = element.id;
             I = [I; tmpI];
             %Match number of columns (channels) in R
             if size(R,2) < size(tmpR,2)
@@ -133,10 +146,10 @@ elseif (isa(element,'subject'))
 		child=getSession(element,childID);
         if isempty(R)
             [I,R]=getIntegrityReport(child,opt);
-            I(:,1) = get(element,'ID');
+            I(:,1) = element.id;
         else
             [tmpI,tmpR]=getIntegrityReport(child,opt);
-            tmpI(:,1) = get(element,'ID');
+            tmpI(:,1) = element.id;
             I = [I; tmpI];
             %Match number of columns (channels) in R
             if size(R,2) < size(tmpR,2)
@@ -192,5 +205,10 @@ elseif (isa(element,'experiment'))
             R = [R; tmpR];
         end
 	end
+end
+
+
+
+
 end
 

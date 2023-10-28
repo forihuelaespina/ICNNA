@@ -5,10 +5,8 @@ function display(obj)
 %then displayed on the with an output similar to the standard
 %MATLAB output.
 %
-% Copyright 2018
-% @date: 4-Abr-2018
+% Copyright 2018-23
 % @author Felipe Orihuela-Espina
-% @modified: 17-May-2018
 %
 % See also rawData_NIRScout, get, set
 %
@@ -20,11 +18,17 @@ function display(obj)
 
 %% Log
 %
+% File created: 4-Apr-2008
+% File last modified (before creation of this log): 17-Apr-2012
+%
 % 17-May-2018: FOE. Trigger markers are now displayed with num2str for
 %   improving legilibility.
 %
 % 4/25-Apr-2018: FOE. Method created
 %
+% 13-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
 %
 
 
@@ -32,65 +36,70 @@ function display(obj)
 disp(' ');
 disp([inputname(1),'= ']);
 disp(' ');
+try
+    disp(['   Class version: ' num2str(obj.classVersion)]);
+catch
+    disp('   Class version: N/A');
+end
 %Inherited
-disp(['   ID: ' num2str(get(obj,'ID'))]);
-disp(['   Description: ' get(obj,'Description')]);
-disp(['   Date (Reference for timestamps): ' datestr(get(obj,'Date'),0)]);
+disp(['   ID: ' num2str(obj.id)]);
+disp(['   Description: ' obj.description]);
+disp(['   Date (Reference for timestamps): ' datestr(obj.date,0)]);
 
 %Patient Information
-disp(['   User Name: ' get(obj,'SubjectName')]);
+disp(['   User Name: ' obj.subjectName]);
 % tmpBirthDate=datestr(get(obj,'SubjectBirthDate'),24);
 % if isempty(tmpBirthDate)
 %     disp('   User Birth Date: ');
 % else
 %     disp(['   User Birth Date: ' tmpBirthDate]);
 % end
-disp(['   User Age: ' num2str(get(obj,'SubjectAge'))]);
-disp(['   User Gender: ' get(obj,'SubjectGender')]);
+disp(['   User Age: ' num2str(obj.subjectAge)]);
+disp(['   User Gender: ' obj.subjectGender]);
 
 
 %General Information
-disp(['   Filename: ' get(obj,'Filename')]);
-disp(['   Device: ' get(obj,'Device')]);
-disp(['   Source: ' get(obj,'Source')]);
-disp(['   Study Type Modulation Amplitude (Mod): ' get(obj,'StudyTypeModulation')]);
-disp(['   File Version (NIRStar software version): ' get(obj,'FileVersion')]);
-disp(['   Subject Index: ' num2str(get(obj,'SubjectIndex'))]);
+disp(['   Filename: ' obj.filename]);
+disp(['   Device: ' obj.device]);
+disp(['   Source: ' obj.source]);
+disp(['   Study Type Modulation Amplitude (Mod): ' obj.studyTypeModulation]);
+disp(['   File Version (NIRStar software version): ' obj.fileVersion]);
+disp(['   Subject Index: ' num2str(obj.subjectIndex)]);
 
 
 
 % Measurement information
-disp(['   Number of source steps in measurements: ' num2str(get(obj,'nSources'))]);
-disp(['   Number of detectors: ' num2str(get(obj,'nDetectors'))]);
-disp(['   Number of steps (illumination pattern): ' num2str(get(obj,'nSteps'))]);
+disp(['   Number of source steps in measurements: ' num2str(obj.nSources)]);
+disp(['   Number of detectors: ' num2str(obj.nDetectors)]);
+disp(['   Number of steps (illumination pattern): ' num2str(obj.nSteps)]);
 
-disp(['   Total Number of Channels: ' num2str(get(obj,'nChannels'))]);
+disp(['   Total Number of Channels: ' num2str(obj.nChannels)]);
 disp(['   Wavelengths [nm]: ' num2str(obj.wLengths)]);
-disp(['   Sampling Rate [Hz]: ' num2str(get(obj,'SamplingRate'))]);
+disp(['   Sampling Rate [Hz]: ' num2str(obj.samplingRate)]);
 
-disp(['   Number of trigger inputs: ' num2str(get(obj,'nTriggerInputs'))]);
+disp(['   Number of trigger inputs: ' num2str(obj.nTriggerInputs)]);
 %Pending: I need to check for the device to be NIRScoutX
-%disp(['   Number of trigger outputs: ' num2str(get(obj,'nTriggerOutputs'))]);
+%disp(['   Number of trigger outputs: ' num2str(obj.nTriggerOutputs)]);
 
 %This is only for fututre versions; so not active right now.
-%disp(['   Number of analog inputs: ' num2str(get(obj,'nAnalogInputs'))]);
+%disp(['   Number of analog inputs: ' num2str(obj.nAnalogInputs)]);
 
 disp(['   Modulation Amplitudes: ' num2str(obj.modulationAmplitudes)]);
 disp(['   Modulation Thresholds: ' num2str(obj.modulationThresholds)]);
                                     %for Laser).
 disp('   Probeset: ');
-disp(get(obj,'Probeset'));
+disp(obj.probesetInfo);
 
 
 
 % Paradigm Information
-disp(['   Paradigm Stimulus Type: ' get(obj,'paradigmStimulusType')]);
+disp(['   Paradigm Stimulus Type: ' obj.paradigmStimulusType]);
 
 % Experimental Notes
-disp(['   Notes: ' get(obj,'Notes')]);
+disp(['   Notes: ' obj.notes]);
 
 % Gain Settings
-G=get(obj,'Gains');
+G=obj.gains;
 if ~isempty(G)
     disp(['   Gains (Rows - Sources; Cols - Detectors): ']);
     disp(G);
@@ -98,22 +107,22 @@ end
 
 % Markers Information
 disp(['   Event Trigger Markers (#1 - Time (in seconds); #2 - Condition marker; #3 - Scan frame): ']);
-disp(num2str(get(obj,'EventTriggerMarkers')));
+disp(num2str(obj.eventTriggerMarkers));
 
 % Data Structure
-G=get(obj,'SDKey');
+G=obj.sdKey;
 if ~isempty(G)
     disp(['   S-D key (Rows - Sources; Cols - Detectors): ']);
     disp(G)
 end
-G=get(obj,'SDMask');
+G=obj.sdMask;
 if ~isempty(G)
     disp(['   S-D Mask (Rows - Sources; Cols - Detectors): ']);
     disp(G)
 end
 
 % Channel Distances
-G=get(obj,'ChannelDistances');
+G=obj.channelDistances;
 if ~isempty(G)
     disp(['   Channel Distances [mm]: ']);
     disp(G)

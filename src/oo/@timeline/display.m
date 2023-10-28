@@ -5,19 +5,37 @@ function display(obj)
 %then displayed on the with an output similar to the standard
 %MATLAB output.
 %
-% Copyright 2008-12
-% @date: 18-Apr-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 31-Dec-2012
 %
-% See also timeline, get, set
+% See also timeline
 %
+
+
+%% Log
+%
+% File created: 18-Apr-2008
+% File last modified (before creation of this log): 31-Dec-2012
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%   + Now also displays new attribute classVersion
+%
+
+
 
 disp(' ');
 disp([inputname(1),'= ']);
-disp(['   Length: ' num2str(get(obj,'Length'))]);
-disp(['   Start time: ' datestr(get(obj,'StartTime'))]);
-tmpTimestamps=get(obj,'Timestamps');
+disp(' ');
+try
+    disp(['   Class version: ' num2str(obj.classVersion)]);
+catch
+    disp('   Class version: N/A');
+end
+disp(['   Length: ' num2str(obj.length)]);
+disp(['   Start time: ' datestr(obj.startTime)]);
+tmpTimestamps=obj.timestamps;
 if isempty(tmpTimestamps)
     disp('   Timestamps [s]: N/A');
 else
@@ -28,13 +46,13 @@ else
 end
 
 disp(['   Nominal Sampling Rate [Hz]: ' ...
-        num2str(get(obj,'NominalSamplingRate'))]);
+        num2str(obj.nominalSamplingRate)]);
 disp('   Exclusory State: ');
 disp(mat2str(obj.exclusory));
 if isempty(obj.conditions)
     disp('   conditions: {}'); 
 else
-    nConditions=get(obj,'NConditions');
+    nConditions=obj.nConditions;
     disp(['   Conditions: ' num2str(nConditions)]); 
     for ii=1:nConditions
         disp(['=== Condition ''' obj.conditions{ii}.tag '''']);

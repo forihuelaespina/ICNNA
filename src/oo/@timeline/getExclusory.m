@@ -11,12 +11,24 @@ function b=getExclusory(obj,tagA,tagB)
 %
 %
 %
-% Copyright 2008
+% Copyright 2008-23
 % @date: 29-May-2008
 % @author Felipe Orihuela-Espina
 %
 % See also switchExclusory, setExclusory, setAllExclusory
 %
+
+
+%% Log
+%
+% File created: 29-May-2008
+% File last modified (before creation of this log): N/A. This method
+%   had not been modified since creation.
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%
+
 
 if (nargin==1)
     b=obj.exclusory;
@@ -34,3 +46,6 @@ if (isempty(idxB))
     return;
 end
 b=obj.exclusory(idxA,idxB);
+
+
+end

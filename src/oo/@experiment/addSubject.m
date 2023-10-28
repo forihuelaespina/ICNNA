@@ -30,18 +30,33 @@ function obj=addSubject(obj,newSubjects)
 %same ID of an existing one, but is not equal to it.
 %
 %
-% Copyright 2008
-% @date: 16-Apr-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also removeSubject, setSubject
 %
 
+
+
+%% Log
+%
+% File created: 16-Apr-2008
+% File last modified (before creation of this log): N/A. This class file
+%   had not been modified since creation.
+%
+% 23-May-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%   + Started to use get/set methods for struct like access.
+%
+
+
+
+
 if (length(newSubjects)==1 && isa(newSubjects,'subject'))
     %Insert single subject
     s=subject(newSubjects);
     
-    idx=findSubject(obj,get(s,'ID'));
+    idx=findSubject(obj,s.id);
     if isempty(idx)
         if existSessionDefinitionConflicts(obj,s)
         warning('ICNA:experiment:addSubject:SessionDefinitionConflict',...
@@ -68,10 +83,13 @@ for ii=1:numel(newSubjects)
     waitbar(barProgress,h,['Adding multiple subjects - Check Stage - ' ...
                     num2str(round(barProgress*100)) '%']);
     barProgress=barProgress+step;
-    if isa(newSubjects{ii},'subject')
-        if isempty(findSubject(obj,get(newSubjects{ii},'ID')))
+
+    tmpNewSubj = newSubjects{ii};
+
+    if isa(tmpNewSubj,'subject')
+        if isempty(findSubject(obj,tmpNewSubj.id))
             %Check possible sessionDefinitions coflicts
-            if existSessionDefinitionConflicts(obj,newSubjects{ii})
+            if existSessionDefinitionConflicts(obj,tmpNewSubj)
                 warning(['ICNA:experiment:addSubject:'...
                     'SessionDefintionConflict'],...
                     ['Session definition conflict found. ' ...
@@ -80,7 +98,7 @@ for ii=1:numel(newSubjects)
             else
                 %Collect the new session definitions
                 defs=collectSessionDefinitionsFromSubject(obj,...
-                            newSubjects{ii},1);
+                            tmpNewSubj,1);
                 obj=addSessionDefinition(obj,defs);
                 idxs=[idxs ii];
             end
@@ -88,7 +106,7 @@ for ii=1:numel(newSubjects)
         else
              warning('ICNA:experiment:addSubject:RepeatedID',...
                 ['A subject with ID=' ...
-                     num2str(get(newSubjects{ii},'ID')) ...
+                     num2str(tmpNewSubj.id) ...
                      ' has already been defined.']);
         end
     else
@@ -111,3 +129,7 @@ else
     error('Invalid input subject/s. For multiple subjects use a cell array');
 end
 assertInvariants(obj);
+
+
+
+end

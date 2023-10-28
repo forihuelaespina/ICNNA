@@ -1,5 +1,5 @@
 function obj = set(obj,varargin)
-% TIMELINE/SET Set object properties and return the updated object
+% TIMELINE/SET DEPRECATED (v1.2). Set object properties and return the updated object
 %
 % obj = set(obj,'PropertyName',propertyValue) Set object properties and
 %   return the updated object
@@ -24,13 +24,39 @@ function obj = set(obj,varargin)
 %
 %
 %
-% Copyright 2008-12
-% @date: 18-Apr-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 29-Dec-2012
 %
-%See also get, addCondition, addConditionEvents, setConditionEvents
+%See also addCondition, addConditionEvents, setConditionEvents
 %
+
+
+
+
+
+%% Log
+%
+% File created: 18-Apr-2008
+% File last modified (before creation of this log): 29-Dec-2012
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + As I started to add get/set methods for struct like access
+%   to attributes in the main class file, I also updated this
+%   method to simply redirect to those.
+%   + Declare method as DEPRECATED (v1.2).
+%   + Nested method cropOrRemoveEvents has now been separated
+%   to a private method.
+%
+
+
+
+warning('ICNNA:timeline:set:Deprecated',...
+        ['DEPRECATED (v1.2). Use struct like syntax for setting the attribute ' ...
+         'e.g. timeline.' lower(varargin{1}) ' = ... ']); 
+
+
+
 propertyArgIn = varargin;
 while length(propertyArgIn) >= 2,
    prop = propertyArgIn{1};
@@ -38,100 +64,74 @@ while length(propertyArgIn) >= 2,
    propertyArgIn = propertyArgIn(3:end);
    switch lower(prop)
     case 'length'
-        if (isscalar(val) && (val==floor(val)))
-            
-            %Remove or crop events beyond the new length.
-            res=cropOrRemoveEvents(val);
-            if (res)
-                warning('ICNA:timeline:set:EventsCropped',...
-                    ['Events lasting beyond the new length ' ...
-                     'will be cropped or removed.']);
-            end
-            
-            if val>obj.length
-                %Generate extra timestamps
-                initStamp = 0;
-                if ~isempty(obj.timestamps)
-                    initStamp = obj.timestamps(end);
-                end
-                extraTimestamps = initStamp + ...
-                    (1:val-obj.length) / get(obj,'NominalSamplingRate');
-                obj.timestamps = [obj.timestamps; extraTimestamps'];
-            elseif val<obj.length
-                %Remove the later timestamps
-                obj.timestamps(val+1:end) = [];
-            end
-            
-            obj.length = val;
-            
-        else
-            error('ICNA:timeline:set:InvalidParameterValue',...
-                    'Value must be a scalar natural/integer.');
-        end
+        obj.length = val;
+        % if (isscalar(val) && (val==floor(val)))
+        % 
+        %     %Remove or crop events beyond the new length.
+        %     [obj,res]=obj.cropOrRemoveEvents(val);
+        %     if (res)
+        %         warning('ICNA:timeline:set:EventsCropped',...
+        %             ['Events lasting beyond the new length ' ...
+        %              'will be cropped or removed.']);
+        %     end
+        % 
+        %     if val>obj.length
+        %         %Generate extra timestamps
+        %         initStamp = 0;
+        %         if ~isempty(obj.timestamps)
+        %             initStamp = obj.timestamps(end);
+        %         end
+        %         extraTimestamps = initStamp + ...
+        %             (1:val-obj.length) / get(obj,'NominalSamplingRate');
+        %         obj.timestamps = [obj.timestamps; extraTimestamps'];
+        %     elseif val<obj.length
+        %         %Remove the later timestamps
+        %         obj.timestamps(val+1:end) = [];
+        %     end
+        % 
+        %     obj.length = val;
+        % 
+        % else
+        %     error('ICNA:timeline:set:InvalidParameterValue',...
+        %             'Value must be a scalar natural/integer.');
+        % end
 
     case 'nominalsamplingrate'
-        if (isscalar(val) && val>0)
-            obj.nominalSamplingRate = val;
-        else
-            error('ICNA:timeline:set:InvalidParameterValue',...
-                    'Value must be a scalar natural/integer.');
-        end
+        obj.nominalSamplingRate = val;
+        % if (isscalar(val) && val>0)
+        %     obj.nominalSamplingRate = val;
+        % else
+        %     error('ICNA:timeline:set:InvalidParameterValue',...
+        %             'Value must be a scalar natural/integer.');
+        % end
 
     case 'starttime'
-        if (ischar(val) || isvector(val) || isscalar(val))
-            obj.startTime = datenum(val);
-        else
-            error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
-                  'Value must be a date (whether a string, datevec or datenum).');
-        end
+        obj.starttime = val;
+        % if (ischar(val) || isvector(val) || isscalar(val))
+        %     obj.startTime = datenum(val);
+        % else
+        %     error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+        %           'Value must be a date (whether a string, datevec or datenum).');
+        % end
 
     case 'timestamps'
-        if (isvector(val) && ~ischar(val) ...
-                && all(val(1:end-1)<val(2:end)) ...
-                && numel(val)==obj.length)
-            %ensure it is a column vector
-            val = reshape(val,numel(val),1);
-            obj.timestamps = val;
-        else
-            error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
-                  'Value must be a vector of length get(obj,''Length'').');
-        end
+        obj.timestamps = val;
+        % if (isvector(val) && ~ischar(val) ...
+        %         && all(val(1:end-1)<val(2:end)) ...
+        %         && numel(val)==obj.length)
+        %     %ensure it is a column vector
+        %     val = reshape(val,numel(val),1);
+        %     obj.timestamps = val;
+        % else
+        %     error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+        %           'Value must be a vector of length get(obj,''Length'').');
+        % end
 
     otherwise
-      error('ICNA:timeline:set:InvalidParameterValue',...
+      error('ICNNA:timeline:set:InvalidParameterValue',...
             ['Property ' prop ' not valid.'])
    end
 end
 assertInvariants(obj);
 
-%% Auxiliar Nested functions
-function res=cropOrRemoveEvents(newLength)
-    res=false;
-    nCond=get(obj,'NConditions');
-    for cc=1:nCond
-        ctag=getConditionTag(obj,cc);
-        [e,eInfo]=getConditionEvents(obj,ctag);
-        if (~isempty(e))
-            onsets=e(:,1);
-            %Remove those events which start after the new length
-            idx=find(onsets>newLength);
-            if (~isempty(idx))
-                res=true;
-            end
-            e(idx,:)=[];
-            eInfo(idx)=[];
-            %Crop those events which start before the new lengh
-            %but last beyond that length
-            onsets=e(:,1);
-            durations=e(:,2);
-            endings=onsets+durations;
-            idx=find(endings>newLength);
-            if (~isempty(idx))
-                res=true;
-            end
-            e(idx,2)=newLength-onsets(idx);
-        end
-        obj=setConditionEvents(obj,ctag,e,eInfo);
-    end
-end
 end

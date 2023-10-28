@@ -6,12 +6,25 @@ function element=guiVisualizeEMDAnalysis(element)
 % The analysis must have been run i.e. 'RunStatus' equals true.
 %
 %
-% Copyright 2008
-% @date: 12-Aug-2008
+% Copyright 2008-22
 % @author Felipe Orihuela-Espina
 %
 % See also guiAnalysis, analysis, cluster, guiVisualizeAnalysis
 %
+
+%% Log
+%
+% 12-Aug-2008: File created
+%
+% 13-Jun-2022: (FOE)
+%   - Added changes log
+%   - Removed tag @date and substituted by entry on log
+%   - Updated Copyright entry
+%   - Removed deprecated parameter 'v0' from uitab and uitabgroup calls.
+%   Backward compatibility may be affected.
+%
+
+
 
 if ~get(element,'RunStatus')
     errordlg({'ICNA:guiVisualizationAnalysis:AnalysisNotRun',...
@@ -50,10 +63,10 @@ bgColor=get(f,'Color');
 %Menus
 %Toolbars
 %Components
-tabPanel=uitabgroup('v0',f,...
+tabPanel=uitabgroup(f,...
        'Position', [0.01 0.02 0.98 0.93]);
 
-imageTab = uitab('v0',tabPanel,...
+imageTab = uitab(tabPanel,...
        'Title','Image');
 emdAxes=axes('Parent',imageTab);
 set(emdAxes,...
@@ -64,7 +77,7 @@ set(emdAxes,...
         'Position',[0.1 0.1 0.85 0.85]);
 title(emdAxes,'EMD results');
 
-valuesTab = uitab('v0',tabPanel,...
+valuesTab = uitab(tabPanel,...
        'Title','Values');
 valuesTable=uitable(valuesTab,...
         'Tag','emdTable',...
@@ -73,7 +86,7 @@ valuesTable=uitable(valuesTab,...
         'Units','normalize',...
         'Position',[0.05 0.03 0.85 0.94]);
 
-histTab = uitab('v0',tabPanel,...
+histTab = uitab(tabPanel,...
        'Title','Histogram');
 emdHistAxes=axes('Parent',histTab);
 set(emdHistAxes,...

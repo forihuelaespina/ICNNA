@@ -66,14 +66,29 @@ function [block]=blockResample(block,nSamples,varargin)
 % resampled - A fixed length resampled structuredData
 %
 %
-% Copyright 2008-13
-% @date: 27-Jun-2008
+% Copyright 2008-23
 % @author: Felipe Orihuela-Espina
-% @modified: 4-Jan-2013
 %
 % See also experimentSpace, analysis, structuredData,
 % structuredData.getBlock, resample, blocksTemporalAverage
 %
+
+
+
+
+%% Log
+%
+% File created: 27-Jun-2008
+% File last modified (before creation of this log): 4-Jan-2013
+%
+% 27-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%
+
+
+
+
 
 %Check which variant of resampling (see above) is wanted by checking the
 %length of the nSamples input Parameter
@@ -82,7 +97,7 @@ if (length(nSamples)==1) %Variant 1> Fixed length across the whole signal
 elseif (length(nSamples)==3)  %Variant 2> Fixed length across the chunks
     algorithmVariant=2;
 else
-    error('ICNA:miscalleneous:blockResample',...
+    error('ICNNA:miscalleneous:blockResample',...
           'Inappropriate value for parameter nSamples.');
 end
 
@@ -103,17 +118,17 @@ while length(propertyArgIn) >= 2,
                 elseif strcmpi(val,'off')
                     reconcileEdges=false;
                 else
-                    error('ICNA:miscalleneous:blockResample',...
+                    error('ICNNA:miscalleneous:blockResample',...
                         '''ReconcileEdges'' value must be either ''on'' or ''off''.');
                 end
             else
-                error('ICNA:miscalleneous:blockResample',...
+                error('ICNNA:miscalleneous:blockResample',...
                     '''ReconcileEdges'' value must be either ''on'' or ''off''.');
             end
 
 
         otherwise
-            error('ICNA:miscalleneous:blockResample',...
+            error('ICNNA:miscalleneous:blockResample',...
 		  ['Option ''' prop ''' not recognised.'])
     end
 end
@@ -122,28 +137,28 @@ end
 
 %% Some initialization
 
-nChannels=get(block,'NChannels');
-nSignals=get(block,'NSignals');
-t=get(block,'Timeline');
-nOriginalSamples=get(t,'Length');
+nChannels = block.nChannels;
+nSignals  = block.nSignals;
+t = block.timeline;
+nOriginalSamples = t.length;
 
 %% Find the time marks
 %A single condition and single event is assumed.
-if (get(t,'NConditions')~=1)
-    error('ICNA:miscalleneous:blockResample',...
+if (t.nConditions ~= 1)
+    error('ICNNA:miscalleneous:blockResample',...
           ['Unexpected number of conditions. '...
            'Data is possibly not a single block.']);
 end
 condTag=getConditionTag(t,1);
 if (getNEvents(t,condTag)~=1)
-    error('ICNA:miscalleneous:blockResample',...
+    error('ICNNA:miscalleneous:blockResample',...
           ['Unexpected number of events/epochs. '...
            'Data is possibly not a single block.']);
 end
 marks=getConditionEvents(t,condTag);
 
 %Allocate memory
-data=get(block,'Data');
+data = block.data;
 
 %%Resample algorithm
 switch algorithmVariant
@@ -241,17 +256,20 @@ switch algorithmVariant
           newLength=size(resampled,1);
         end
     otherwise
-        error('ICNA:miscalleneous:blockResample',...
+        error('ICNNA:miscalleneous:blockResample',...
              ['Inappropriate value for parameter nSamples.']);
 end
 
 assert(newLength==sum(nSamples), ...
-        ['ICNA:miscalleneous:blockResample:'...
+        ['ICNNA:miscalleneous:blockResample:'...
         'Unexpected length after resampling']);
 
-s = warning('off', 'ICNA:timeline:set:EventsCropped');
-block=set(block,'Data',resampled);
+s = warning('off', 'ICNNA:timeline:set:EventsCropped');
+block.data = resampled;
 %% re-establish the new timeline
 t=timeline(newLength,condTag,newMarks);
-block=set(block,'Timeline',t);
+block.timeline = t;
 warning(s);
+
+
+end

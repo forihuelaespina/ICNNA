@@ -79,14 +79,25 @@ function obj=checkIntegrity(obj,varargin)
 %
 %
 %
-% Copyright 2008-10
-% @date: 17-Jun-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 29-Oct-2010
 %
 % See also nirs_neuroimage, structuredData.checkIntegrity,
 %       integrityStatus, get, set
 %
+
+
+%% Log
+%
+%
+% File created: 17-Jun-2008
+% File last modified (before creation of this log): 29-Oct-2010
+%
+% 20-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%
+
 
 
 %Deal with the options
@@ -96,7 +107,7 @@ opt.testMirroring=true;
 opt.testOptodeMov=false;
 opt.testAllChannels=false;
 opt.verbose=true;
-nChannels = get(obj,'NChannels');
+nChannels = obj.nChannels;
 opt.whichChannels=1:nChannels;
 
 if (~isempty(varargin))
@@ -138,12 +149,12 @@ end
 
 
 %Check the integrity test specifically desgined for this class
-integrity=getStatus(get(obj,'Integrity'),opt.whichChannels);
+integrity=getStatus(obj.integrity,opt.whichChannels);
 pos=1;
 for ch=opt.whichChannels
 
   if (opt.testAllChannels || ...
-	(getStatus(get(obj,'Integrity'),ch)==integrityStatus.UNCHECK))
+	(getStatus(obj.integrity,ch)==integrityStatus.UNCHECK))
 
 
     %First run superclass integrity checks...
@@ -152,7 +163,7 @@ for ch=opt.whichChannels
     else
         obj=checkIntegrity@neuroimage(obj,ch);
     end
-    condition=getStatus(get(obj,'Integrity'),ch);
+    condition=getStatus(obj.integrity,ch);
 %    condition=integrityStatus.FINE; %By default, assume the data is clean
                 %Do not remove this line, so condition has
                 %a value to assign at the end of the ifs
@@ -206,8 +217,11 @@ for ch=opt.whichChannels
     pos=pos+1;
    end
 end
-tmpInt=get(obj,'Integrity');
+tmpInt=obj.integrity;
 tmpInt=setStatus(tmpInt,opt.whichChannels,integrity);
-obj=set(obj,'Integrity',tmpInt);
+obj.integrity = tmpInt;
 
 %assertInvariants(obj);
+
+
+end

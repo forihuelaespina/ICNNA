@@ -1,3 +1,4 @@
+classdef neuroimage < structuredData
 %Class neuroimage
 %
 %A neuroimage represents a image of the brain of any
@@ -22,6 +23,18 @@
 %single dimension where each picture element is identified by a
 %simple numerical index.
 %
+%
+%% Remarks
+%
+% 20-May-2023: FOE
+%   Because of Matlab's current rigid rules about the overloaded
+%   get/set methods support for struct like access to attributes,
+%   class invariants can no longer be enforced when updating a property
+%   as I cannot transiently violate the invariants when updating one
+%   property affects another.
+%   This is an undesirable side effect of this, but right now I do not
+%   have a solution.
+% 
 %
 %% Superclass
 %
@@ -48,16 +61,35 @@
 %
 % Type methods('neuroimage') for a list of methods
 % 
-% Copyright 2008-12
-% @date: 25-Apr-2008
+% Copyright 2008-23
 % @author: Felipe Orihuela-Espina
-% @modified: 22-Dec-2012
 %
 % See also structuredData, nirs_neuroimage, integrityStatus, get
 %
-classdef neuroimage < structuredData
-    properties (SetAccess=private, GetAccess=private)
-        chLocationMap=channelLocationMap;
+
+%% Log
+%
+% File created: 25-Apr-2008
+% File last modified (before creation of this log): 22-Dec-2012
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Added property classVersion. Set to '1.0' by default.
+%   + Added get/set methods support for struct like access to attributes.
+%
+% 20-May-2023: FOE
+%   + Commented out ALL calls to assertInvariants in the get/set methods
+%
+
+
+
+    properties (Constant, Access=private)
+        classVersion = '1.0'; %Read-only. Object's class version.
+    end
+
+
+    properties %(SetAccess=private, GetAccess=private)
+        chLocationMap(1,1) channelLocationMap; %A channelLocationMap object
     end
 
     methods
@@ -86,13 +118,16 @@ classdef neuroimage < structuredData
                 obj=varargin{1};
                 return;
             else
-                obj=set(obj,'ID',varargin{1});
+                %obj=set(obj,'ID',varargin{1});
+                obj.id = varargin{1};
                 if (nargin>1) %Image size also provided
                     if ((isnumeric(varargin{2})) && (length(varargin{2})==3))
-                        obj=set(obj,'Data',zeros(varargin{2}));
                         cml=channelLocationMap;
-                        cml=set(cml,'nChannels',varargin{2}(2));
-                        obj=set(obj,'ChannelLocationMap',cml);
+                        %cml=set(cml,'nChannels',varargin{2}(2));
+                        %obj=set(obj,'ChannelLocationMap',cml);
+                        cml.nChannels = varargin{2}(2);
+                        obj.chLocationMap = cml;
+                        obj.data = zeros(varargin{2});
                     else
                         error(['Not a valid size vector; ' ...
                             '[nSamples, nChannels, nSignals].']);
@@ -100,13 +135,36 @@ classdef neuroimage < structuredData
                 end
                 
             end
-            obj=set(obj,'Description',...
-                    ['Neuroimage' num2str(get(obj,'ID'),'%04i')]);
-            assertInvariants(obj);
+            obj.description = ['Neuroimage' num2str(obj.id,'%04i')];
+            %assertInvariants(obj);
         end
     end
     
     methods (Access=protected)
         assertInvariants(obj);
     end
+
+
+    methods
+
+
+      %Getters/Setters
+
+      function res = get.chLocationMap(obj)
+         %Gets the object |chLocationMap|
+         res = obj.chLocationMap;
+      end
+      function obj = set.chLocationMap(obj,val)
+         %Sets the object |chLocationMap|
+         obj.chLocationMap = val;
+         %assertInvariants(obj);
+      end
+
+
+
+    end
+
+
+
+
 end

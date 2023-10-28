@@ -6,12 +6,23 @@ function res=eq(obj,obj2)
 % res=eq(obj1,obj2) Compares two objects.
 %
 %
-% Copyright 2008-12
-% @date: 11-Jul-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 29-Dec-2012
 %
 % See also timeline
+%
+
+
+%% Log
+%
+% File created: 11-Jul-2008
+% File last modified (before creation of this log): 29-Dec-2012
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%   + Removed some old commented code no longer in use.
+%   + Added support for new property classVersion
 %
 
 res=true;
@@ -20,10 +31,11 @@ if ~isa(obj2,'timeline')
     return
 end
 
-res = res && (get(obj,'Length')==get(obj2,'Length'));
-res = res && (get(obj,'StartTime')==get(obj2,'StartTime'));
-res = res && all(get(obj,'Timestamps')==get(obj2,'Timestamps'));
-res = res && (get(obj,'NominalSamplingRate')==get(obj2,'NominalSamplingRate'));
+res = res && (strcmp(obj.classVersion,obj2.classVersion));
+res = res && (obj.length==obj2.length);
+res = res && (obj.startTime==obj2.startTime);
+res = res && all(obj.timestamps==obj2.timestamps);
+res = res && (obj.nominalSamplingRate ==obj2.nominalSamplingRate);
 if ~res
     return
 end
@@ -35,22 +47,16 @@ if ~res
     return
 end
 
-res = res && (get(obj,'NConditions')==get(obj2,'NConditions'));
+res = res && (obj.nConditions==obj2.nConditions);
 if ~res
     return
 end
 
-nCond=get(obj,'NConditions');
+nCond=obj.nConditions;
 for cc=1:nCond
     c1 = getCondition(obj,cc);
     c2 = getCondition(obj,cc);
     res = res && isequal(c1,c2);
-%     c1Tag=getConditionTag(obj,cc);
-%     c2Tag=getConditionTag(obj2,cc);
-%     
-%     res = res && strcmp(c1Tag,c2Tag);
-%     res = res && all(all(getConditionEvents(obj,c1Tag)==...
-%         getConditionEvents(obj2,c2Tag)));
     if ~res
         return
     end

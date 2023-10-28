@@ -29,6 +29,10 @@ function [f]=plotStructuredData(sd,options)
 %
 %   .legendLocation - The location of the legend. Default 'NorthEast'.
 %
+%   .nogui - An option to use this without GUI elements e.g. just for
+%       figure visualization (and perhaps saving). Default is false (i.e.
+%       GUI elements will be shown).
+%
 %% Parameters
 %
 %   sd - A structuredData
@@ -39,8 +43,7 @@ function [f]=plotStructuredData(sd,options)
 %
 % A figure/axis handle.
 %
-% Copyright 2008-21
-% @date: 13-Nov-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also structuredData, plotChannel, shadeTimeline
@@ -49,6 +52,9 @@ function [f]=plotStructuredData(sd,options)
 
 
 %% Log
+%
+% File created: 13-Nov-2008
+% File last modified (before creation of this log): N/A
 %
 % 23-Nov-2013: Added zoom capabilities (restricted to horizontal zoom
 %       only).
@@ -92,6 +98,21 @@ function [f]=plotStructuredData(sd,options)
 %   function (using which).
 %   + I have remove the @modified tag above.
 %
+% 25-May-2023: FOE
+%   + Got rid of old label @date.
+%   + Added get/set methods support for struct like access to attributes.
+%
+% 29-May-2023: FOE
+%   + Bug fixed. For odd number of channels, the "last" of the first
+%   column was pushed to the second column, e.g. with 61 channels, channel
+%   31 should be on column 1 but was being pushed to column 2. It now
+%   correctly leave the channel on its corresponding column.  
+%   + Added option .nogui to use this without GUI elements.
+%
+
+
+
+
 
 
 if ~isa(sd,'structuredData')
@@ -99,10 +120,10 @@ if ~isa(sd,'structuredData')
         'Invalid input parameter.');
 end
 
-data=get(sd,'Data');
+data=sd.data;
 
 %% Deal with options
-opt.mainTitle=[get(sd,'Description')];
+opt.mainTitle=[sd.description];
 opt.scale=true;
 %Calculate an appropriate Y scale (rounding to the nearest decade)
 maxY = ceil(max(max(max(real(data))))/10)*10;
@@ -112,6 +133,7 @@ opt.fontSize=13;
 opt.lineWidth=1.5;
 opt.displayLegend=true;
 opt.legendLocation='NorthEast';
+opt.nogui=false;
 if(exist('options','var'))
     %%Options provided
     if(isfield(options,'mainTitle'))
@@ -135,6 +157,9 @@ if(exist('options','var'))
     if(isfield(options,'legendLocation'))
         opt.legendLocation=options.legendLocation;
     end
+    if(isfield(options,'nogui'))
+        opt.nogui=options.nogui;
+    end
 end
 
 
@@ -146,7 +171,7 @@ end
 % wOffset=round((screenSize(3)-width)/2);
 % hOffset=round((screenSize(4)-height)/2);
 % f=figure('Visible','off','Position',[wOffset,hOffset,width,height]);
-f=figure('Visible','off','Units','normalized','Position',[0 0 1 1]);
+f=figure('Visible','off','Units','normalized','Position',[0.05 0.05 0.9 0.9]);
 set(f,'NumberTitle','off');
 set(f,'MenuBar','none'); %Hide MATLAB figure menu
 %set(f,'CloseRequestFcn',{@OnClose_Callback});
@@ -156,71 +181,80 @@ movegui('center');
 bgColor=get(f,'Color');
 
 %Menus
-menuView = uimenu('Label','View',...
-    'Tag','menuView',...
-    'Accelerator','V');
-    uimenu(menuView,'Label','Shade timeline',...
-        'Tag','menuView_OptShadeTimeline',...
-        'Checked','on',...
-        'Callback',{@OnViewShadeTimeline_Callback});
-for mm=1:get(sd,'nSignals')
-    tag=getSignalTag(sd,mm);
-    %Substitute spaces or the handle name will not work
-    %Do not only remove them; because that may cause different tags to
-    %become equal!
-    tag(tag==' ')='_';
-    tmpMI=uimenu(menuView,'Label',getSignalTag(sd,mm),...
-        'Tag',['menuView_OptSignal' tag],...
-        'Checked','on',...
-        'Enable','on',...
-        'Visible','on',...
-        'Callback',{@OnViewSignal_Callback,mm});
-    if mm==1
-        set(tmpMI,'Separator','on');
+if ~opt.nogui
+    menuView = uimenu('Label','View',...
+        'Tag','menuView',...
+        'Accelerator','V');
+        uimenu(menuView,'Label','Shade timeline',...
+            'Tag','menuView_OptShadeTimeline',...
+            'Checked','on',...
+            'Callback',{@OnViewShadeTimeline_Callback});
+    for mm=1:sd.nSignals
+        tag=getSignalTag(sd,mm);
+        %Substitute spaces or the handle name will not work
+        %Do not only remove them; because that may cause different tags to
+        %become equal!
+        tag(tag==' ')='_';
+        tmpMI=uimenu(menuView,'Label',getSignalTag(sd,mm),...
+            'Tag',['menuView_OptSignal' tag],...
+            'Checked','on',...
+            'Enable','on',...
+            'Visible','on',...
+            'Callback',{@OnViewSignal_Callback,mm});
+        if mm==1
+            set(tmpMI,'Separator','on');
+        end
     end
+    
+    menuTools = uimenu('Label','Tools',...
+        'Tag','menuTools',...
+        'Enable','off');
+        uimenu(menuTools,'Label','Zoom',...
+            'Tag','menuTools_OptZoom',...
+            'Enable','on',...
+            'Callback',{@OnZoom_Callback});
+
+
+
+    %Toolbars
+    toolbar = uitoolbar(f,'Tag','toolbar');
+    %iconsFolder='C:\Program Files\MATLAB\R2007b\toolbox\matlab\icons\';
+    %iconsFolder='./GUI/icons/';
+    %Retrieve icons folder from the location of this function
+    tmpThisFunctionFile = which('plotStructuredData');
+    [tmpThisFunctionFilepath,~,~] = fileparts(tmpThisFunctionFile);
+    iconsFolder=[tmpThisFunctionFilepath filesep '..' filesep ...
+                    'GUI' filesep 'icons' filesep];
+    
+    tempIcon=load([iconsFolder 'zoom.mat']);
+       uipushtool(toolbar,'CData',tempIcon.cdata,...
+           'Tag','toolbarButton_Zoom',...
+           'TooltipString','Zoom',...
+           'Enable','on',...
+           'Separator','on',...
+           'ClickedCallback',{@OnZoom_Callback});
+
+    
+    
+    %Main area elements
+    tabPanel=uitabgroup(f,'Position', [0.02 0.02 0.96 0.96]);
+    
+    temporalViewTab = uitab(tabPanel,...
+           'Title','Temporal View');
 end
 
-menuTools = uimenu('Label','Tools',...
-    'Tag','menuTools',...
-    'Enable','off');
-    uimenu(menuTools,'Label','Zoom',...
-        'Tag','menuTools_OptZoom',...
-        'Enable','on',...
-        'Callback',{@OnZoom_Callback});
 
-
-
-
-%Toolbars
-toolbar = uitoolbar(f,'Tag','toolbar');
-%iconsFolder='C:\Program Files\MATLAB\R2007b\toolbox\matlab\icons\';
-%iconsFolder='./GUI/icons/';
-%Retrieve icons folder from the location of this function
-tmpThisFunctionFile = which('plotStructuredData');
-[tmpThisFunctionFilepath,~,~] = fileparts(tmpThisFunctionFile);
-iconsFolder=[tmpThisFunctionFilepath filesep '..' filesep ...
-                'GUI' filesep 'icons' filesep];
-
-tempIcon=load([iconsFolder 'zoom.mat']);
-   uipushtool(toolbar,'CData',tempIcon.cdata,...
-       'Tag','toolbarButton_Zoom',...
-       'TooltipString','Zoom',...
-       'Enable','on',...
-       'Separator','on',...
-       'ClickedCallback',{@OnZoom_Callback});
-
-    
-    
-%Main area elements
-tabPanel=uitabgroup(f,'Position', [0.02 0.02 0.96 0.96]);
-
-temporalViewTab = uitab(tabPanel,...
-       'Title','Temporal View');
 %Generate 1 axes per channel on 2 columns
-nChannels=get(sd,'NChannels');
-nSamples=get(sd,'NSamples');
+nChannels=sd.nChannels;
+nSamples=sd.nSamples;
+flagEvenNumChannels = (mod(nChannels,2)==0);
+flagOddNumChannels  = (mod(nChannels,2)==1);
 for ch=1:nChannels
-    chAxes(ch)=axes('Parent',temporalViewTab);
+    if ~opt.nogui
+        chAxes(ch)=axes('Parent',temporalViewTab);
+    else
+        chAxes(ch)=axes();
+    end
     set(chAxes(ch),...
         'Tag',['chAxes' num2str(ch)],...
 		'FontSize',opt.fontSize,...
@@ -233,7 +267,9 @@ for ch=1:nChannels
     %                            'Rotation',90)   
     set(get(chAxes(ch),'YLabel'),'String',['Ch.' num2str(ch)])   
     %Set the Y label location
-    if ch<=floor(nChannels/2)
+    if flagEvenNumChannels && ch<=floor(nChannels/2)
+        set(chAxes(ch),'YAxisLocation','left');
+    elseif flagOddNumChannels && ch<=floor((nChannels+1)/2)
         set(chAxes(ch),'YAxisLocation','left');
     else
         set(chAxes(ch),'YAxisLocation','right');
@@ -243,8 +279,15 @@ for ch=1:nChannels
     %Set the position (2 columns for more than 2 channels; or
     %one column if there is only 1 channel)
     offsetMargin=0.05;
+    if opt.nogui
+    offsetMargin=0.03;
+    end
     if nChannels > 1
-        height=(1-2*offsetMargin)/(floor(nChannels/2));
+        if flagEvenNumChannels
+            height=(1-2*offsetMargin)/(floor(nChannels/2));
+        else
+            height=(1-2*offsetMargin)/(floor((nChannels+1)/2));
+        end
         yPos=(1-2*offsetMargin)-(mod(ch-1,(nChannels/2)))*height;
         width = 0.43;
     else
@@ -253,14 +296,20 @@ for ch=1:nChannels
         yPos = 0.05;
     end
     xPos=0.05;
-    if ch>floor(nChannels/2) && nChannels > 1
+    if flagEvenNumChannels && ch>floor(nChannels/2) && nChannels > 1 %i.e. for even number of channels
+        xPos=0.52;
+    elseif flagOddNumChannels && ch>floor((nChannels+1)/2) && nChannels > 1 %i.e. for odd number of channels
         xPos=0.52;
     end
     set(chAxes(ch),'Position',[xPos yPos width height])
     
-    if ((ch==1) || (ch==floor(nChannels/2)+1))
+    if flagEvenNumChannels && ((ch==1) || (ch==floor(nChannels/2)+1))
         set(chAxes(ch),'XAxisLocation','top');
-    elseif ((ch==nChannels) || (ch==floor(nChannels/2)))
+    elseif flagOddNumChannels && ((ch==1) || (ch==floor((nChannels+1)/2)+1))
+        set(chAxes(ch),'XAxisLocation','top');
+    elseif flagEvenNumChannels && ((ch==nChannels) || (ch==floor(nChannels/2)))
+        set(get(chAxes(ch),'XLabel'),'String','Time (samples)'); 
+    elseif flagOddNumChannels && ((ch==nChannels) || (ch==floor((nChannels+1)/2)))
         set(get(chAxes(ch),'XLabel'),'String','Time (samples)'); 
     else
         set(chAxes(ch),'XTick',[]);
@@ -268,7 +317,9 @@ for ch=1:nChannels
     
     set(chAxes(ch),'XLim',[1 nSamples]);
     if(opt.scale)
-        set(chAxes(ch),'YLim',opt.scaleLimits);
+        if ~any(isnan(opt.scaleLimits))
+            set(chAxes(ch),'YLim',opt.scaleLimits);
+        end
     end
 end
 linkaxes(chAxes,'x');
@@ -295,7 +346,7 @@ guidata(f,handles);
 set(f,'Visible','on');OnLoad_Callback(f,[]);
 
 %% Make GUI visible
-set(f,'Name','ICNA - plotStructuredData');
+set(f,'Name','ICNNA - plotStructuredData');
 set(f,'Visible','on');
 
 
@@ -307,11 +358,11 @@ function OnLoad_Callback(hObject,eventData)
 % eventdata - Reserved for later use.
 handles=guidata(hObject);
 sd=handles.currentElement.data;
-nSamples=get(sd,'NSamples');
-nChannels=get(sd,'NChannels');
-nSignals=get(sd,'NSignals');
-data=get(sd,'Data');
-sd_integrityStatus = get(sd,'Integrity');
+nSamples=sd.nSamples;
+nChannels=sd.nChannels;
+nSignals=sd.nSignals;
+data=sd.data;
+sd_integrityStatus = sd.integrity;
 
 lineWidth=1.5;
 
@@ -358,7 +409,7 @@ for ch=1:nChannels
     %%Shade the regions of stimulus
     %%%IMPORTANT NOTE: If I try to first paint stimulus regions and
     %%%later the signal, at the moment will not work...
-    hTimelineEvents(ch)={shadeTimeline(gca,get(sd,'Timeline'))};
+    hTimelineEvents(ch)={shadeTimeline(gca,sd.timeline)};
 end
 handles.signalHandles=HH;
 handles.timelineEventsHandles=hTimelineEvents;
@@ -415,7 +466,7 @@ function refreshTemporalView(hObject)
 handles=guidata(hObject);
 sd=handles.currentElement.data;
 
-nSignals=get(sd,'NSignals');
+nSignals=sd.nSignals;
 %%Show or hide the signals
 for ch=1:nChannels
     for ss=1:nSignals

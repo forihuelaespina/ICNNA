@@ -25,10 +25,8 @@ function obj=setOptodeSurfacePositions(obj,idx,positions)
 %  
 %
 %
-% Copyright 2013
-% @date: 8-Sep-2013
+% Copyright 2023
 % @author: Felipe Orihuela-Espina
-% @modified: 8-Sep-2013
 %
 % See also getOptodeSurfacePositions, setOptode3DLocations,
 %   setOptodeStereotacticPositions,
@@ -38,19 +36,29 @@ function obj=setOptodeSurfacePositions(obj,idx,positions)
 
 %% Log
 %
+%
+% File created: 8-Sep-2013
+% File last modified (before creation of this log): N/A. This method had
+%   not been modified since creation.
+%
 % 8-Sep-2013: Method created
+%
+%
+% 21-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
 %
 
 
 
 
 if ~iscell(positions)
-    error('ICNA:channelLocationMap:setOptodeSurfacePositions:InvalidParameterValue',...
+    error('ICNNA:channelLocationMap:setOptodeSurfacePositions:InvalidParameterValue',...
           'Positions must be a cell array.');
 end
     
 assert(numel(idx)==numel(positions),...
-        ['ICNA:channelLocationMap:setSurfacePositions:InvalidParameterValue',...
+        ['ICNNA:channelLocationMap:setSurfacePositions:InvalidParameterValue',...
          'Number of optode indexes mismatches number of positions.']);
 idx=reshape(idx,numel(idx),1); %Ensure both are vectors
 positions=reshape(positions,numel(positions),1);
@@ -59,7 +67,7 @@ positions=reshape(positions,numel(positions),1);
 [valid]=channelLocationMap.isValidSurfacePosition(positions,...
                                 get(obj,'SurfacePositioningSystem'));
 if ~all(valid)
-    warning('ICNA:optodeLocationMap:setSurfacePositions:InvalidPosition',...
+    warning('ICNNA:optodeLocationMap:setSurfacePositions:InvalidPosition',...
         'Invalid positions found. Only valid positions will be updated.');
     tempIdx=find(~valid);
     idx(tempIdx)=[];
@@ -67,7 +75,7 @@ if ~all(valid)
 end
 
 
-tempIdx=find(idx<1 | idx>get(obj,'nOptodes'));
+tempIdx=find(idx<1 | idx> obj.nOptodes);
 idx(tempIdx)=[];
 positions(tempIdx)=[];
 

@@ -17,12 +17,30 @@ function obj=setExclusory(obj,tagA,tagB,exclusoryState)
 %
 %
 %
-% Copyright 2008
-% @date: 29-May-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also switchExclusory, setAllExclusory
 %
+
+
+
+%% Log
+%
+% File created: 29-May-2008
+% File last modified (before creation of this log): N/A. This method
+%   had not been modified since creation.
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date.
+%   Bug fixing
+%   + 1 error was not yet using the "new" ICNNA error code 
+%
+%
+
+
+
+
 
 if (strcmp(tagA,tagB))
     return;
@@ -37,7 +55,8 @@ if (isempty(idxB))
     return;
 end
 if (idxA==idxB)
-    error('Duplicated Tag?');
+    error('ICNA:timeline:setExclusory:DuplicateTag',...
+          'Duplicated Tag?');
 end
 
 if (~exist('exclusoryState','var'))
@@ -51,3 +70,5 @@ else
     return;
 end
 assertInvariants(obj);
+
+end

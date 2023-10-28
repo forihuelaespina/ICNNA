@@ -17,10 +17,8 @@ function obj=setOptodeProbeSets(obj,idx,ps)
 %
 %
 %
-% Copyright 2013
-% @date: 8-Sep-2013
+% Copyright 2013-23
 % @author: Felipe Orihuela-Espina
-% @modified: 8-Sep-2013
 %
 % See also getOptodeProbeSets, setOptode3DLocations,
 %   setOptodeSurfacePositions,
@@ -30,19 +28,28 @@ function obj=setOptodeProbeSets(obj,idx,ps)
 
 %% Log
 %
+% File created: 8-Sep-2013
+% File last modified (before creation of this log): N/A. This method
+%   was never updated after creation.
+%
 % 8-Sep-2013: Method created
+%   + Added this log.
+%
+% 20-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
 %
 
 
 
 assert(numel(idx)==numel(ps),...
-        ['ICNA:channelLocationMap:setOptodeProbeSets:InvalidParameterValue',...
+        ['ICNNA:channelLocationMap:setOptodeProbeSets:InvalidParameterValue',...
          'Number of optode indexes mismatches number of associated ' ...
          'probe sets.']);
 idx=reshape(idx,numel(idx),1); %Ensure both are vectors
 ps=reshape(ps,numel(ps),1);
 
-tempIdx=find(idx<1 | idx>get(obj,'nOptodes'));
+tempIdx=find(idx<1 | idx>obj.nOptodes);
 idx(tempIdx)=[];
 ps(tempIdx)=[];
 

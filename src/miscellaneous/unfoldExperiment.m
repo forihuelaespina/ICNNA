@@ -39,14 +39,28 @@ function [I,F,COL]=unfoldExperiment(E)
 %
 %
 %
-% Copyright 2010-12
-% @date: 3-Jul-2010
+% Copyright 2010-23
 % @author: Felipe Orihuela-Espina
-% @modified: 17-Aug-2012
 %
 % See also experimentSpace, structuredData, batchBasicVisualization,
 %   plotChannel, guiBasicVisualization
 %
+
+
+
+
+%% Log
+%
+% File created: 3-Jul-2010
+% File last modified (before creation of this log): 17-Aug-2012
+%
+% 27-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%
+
+
+
 
 
 %Declare the constants
@@ -68,7 +82,7 @@ for subjID=subjectList
         dataSourceList=getDataSourceList(ss);
         for dataSourceID=dataSourceList
             ds=getDataSource(ss,dataSourceID);
-            activeDataID=get(ds,'ActiveStructured');
+            activeDataID=ds.activeStructured;
             I(end+1,:)=[subjID sessID dataSourceID];
             F(end+1,1)={getStructuredData(ds,activeDataID)};
             

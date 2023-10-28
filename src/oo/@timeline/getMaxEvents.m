@@ -14,13 +14,25 @@ function [max,tags,idxs]=getMaxEvents(obj)
 %   
 %
 %
-% Copyright 2008
-% @date: 18-Jun-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also setConditionEvents, addConditionEvents, removeConditionEvents,
 %   getNEvents, getTotalEvents
 %
+
+
+%% Log
+%
+% File created: 18-Jun-2008
+% File last modified (before creation of this log): N/A. This method
+%   had not been modified since creation.
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date.
+%
+
+
 max=[];
 tags=cell(1,0);
 idxs=zeros(1,0);

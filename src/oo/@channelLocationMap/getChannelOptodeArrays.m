@@ -22,10 +22,8 @@ function [optArrays,oaInfo]=getChannelOptodeArrays(obj,idx)
 %
 %
 %
-% Copyright 2012-13
-% @date: 26-Nov-2012
+% Copyright 2012-23
 % @author: Felipe Orihuela-Espina
-% @modified: 8-Sep-2013
 %
 % See also setChannelOptodeArrays, getOptodeArraysInfo, 
 %   getChannel3DLocations, getChannelSurfacePositions,
@@ -34,8 +32,17 @@ function [optArrays,oaInfo]=getChannelOptodeArrays(obj,idx)
 
 %% Log
 %
+%
+% File created: 26-Nov-2012
+% File last modified (before creation of this log): 8-Sep-2013
+%
 % 8-Sep-2013: Method name changed from getOptodeArrays to
 %       getChannelOptodeArrays.
+%   + Added this log.
+%
+% 20-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
 %
 
 
@@ -43,7 +50,10 @@ function [optArrays,oaInfo]=getChannelOptodeArrays(obj,idx)
 optArrays=obj.chOptodeArrays;
 if exist('idx','var')
     idx(idx<1)=[];
-    idx(idx>get(obj,'nChannels'))=[];
+    idx(idx>obj.nChannels)=[];
     optArrays=optArrays(idx,:);
 end
 oaInfo=obj.optodeArrays; %Retrieve information for all arrays
+
+
+end

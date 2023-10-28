@@ -21,13 +21,27 @@ function obj=compute(obj,e)
 % e - An experiment
 %
 %
-% Copyright 2008-13
-% @date: 27-Jun-2008
+% Copyright 2008-23
 % @author: Felipe Orihuela-Espina
-% @modified: 10-Abr-2013
 %
 % See also experimentSpace, analysis, getConnectivity
 %
+
+
+%% Log
+%
+% File created: 27-Jun-2008
+% File last modified (before creation of this log): 10-Abr-2013
+%
+% 24-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%
+% 7-Jun-2023: FOE
+%   + Continue updating calls to get attributes using the struct like syntax
+%
+
+
 
 subjIDs=getSubjectList(e);
 nSubjects=length(subjIDs);
@@ -50,25 +64,25 @@ for sID=subjIDs
         ss=getSession(subj,ssID);
         dsIDs=getDataSourceList(ss);
         for dsID=dsIDs
-            ds=getDataSource(ss,dsID);
-            sdID=get(ds,'ActiveStructured');
-            sd=getStructuredData(ds,sdID);
+            ds = getDataSource(ss,dsID);
+            sdID = ds.activeStructured;
+            sd = getStructuredData(ds,sdID);
 
-            t=get(sd,'Timeline');
-            integrityCodes=get(sd,'Integrity');
+            t = sd.timeline;
+            integrityCodes = sd.integrity;
             %%TO DO: Still need to check whether timelines are compatible
-            nChannels=get(sd,'NChannels');
-            nSignals=get(sd,'NSignals');
-            nStim=get(t,'NConditions');
+            nChannels = sd.nChannels;
+            nSignals = sd.nSignals;
+            nStim = t.nConditions;
             for stim=1:nStim
                 stimTag=getConditionTag(t,stim);
                                 
                 %% Stage 1: Block Splitting                
                 nBlocks=getNEvents(t,stimTag);
                 %Temporarily collect the blocks for this condition
-                tmpBlocks=cell(nBlocks,1);
-                bSamples=get(obj,'BaselineSamples');
-                rSamples=get(obj,'RestSamples');
+                tmpBlocks = cell(nBlocks,1);
+                bSamples  = obj.baselineSamples;
+                rSamples  = obj.restSamples;
                 for bl=1:nBlocks
                     if (rSamples < 0)
                         tmpBlocks(bl)=...
@@ -83,22 +97,20 @@ for sID=subjIDs
                 end
                 
                 %% Stage 2: Resampling
-                if (get(obj,'Resampled'))
-                    nRSSamples=[get(obj,'RS_Baseline') ...
-                        get(obj,'RS_Task') ...
-                        get(obj,'RS_Rest')];
+                if (obj.resampled)
+                    nRSSamples=[obj.rs_baseline obj.rs_task obj.rs_rest];
                     for bl=1:nBlocks
-                        s=warning('query','ICNA:timeline:set:EventsCropped');
-                        warning('off','ICNA:timeline:set:EventsCropped');
+                        s=warning('query','ICNNA:timeline:set:EventsCropped');
+                        warning('off','ICNNA:timeline:set:EventsCropped');
                         tmpBlocks(bl)={blockResample(...
                             tmpBlocks{bl},nRSSamples)};
-                        warning(s.state,'ICNA:timeline:set:EventsCropped');
+                        warning(s.state,'ICNNA:timeline:set:EventsCropped');
                             %Leave the warning state as it was
                     end
                 end
                 
                 %% Stage 3: Block Averaging
-                if (get(obj,'Averaged'))
+                if (obj.averaged)
                     nBlocks=1;
                     avgBlock=blocksTemporalAverage(tmpBlocks);
                     clear tmpBlocks
@@ -112,15 +124,16 @@ for sID=subjIDs
                 %% Stage 4: Window Selection
                 %if (get(obj,'Windowed'))
                     for bl=1:nBlocks
-                        t2=get(tmpBlocks{bl},'Timeline');
+                        theBlock = tmpBlocks{bl};
+                        t2=theBlock.timeline;
                         
-                        s=warning('query','ICNA:timeline:set:EventsCropped');
-                        warning('off','ICNA:timeline:set:EventsCropped');
-                            tmpBlocks(bl)={windowSelection(tmpBlocks{bl},...
+                        s=warning('query','ICNNA:timeline:set:EventsCropped');
+                        warning('off','ICNNA:timeline:set:EventsCropped');
+                            tmpBlocks(bl)={windowSelection(theBlock,...
                             getConditionTag(t2,1),1,...
-                            get(obj,'WS_Onset'),...
-                            get(obj,'WS_Duration'))};
-                        warning(s.state,'ICNA:timeline:set:EventsCropped');
+                            obj.ws_onset,...
+                            obj.ws_duration)};
+                        warning(s.state,'ICNNA:timeline:set:EventsCropped');
                             %Leave the warning state as it was
                     end
                 %end
@@ -173,8 +186,8 @@ end %of subject
 
 
 %% Stage 5: Normalization
-if (get(obj,'Normalized'))
-    obj=normalize(obj);
+if (obj.normalized)
+    obj = obj.normalize();
 end
 
 
@@ -185,10 +198,10 @@ pos=1;
 for ss=sessions
     sessDef=getSessionDefinition(e,ss);
     sessNames(pos).sessID = ss;
-    sessNames(pos).name = get(sessDef,'Name');
+    sessNames(pos).name = sessDef.name;
     pos=pos+1;
 end
-obj=set(obj,'SessionNames',sessNames);
+obj.sessionNames = sessNames;
 
 obj.runStatus=true;
 
@@ -197,3 +210,7 @@ close(h);
 
 
 assertInvariants(obj);
+
+
+
+end

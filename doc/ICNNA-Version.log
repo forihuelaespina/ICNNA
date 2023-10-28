@@ -1,9 +1,192 @@
 ====================================
 = ICNA/ICNNA Version Log File
-= Copyright 2008-2020
+= Copyright 2008-2023
 = Author: Felipe Orihuela-Espina
 ====================================
 
+====================================
+= ICNNA v1.2.0 (released 13-Jan-2022)
+====================================
+
+This version is the first one with partial support for the
+snirf file format (long pending). ICNNA is now capable of reading
+.snirf files and offer some limited capacity for writing them.
+
+Also, this package initiates the transition of ICNNA to a package based
+organization of classes. Not all classes are still migrated, but
+new classes are already organized into packages.
+
+- Incorporation of support for .snirf file format. A whole new package
+of classes +iccna.data.snirf.* has been added from sandbox code created
+by FOE for the LaserLab CUSBO project.
+
+- To avoid clash with the new package organization, the call to the
+initialize the GUI has now been renamed from:
+
+    icnna
+
+to
+
+    guiICNNA
+
+
+
+
+Finally, this version also introduced for the first time the struct like
+syntax for accessing attributes. This changes ICNNA typical calls:
+
+    get(obj,'Property')
+    set(obj,'Property',value)
+
+for:
+
+    obj.property
+    obj.property = value
+
+The old code will still work, but it is now deprecated. 
+
+	+==========================================================+
+	| WARNING! Because of the limitations of Matlab's support  |
+	| for these calls (e.g. for these specific methods, Matlab |
+	| does not support overriding), some of ICNNA's traditional|
+	| hard class invariants have been relaxed and changed from |
+	| errors into warnings, or simply removed.                 |
+	+==========================================================+
+
+Again, not all classes are still migrated, but it is documented which ones
+are and which ones are not.
+
+- Migrated classes to support struct like access to attributes;
+	@timeline, @rawData, @rawData_NIRScout, @structuredData, @channelLocationMap,
+    @neuroimage, @nirs_neuroimage, @experiment, @subject, @sessionDefinition,
+    @session,  @dataSourceDefinition, @dataSource, @cluster, @analysis,
+	@experimentSpace
+ * Added property classVersion. Set to '1.0' by default.
+ * Added get/set methods support for struct like access to attributes.
+ * Deprecated methods get/set e.g. get(obj,'Property');
+ * Simplified the set code for some attributes replacing conditional checks
+ with validation rules on the declaration.
+
+
+- Class @timeline (in addition to the above)
+ * Added private method cropOrRemoveEvents (extracted from previous
+ nested method in method set).
+ * Dependent properties nConditions and samplingRate are now
+ explicitly declared as such. Also added comments for these
+ in the class description.
+
+- Class @experiment (in addition to the above)
+   + Added property studyDate and deprecated property date.
+   + Deprecated property version.
+   + Added dependent properties for;
+       nDataSourceDefinitions
+       nSessionDefinitions
+       nSubjects
+   + Deprecated methods
+       getNDataSourceDefinitions
+       getNSessionDefinitions
+       getNSubjects
+   + Added method eq to compare two objects
+
+- Class @subject (in addition to the above)
+   + Added dependent properties for;
+       nSessions
+   + Deprecated methods
+       getNSessions
+   + Added method eq to compare two objects
+
+- Class @sessionDefinitions (in addition to the above)
+   + Added dependent properties for;
+       nDataSources
+   + Deprecated methods
+       getNSources
+
+
+- Class @session (in addition to the above)
+   + Added dependent properties for;
+       nDataSources
+   + Deprecated methods
+       getNDataSources
+
+
+- Class @dataSource (in addition to the above)
+   + Deprecated property version.
+   + Make properties type and nStructuredData explicitly dependent;
+   + Deprecated methods
+       getNStructuredData
+   + Property rawData is now defaulted to rawData_Snirf
+
+- Class @cluster (in addition to the above)
+   + Added dependent properties for;
+       nPatterns
+   + Added static method getColorVector (extracted from previous
+ nested method in method set).
+    + Internally renamed properties for code clarity. Interface should
+ not have changed.
+
+
+- Class @analysis (in addition to the above)
+   + Added dependent properties for;
+       nPatterns
+	   nClusters
+   + Deprecated methods
+       getNClusters
+   + Updated error codes from ICNA to ICNNA
+   + Method findCluster changed scope from private to public
+   + All private (inc static) methods have been explicitly declared as private
+	in the class especification and moved from the folder private/ to
+	the class main folder.
+	
+- Class @experimentSpace (in addition to the above)
+   + Updated error codes from ICNA to ICNNA
+
+
+
+
+- guiVisualizeEMDAnalysis: Removed deprecated parameter 'v0' from uitab
+and uitabgroup calls. Backward compatibility may be affected.
+
++ Several gui* functions: Updated to use the new struct like access syntax
+
+
+Bug fixing
++ Method @timeline.set: 2 of the errors were reporting the incorrect class
+    in the error code.
++ Method @timeline.setExclusory: 1 error was still not using error codes.
++ Method @timeline.switchExclusory: 1 error was still not using error codes.
++ Deprecated method @timeline.getTotalEvents was still implementing code
+    rather than calling obj.getNEvents.
++ Method @strutcuredData.windowSelection: Several errors were still
+    not using error codes.
++ Function plotStructuredData: For odd number of channels, the "last" of the first
+    column was pushed to the second column, e.g. with 61 channels, channel
+    31 should be on column 1 but was being pushed to column 2. It now
+    correctly leave the channel on its corresponding column.
++ Several gui* functions: I have now addressed the long standing issue with accessing
+ the icons folder when the working directory is not that of ICNNA
+ using function mfilename. 
++ Function guiExperimentSpace: The element handles.currentElement.data can
+	actually be empty. In such cases, the window won't close because the
+	method OnClose yield an error for trying to access a property of the
+	currentElement. I have added the check of being empty, and this is
+	now corrected.
+
+
+
+New features:
+
++ New function plotTimeline for displaying a timeline object. This method
+plots the analogous figure to guiTimeline but without the GUI.
++ Function plotStructuredData now have a .nogui option to use this
+without GUI elements e.g. just for figure visualization. 
++ Function batchBasicVisualization now can also filter channels. This is
+not yet accesible via the GUI. Also, there is a new options to position
+the channels according to their registered 2D positions in the
+channelLocationMap (previously they were arranged according to their
+topological location within their optode array).
+
+
+	
 
 ====================================
 = ICNNA v1.1.5 (released 13-Jan-2022)

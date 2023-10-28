@@ -1,4 +1,4 @@
-function obj=setDataSource(obj,id,i)
+function obj=setDataSource(obj,id,nDS)
 % SESSION/SETDATASOURCE Replace a dataSource
 %
 % obj=setDataSource(obj,id,newDataSource) Replace dataSource whose ID==id
@@ -18,24 +18,38 @@ function obj=setDataSource(obj,id,i)
 %(i.e. whose Type is empty).
 %
 %
-% Copyright 2008
-% @date: 25-Apr-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also addDataSource, removeDataSource
 %
 
+
+
+%% Log
+%
+% File created: 25-Apr-2008
+% File last modified (before creation of this log): N/A. This class file
+%   had not been modified since creation.
+%
+% 23-May-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%   + As I started to add get/set methods for struct like access
+%   to attributes in the main class file, I also updated this
+%   method to simply redirect to those.
+%
+
+
 idx=findDataSource(obj,id);
 if (~isempty(idx))
-    if (isa(i,'dataSource')) %Ensuring that i is a dataSource
+    if (isa(nDS,'dataSource')) %Ensuring that i is a dataSource
         %Look at the session definition
         validIDList=getSourceList(obj.definition);
-        if (ismember(get(i,'ID'),validIDList))
-            if (strcmp(get(i,'Type'),...
-                       get(getSource(obj.definition,get(i,'ID')),'Type')) ...
-                || strcmp(get(i,'Type'),''))
+        if (ismember(nDS.id,validIDList))
+            tmp = getSource(obj.definition,nDS.id);
+            if (strcmp(nDS.type, tmp.type) || strcmp(nDS.type,''))
                 %Now update
-                obj.sources(idx)={i};
+                obj.sources(idx)={nDS};
             else
                 warning('ICNA:session:addDataSource:InvalidType',...
                     'Invalid Type');
@@ -48,3 +62,6 @@ if (~isempty(idx))
     end
 end
 assertInvariants(obj);
+
+
+end

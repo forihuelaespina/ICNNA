@@ -13,27 +13,44 @@ function display(obj)
 % See also nirs_neuroimage, get, set
 %
 
+
+%% Log
+%
+%
+% File created: 27-Apr-2008
+% File last modified (before creation of this log): 22-Dec-2012
+%
+% 20-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%
+
+
+
 disp(' ');
 disp([inputname(1),'= ']);
 disp(' ');
-disp(['   ID: ' num2str(get(obj,'ID'))]);
-disp(['   Description: ' get(obj,'Description')]);
-%disp(['   Probe Mode: ' get(obj,'ProbeMode')]); %DEPRECATED
-disp(['   Num. Samples: ' num2str(get(obj,'NSamples'))]);
-disp(['   Num. Channels: ' num2str(get(obj,'NChannels'))]);
-disp(['   Num. Signals: ' num2str(get(obj,'NSignals'))]);
-if (get(obj,'NSignals')~=0)
-    signalTags=get(obj,'SignalTags');
+disp(['   ID: ' num2str(obj.id)]);
+disp(['   Description: ' obj.description]);
+%disp(['   Probe Mode: ' obj.probeMode]); %DEPRECATED
+disp(['   Num. Samples: ' num2str(obj.nSamples)]);
+disp(['   Num. Channels: ' num2str(obj.nChannels)]);
+disp(['   Num. Signals: ' num2str(obj.nSignals)]);
+if (obj.nSignals~=0)
+    signalTags=obj.signalTags;
     for tt=1:length(signalTags)
         disp(['    ' signalTags{tt}]);
     end
 end
 disp('   Timeline: ');
-display(get(obj,'Timeline'));
+display(obj.timeline);
 disp(' ');
 disp('   Integrity: ');
-disp(['     ' mat2str(double(get(obj,'Integrity')))]);
+disp(['     ' mat2str(double(obj.integrity))]);
 disp('   Channel Location Map: ');
-display(get(obj,'ChannelLocationMap'));
+display(obj.chLocationMap);
 disp(' ');
 disp(' ');
+
+
+end

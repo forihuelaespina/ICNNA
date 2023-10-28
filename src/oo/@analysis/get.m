@@ -1,5 +1,5 @@
 function val = get(obj, propName)
-% ANALYSIS/GET Get properties from the specified object
+% ANALYSIS/GET DEPRECATED (v1.2). Get properties from the specified object
 %and return the value
 %
 % val = get(obj, propName) Gets value of the property propName 
@@ -27,49 +27,75 @@ function val = get(obj, propName)
 %
 %
 %
-% Copyright 2008
-% @date: 26-May-2008
-% last update: 28-Nov-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also analysis, set
 %
 
-switch propName
-case 'ID'
+
+
+%% Log
+%
+% File created: 26-May-2008
+% File last modified (before creation of this log): 28-Nov-2008
+%
+% 7-Jun-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + As I started to add get/set methods for struct like access
+%   to attributes in the main class file, I also updated this
+%   method to simply redirect to those.
+%   + Declare method as DEPRECATED (v1.2).
+%   Bug fixed:
+%   + 1 error was still not using error code.
+%
+
+warning('ICNNA:analysis:get:Deprecated',...
+        ['DEPRECATED (v1.2). Use struct like syntax for accessing the attribute ' ...
+         'e.g. analysis.' lower(propName) '.']); 
+    %Maintain method by now to accept different capitalization though.
+
+switch lower(propName)
+case 'id'
    val = obj.id;
-case 'Name'
+case 'name'
    val = obj.name;
-case 'Description'
+case 'description'
    val = obj.description;
-case 'Metric'
+case 'metric'
    val = obj.metric;
-case 'Embedding'
+case 'embedding'
    val = obj.embedding;
-case 'ExperimentSpace'
+case 'experimentspace'
    val = obj.F;
-case 'FeatureSpace'
+case 'featurespace'
    val = obj.H;
-case 'ProjectionSpace'
+case 'projectionspace'
    val = obj.Y;
-case 'PatternDistances'
+case 'patterndistances'
    val = obj.D;
-case 'PatternIndexes'
+case 'patternindexes'
    val = obj.I;
-case 'NPatterns'
+case 'npatterns'
    val = size(obj.H,1);
-case 'RunStatus'
+case 'runstatus'
    val = obj.runStatus;
-case 'ProjectionDimensionality'
+case 'projectiondimensionality'
    val = obj.projectionDimensionality;
-case 'SubjectsIncluded'
+case 'subjectsincluded'
    val = obj.subjectsIncluded;
-case 'SessionsIncluded'
+case 'sessionsincluded'
    val = obj.sessionsIncluded;
-case 'ChannelGroups'
+case 'channelgroups'
    val = obj.channelGrouping;
-case 'SignalDescriptors'
+case 'signaldescriptors'
    val = obj.signalDescriptors;
 otherwise
-   error([propName,' is not a valid property'])
+   error('ICNNA:analysis:get:InvalidProperty',...
+        [propName,' is not a valid property'])
+end
+
+
+
+
 end

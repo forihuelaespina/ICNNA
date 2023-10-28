@@ -12,3 +12,6 @@ function obj=clearSessions(obj)
 
 obj.sessions=cell(1,0);
 assertInvariants(obj);
+
+
+end

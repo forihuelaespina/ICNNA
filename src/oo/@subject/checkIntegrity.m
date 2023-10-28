@@ -24,3 +24,5 @@ for ii=ids
     obj.sessions(idx)=checkIntegrity(obj.sessions(idx),varargin);
 end
 
+
+end

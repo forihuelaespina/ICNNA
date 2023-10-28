@@ -24,10 +24,8 @@ function obj=addReferencePoints(obj,rpInfo)
 %
 %
 %
-% Copyright 2013
-% @date: 27-Aug-2013
+% Copyright 2013-23
 % @author: Felipe Orihuela-Espina
-% @modified: 8-Sep-2013
 %
 % See also getReferencePoints, setReferencePoints, removeReferencePoints,
 %   getChannel3DLocations, setChannel3DLocations
@@ -36,8 +34,18 @@ function obj=addReferencePoints(obj,rpInfo)
 
 %% Log
 %
-% 8-Sep-2013: Updated "links" of the See also call to other methods
 %
+% File created: 27-Aug-2013
+% File last modified (before creation of this log): 8-Sep-2013
+%
+% 8-Sep-2013: Updated "links" of the See also call to other methods
+%   + Added this log.
+%
+% 20-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%
+
 
 
 if isempty(rpInfo)
@@ -55,7 +63,7 @@ for ee=1:nElem
                 val=rpInfo(ee).name;
                 if isempty(val)
                     rpInfo(ee).name = ''; %Switch for an empty string
-                  warning('ICNA:channelLocationMap:addReferencePoints',...
+                  warning('ICNNA:channelLocationMap:addReferencePoints',...
                       ['Name in ' num2str(ff) ...
                        '-th reference point information record is empty.']);
                 elseif ischar(val)
@@ -70,7 +78,7 @@ for ee=1:nElem
                     end
                     
                 else 
-                  error('ICNA:channelLocationMap:addReferencePoints:InvalidFieldValue',...
+                  error('ICNNA:channelLocationMap:addReferencePoints:InvalidFieldValue',...
                       ['Name in ' num2str(ff) ...
                        '-th reference point information record must be a string.']);
                 end
@@ -121,3 +129,6 @@ obj.referencePoints(end+1:end+length(rpInfo))=rpInfo;
 end
 assertInvariants(obj);
 
+
+
+end

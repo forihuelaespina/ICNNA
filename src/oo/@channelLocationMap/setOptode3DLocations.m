@@ -18,9 +18,7 @@ function obj=setOptode3DLocations(obj,idx,locations)
 %
 %
 % Copyright 2013
-% @date: 8-Sep-2013
 % @author: Felipe Orihuela-Espina
-% @modified: 8-Sep-2013
 %
 % See also getOptode3DLocations, setOptodeSurfacePositions,
 %   setOptodeStereotacticPositions,
@@ -30,19 +28,29 @@ function obj=setOptode3DLocations(obj,idx,locations)
 
 %% Log
 %
+%
+% File created: 8-Sep-2013
+% File last modified (before creation of this log): N/A. This method had
+%   not been modified since creation.
+%
 % 8-Sep-2013: Method created
+%
+%
+% 21-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
 %
 
 
 assert(numel(idx)==size(locations,1),...
-        ['ICNA:optodeLocationMap:setOptode3DLocations:InvalidParameterValue',...
+        ['ICNNA:optodeLocationMap:setOptode3DLocations:InvalidParameterValue',...
          'Number of optode indexes mismatches number of locations.']);
 assert(size(locations,2)==3,...
-        ['ICNA:optodeLocationMap:setOptode3DLocations:InvalidParameterValue',...
+        ['ICNNA:optodeLocationMap:setOptode3DLocations:InvalidParameterValue',...
          'Unexpected dimensionality for locations.']);
 idx=reshape(idx,numel(idx),1); %Ensure it is a vector
 
-tempIdx=find(idx<1 | idx>get(obj,'nOptodes'));
+tempIdx=find(idx<1 | idx> obj.nOptodes);
 idx(tempIdx)=[];
 locations(tempIdx,:)=[];
 

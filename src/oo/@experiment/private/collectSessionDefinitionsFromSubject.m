@@ -19,11 +19,25 @@ function defs=collectSessionDefinitionsFromSubject(obj,s,mode)
 %       are collected (those with IDs not defined).
 %
 %
-% Copyright 2008
-% @date: 11-Jul-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also experiment, subject, sessionDefinition, assertInvariants
+
+
+
+
+%% Log
+%
+% File created: 11-Jul-2008
+% File last modified (before creation of this log): N/A. This class file
+%   had not been modified since creation.
+%
+% 24-May-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%   + Started to use get/set methods for struct like access.
+%
+
 
 
 if ~isa(s,'subject')
@@ -48,18 +62,25 @@ end
 sessIDs=getSessionList(s);
 defs=cell(1,0);
 if ~m
-    defs=cell(1,getNSessions(s));
+    defs=cell(1,s.nSessions);
 end
 pos=1;
 for sess=sessIDs
     if m %Collect only new ones
-        tmpDef=get(getSession(s,sess),'Definition');
-        if (~ismember(get(tmpDef,'ID'),expDefIDs))
+        tmpSess = getSession(s,sess);
+        tmpDef=tmpSess.definition;
+        if (~ismember(tmpDef.id,expDefIDs))
             defs(pos)={tmpDef};
             pos=pos+1;
         end
     else %Collect all
-        defs(pos)={get(getSession(s,sess),'Definition')};
+        tmpSess = getSession(s,sess);
+        defs(pos)={tmpSess.definition};
         pos=pos+1;
     end
+end
+
+
+
+
 end

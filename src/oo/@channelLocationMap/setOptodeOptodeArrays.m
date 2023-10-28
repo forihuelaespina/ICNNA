@@ -19,10 +19,8 @@ function obj=setOptodeOptodeArrays(obj,idx,optArrays)
 %
 %
 %
-% Copyright 2013
-% @date: 8-Sep-2013
+% Copyright 2013-23
 % @author: Felipe Orihuela-Espina
-% @modified: 12-Oct-2013
 %
 % See also getOptodeOptodeArrays, setOptode3DLocations,
 %   setOptodeSurfacePositions, setOptodeStereotacticPositions,
@@ -31,6 +29,10 @@ function obj=setOptodeOptodeArrays(obj,idx,optArrays)
 
 
 %% Log
+%
+%
+% File created: 8-Sep-2013
+% File last modified (before creation of this log): 12-Oct-2013
 %
 % 12-Oct-2013: Bug fixed.
 %       When enlarging the length of the optode arrays info, the 
@@ -44,17 +46,22 @@ function obj=setOptodeOptodeArrays(obj,idx,optArrays)
 %
 % 8-Sep-2013: Method created
 %
+%
+% 21-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%
 
 
 
 assert(numel(idx)==numel(optArrays),...
-        ['ICNA:channelLocationMap:setOptodeOptodeArrays:InvalidParameterValue',...
+        ['ICNNA:channelLocationMap:setOptodeOptodeArrays:InvalidParameterValue',...
          'Number of optode indexes mismatches number of associated ' ...
          'optode arrays.']);
 idx=reshape(idx,numel(idx),1); %Ensure both are vectors
 optArrays=reshape(optArrays,numel(optArrays),1);
 
-tempIdx=find(idx<1 | idx>get(obj,'nOptodes'));
+tempIdx=find(idx<1 | idx> obj.nOptodes);
 idx(tempIdx)=[];
 optArrays(tempIdx)=[];
 

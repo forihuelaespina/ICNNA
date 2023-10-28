@@ -44,13 +44,25 @@ function degree=compatible(obj,t)
 %Length also MUST BE THE SAME.
 %
 %
-% Copyright 2008-12
-% @date: 18-Jun-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 29-Dec-2012
 %
 %See also timeline, eq
 %
+
+
+
+
+%% Log
+%
+% File created: 18-Jun-2008
+% File last modified (before creation of this log): 29-Dec-2012
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes usign the struct like syntax
+%
+
 
 warning('ICNA:timeline:compatible:Deprecated',...
         ['The use of ''compatible'' has now been deprecated. ' ...
@@ -62,7 +74,7 @@ warning('ICNA:timeline:compatible:Deprecated',...
 
 
 degree=0;
-if (get(obj,'NConditions')~=get(t,'NConditions'))
+if (obj.nConditions~=t.nConditions)
     return;
 end;
 
@@ -70,7 +82,7 @@ end;
 sametags=true;
 sameNEvents=true;
 equalEvents=true;
-for ii=1:get(obj,'NConditions')
+for ii=1:obj.nConditions
     tag2=getConditionTag(t,ii);
     idx=findCondition(obj,tag2);
     if (isempty(idx))
@@ -109,6 +121,6 @@ else
     return
 end
 
-if (equalEvents && (get(obj,'Length')==get(t,'Length')))
+if (equalEvents && (obj.length==t.length))
     degree=4;
 end

@@ -17,10 +17,8 @@ function obj=setChannelProbeSets(obj,idx,ps)
 %
 %
 %
-% Copyright 2012-13
-% @date: 22-Dec-2012
+% Copyright 2012-23
 % @author: Felipe Orihuela-Espina
-% @modified: 8-Sep-2013
 %
 % See also getChannelProbeSets, setChannel3DLocations,
 %   setChannelSurfacePositions,
@@ -30,21 +28,30 @@ function obj=setChannelProbeSets(obj,idx,ps)
 
 %% Log
 %
+%
+% File created: 22-Dec-2012
+% File last modified (before creation of this log): 8-Sep-2013
+%
 % 8-Sep-2013: Method name changed from getProbeSets to
 %       getChannelProbeSets. Updated "links" of the
 %       See also section
+%
+%
+% 21-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
 %
 
 
 
 assert(numel(idx)==numel(ps),...
-        ['ICNA:channelLocationMap:setChannelProbeSets:InvalidParameterValue',...
+        ['ICNNA:channelLocationMap:setChannelProbeSets:InvalidParameterValue',...
          'Number of channel indexes mismatches number of associated ' ...
          'probe sets.']);
 idx=reshape(idx,numel(idx),1); %Ensure both are vectors
 ps=reshape(ps,numel(ps),1);
 
-tempIdx=find(idx<1 | idx>get(obj,'nChannels'));
+tempIdx=find(idx<1 | idx>obj.nChannels);
 idx(tempIdx)=[];
 ps(tempIdx)=[];
 

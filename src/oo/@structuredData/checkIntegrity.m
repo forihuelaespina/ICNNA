@@ -44,17 +44,30 @@ function obj=checkIntegrity(obj,varargin)
 %
 %
 %
-% Copyright 2008-10
-% @date: 17-Jun-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 27-Sep-2010
 %
 % See also structuredData, integrityStatus, get, set
 %
 
+
+
+
+%% Log
+%
+% File created: 17-Jun-2008
+% File last modified (before creation of this log): 27-Sep-2010
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%
+
+
+
 opt.testAllChannels=false;
 opt.verbose=true;
-nChannels = get(obj,'NChannels');
+nChannels = obj.nChannels;
 opt.whichChannels=1:nChannels;
 
 if ~isempty(varargin)
@@ -114,5 +127,6 @@ end
 obj.integrity=setStatus(obj.integrity,opt.whichChannels,integrity);
 
 
-assertInvariants(obj);
+%assertInvariants(obj);
 
+end

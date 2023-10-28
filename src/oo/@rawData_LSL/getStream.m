@@ -22,8 +22,7 @@ function val = getStream(obj, k)
 %           samples in double precision.
 %
 %
-% Copyright 2013-2018
-% @date: 23-Aug-2021
+% Copyright 2021-23
 % @author: Felipe Orihuela-Espina
 %
 % See also rawData.get, set
@@ -35,9 +34,16 @@ function val = getStream(obj, k)
 
 %% Log
 %
+% File created: 23-Aug-2021
+% File last modified (before creation of this log): N/A
+%
 % 23-Aug-2021 (FOE): 
 %	File created.
 %       
+% 12-Oct-2021 (FOE): 
+%   + Got rid of old labels @date and @modified.
+%   + Migrated for struct like access to attributes.
+%
 %
 
 

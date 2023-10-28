@@ -5,16 +5,32 @@ function idList=getSourceList(obj)
 %     data or an empty list if no sources have been defined.
 %
 %
-% Copyright 2008
-% @date: 21-Jul-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also getNSources, addSource
 %
 
-nElements=getNSources(obj);
+
+
+%% Log
+%
+% File created: 21-Jul-2008
+% File last modified (before creation of this log): N/A. This class file
+%   had not been modified since creation.
+%
+% 23-May-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%   + Started to use get/set methods for struct like access.
+%
+
+
+nElements=obj.nDataSources;
 idList=zeros(1,nElements);
 for ii=1:nElements
-    idList(ii)=get(obj.sources{ii},'ID');
+    tmp = obj.sources{ii};
+    idList(ii)=tmp.id;
 end
 idList=sort(idList);
+
+end

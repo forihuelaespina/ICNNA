@@ -59,13 +59,23 @@ function [tSamples,tSeconds]=getAvgRestTime(obj,flag)
 %
 %
 %
-% Copyright 2008-12
-% @date: 18-Apr-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 30-Dec-2012
 %
 % See also getAvgTaskTime
 %
+
+
+%% Log
+%
+% File created: 18-Apr-2008
+% File last modified (before creation of this log): 30-Dec-2012
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
+%
+
 
 if (~exist('flag','var'))
     flag=1;
@@ -136,4 +146,6 @@ if flag
     restDurations=[onsets(1); restDurations];
 end
 tSamples=round(mean(restDurations));
-tSeconds = tSamples * get(obj,'SamplingRate');
+tSeconds = tSamples * obj.samplingRate;
+
+end

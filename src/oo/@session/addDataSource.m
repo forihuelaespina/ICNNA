@@ -1,7 +1,7 @@
-function obj=addDataSource(obj,i)
+function obj=addDataSource(obj,nDS)
 % SESSION/ADDDATASOURCE Add a new dataSource to the session
 %
-% obj=addDataSource(obj,i) Add a new dataSource i to the session. If
+% obj=addDataSource(obj,nDS) Add a new dataSource nDS to the session. If
 %   a dataSource with the same ID has already been defined within
 %   the session, then a warning is issued and nothing is done.
 %
@@ -21,25 +21,38 @@ function obj=addDataSource(obj,i)
 %
 %
 %
-% Copyright 2008
-% @date: 21-Jul-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
 %
 % See also removeDataSource, setDataSource, clearDataSources
 %
 
+
+
+%% Log
+%
+% File created: 21-Jul-2008
+% File last modified (before creation of this log): N/A. This class file
+%   had not been modified since creation.
+%
+% 23-May-2023: FOE
+%   + Added this log. Got rid of old label @date.
+%   + Started to use get/set methods for struct like access.
+%
+
+
+
 %Ensure that i is a dataSource
-if isa(i,'dataSource')
-    idx=findDataSource(obj,get(i,'ID'));
+if isa(nDS,'dataSource')
+    idx=findDataSource(obj,nDS.id);
     if isempty(idx)
         %Look at the session definition
         validIDList=getSourceList(obj.definition);
-        if (ismember(get(i,'ID'),validIDList))
-            if (strcmp(get(i,'Type'),...
-                       get(getSource(obj.definition,get(i,'ID')),'Type')) ...
-                || strcmp(get(i,'Type'),''))
+        if (ismember(nDS.id,validIDList))
+            tmpDS = getSource(obj.definition,nDS.id);
+            if (strcmp(nDS.type, tmpDS.type) || strcmp(nDS.type,''))
                 %Now insert
-                obj.sources(end+1)={i};
+                obj.sources(end+1)={nDS};
             else
                 warning('ICNA:session:addDataSource:InvalidType',...
                     'Invalid Type');
@@ -56,3 +69,6 @@ else
     error([inputname(2) ' is not a dataSource']);
 end
 assertInvariants(obj);
+
+
+end

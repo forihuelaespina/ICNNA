@@ -14,18 +14,32 @@ function obj=detrend(obj)
 %picture elements and signals.
 %
 %
-% Copyright 2007-2008
-% Author: Felipe Orihuela-Espina
-% Date: 29-May-2008
+% Copyright 2007-23
+% @author: Felipe Orihuela-Espina
 %
 % See also decimate, rawData.convert, timeline
 %
 %
 
+
+
+
+%% Log
+%
+% File created: 29-May-2008
+% File last modified (before creation of this log): N/A.  This method
+%   had not been modified since creation.
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Added get/set methods support for struct like access to attributes.
+%
+
+
 %Temporarily create a fictitious timeline with only
 %one condition including all the real events
-tline=get(obj,'Timeline');
-nCond=get(tline,'NConditions');
+tline=obj.timeline;
+nCond=tline.nConditions;
 events=zeros(0,2);
 for ii=1:nCond
     tag=getConditionTag(tline,ii);
@@ -47,9 +61,9 @@ for ii=1:nEvents
     finishIdx=events(ii,1)-1; %This rest period end
     restSamplesIdx=[restSamplesIdx startIdx:finishIdx];
 end
-restSamplesIdx=[restSamplesIdx nextInit:get(tline,'Length')];
+restSamplesIdx=[restSamplesIdx nextInit:tline.length];
 
-data=get(obj,'Data');
+data=obj.data;
 [nSamples,nChannels,nSignals]=size(data);
 %h=waitbar(0,'Detrending nirs\_neuroimage... 0%');
 for ss=1:nSignals
@@ -66,7 +80,7 @@ for ss=1:nSignals
         tempData(:,pe,ss)=data(:,pe,ss)-baseline(:,pe,ss);
     end
 end
-obj=set(obj,'Data',tempData);
+obj.data = tempData;
 
 assertInvariants(obj);
 %close(h);

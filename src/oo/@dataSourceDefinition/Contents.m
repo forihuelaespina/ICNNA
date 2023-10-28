@@ -2,7 +2,7 @@
 %
 % Files
 %   dataSourceDefinition - A data source definition encapsulates information about a data source
-%   display              - DATASOURCEDEFINITION/DISPLAY Command window display
-%   eq                   - DATASOURCEDEFINITION/EQ Compares two dataSourceDefinition objects.
-%   get                  - DATASOURCEDEFINITION/GET Get properties from the specified object
-%   set                  - DATASOURCEDEFINITION/SET Set object properties and return the updated object
+%   display              - Command window display
+%   eq                   - Compares two dataSourceDefinition objects.
+%   get                  - DEPRECATED (v1.2). Get properties from the specified object
+%   set                  - DEPRECATED (v1.2). Set object properties and return the updated object

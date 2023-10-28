@@ -28,15 +28,26 @@ function obj=addCondition(obj,tag,events,varargin)
 %an error ICNA:timeline:addCondition:RepeatedTag is issued.
 %
 %
-% Copyright 2008-13
-% @date: 18-Apr-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 1-Jan-2013
 %
 % See also getCondition, removeCondition, setConditionTag, 
 % getConditionEvents, setConditionEvents, addConditionEvents,
 % removeConditionEvents
 %
+
+
+%% Log
+%
+% File created: 18-Apr-2008
+% File last modified (before creation of this log): 1-Jan-2013
+%
+% 13-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%
+
+
+
 
 while ~isempty(varargin)
     element = varargin{1};

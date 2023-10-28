@@ -1,5 +1,5 @@
 function val = get(obj, propName)
-%NEUROIMAGE/GET Get properties from the specified object
+%NEUROIMAGE/GET DEPRECATED. Get properties from the specified object
 %and return the value
 %
 % val = get(obj, propName) Gets value of the property propName 
@@ -20,13 +20,36 @@ function val = get(obj, propName)
 % 'ChannelLocationMap' - The channel location map
 %
 %
-% Copyright 2012
-% @date: 22-Dec-2012
+% Copyright 2012-23
 % @author Felipe Orihuela-Espina
-% @modified: 22-Dec-2012
 %
 % See also neuroimage
 %
+
+
+
+%% Log
+%
+%
+% File created: 22-Dec-2012
+% File last modified (before creation of this log): N/A. This method
+%   had never been updated since creation.
+%
+% 20-May-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + As I started to add get/set methods for struct like access
+%   to attributes in the main class file, I also updated this
+%   method to simply redirect to those.
+%   + Declare method as DEPRECATED.
+%
+
+
+warning('ICNNA:neuroimage:get:Deprecated',...
+        ['DEPRECATED. Use struct like syntax for accessing the attribute ' ...
+         'e.g. neuroimage.' lower(propName) '.']); 
+    %Maintain method by now to accept different capitalization though.
+
+
 
 switch lower(propName)
 case 'channellocationmap'

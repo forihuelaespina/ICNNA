@@ -1,15 +1,11 @@
 function [F]=sos_suddenChange(x,s)
 %Sum of squares function to be minimized by the optimization algorithm
-%%
-%%Date: 10-Jul-2007
-%%Author: Felipe Orihuela-Espina
-%%
+%
+%   [F]=sosLM_suddenChange(signal,model)
 %
 %Generates a column vector of sum of squares function
 %to be minimized by the optimization
 %algorithm.
-%
-%   [F]=sosLM_suddenChange(signal,model)
 %
 % The optimization algorithm is implemented
 %in the Optimization Toolbox of MATLAB in the function
@@ -33,8 +29,7 @@ function [F]=sos_suddenChange(x,s)
 %
 %
 %
-%Parameters:
-%-----------
+%% Parameters:
 %
 %   x - The vector of model parameters [alpha gamma]
 %
@@ -51,10 +46,38 @@ function [F]=sos_suddenChange(x,s)
 %       ONLY saves the signal to a file and that's it. When not
 %       provided, the function behaves as expected.
 %
-%Output:
-%-------
+%% Output:
 %
 % The function of least squares 
+%
+%
+%
+%
+% 
+% Copyright 2007-23
+% @author: Felipe Orihuela-Espina
+%
+% See also nirs_neuroimage
+%
+
+
+
+
+%% Log
+%
+% File created: 10-Jul-2007
+% File last modified (before creation of this log): N/A. This method
+%   had not been modified since creation.
+%
+% 20-May-2023: FOE
+%   + Added this log. This method is so old it didn't even had the
+%       labels @date and @modified, instead there was just the creation
+%       date!!
+%
+
+
+
+
 
 if (nargin==0)
     %Clean...
@@ -76,4 +99,8 @@ else
     [S,b,f]=nirs_neuroimage.doubleES(s(1:end-nEquations),alpha,gamma,nEquations);
     %And get the residuals...
     F=s(end-(nEquations-1):end)-f(end-(nEquations-1):end)';
+end
+
+
+
 end

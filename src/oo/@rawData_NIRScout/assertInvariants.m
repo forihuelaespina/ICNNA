@@ -26,10 +26,8 @@ function assertInvariants(obj)
 %
 %
 %
-% Copyright 2018
-% @date: 4-Apr-2018
+% Copyright 2018-23
 % @author: Felipe Orihuela-Espina
-% @modified: 25-Apr-2018
 %
 % See also rawData_NIRScout
 %
@@ -38,8 +36,14 @@ function assertInvariants(obj)
 
 %% Log
 %
+% File created: 4-Apr-2008
+% File last modified (before creation of this log): 25-Apr-2012
+%
 % 4/25-Apr-2018: FOE. Method created
 %
+% 13-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Updated calls to get attributes using the struct like syntax
 %
 
 
@@ -54,7 +58,7 @@ assert(all(size(obj.sdKey)==[obj.nSources, obj.nDetectors]),...
 assert(all(size(obj.sdMask)==[obj.nSources, obj.nDetectors]),...
 	  'Size of mask mismatches existing number of sources and detectors combinations.');
 
-assert(numel(obj.channelDistances)==get(obj,'nChannels'),...
+assert(numel(obj.channelDistances)==obj.nChannels,...
 	  'Number of channels distances does not match the number of channels.');
 
 
