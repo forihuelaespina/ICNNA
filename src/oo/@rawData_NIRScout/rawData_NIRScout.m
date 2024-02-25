@@ -325,6 +325,45 @@ classdef rawData_NIRScout < rawData
 %   + Improved some comments.
 %   + Remove some old inheritance code no longer used.
 %
+% 20-Feb-2024 (FOE):
+%   + NIRx have changed their file version again. Here are some of the
+%       changes (this class cannot still read this file version!)
+%       * Version naming convention e.g. 15.2, is no longer followed.
+%       Instead they are now using a date.building format
+%       * FileName field may not be present
+%       * Device filed may not be present
+%       * A new alphanumerical field Device ID has been added.
+%       * A whole new "ExperimentNotes" section has been added with the
+%       following fields;
+%        [ExperimentNotes]
+%        experiment_name=
+%        experiment_subject=
+%        experiment_subject_age=
+%        experiment_subject_gender=
+%        experiment_subject_contact_info=
+%        experiment_remarks=
+%       * Section "MeasurementInformation", "GainSettings" or
+%       "MarkersInformation" may no longer be present in the header.
+%       * Name of the hdr file may NOT coincide with the other file names
+%       in the folder e.g. 2024-01-03_001_config.hdr and 2024-01-03_001.wl1
+%       * A few of the old files have disappear. Namely;
+%           - .tpl
+%           - .avg
+%           - .set
+%           - .evt
+%           - .inf
+%           - .dat
+%       ...and in contrast a few new ones have appeared;
+%           - _calibration.json - Contains some quality control information
+%                   such as the dark noise, saturation, cross-talk, etc
+%           - _description.json -  Information about the subject
+%               demographics
+%           - _config.json - A large file with a lot of info which is not
+%               clear to me right now what it is...
+%
+%           
+%
+%
 
 
     properties (Constant, Access=private)

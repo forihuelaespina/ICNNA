@@ -1,5 +1,5 @@
 function val = get(obj, propName)
-% RAWDATA_ETG4000/GET Get properties from the specified object
+% RAWDATA_ETG4000/GET  DEPRECATED Get properties from the specified object
 %and return the value
 %
 % val = get(obj, propName) Gets value of the property propName 
@@ -60,20 +60,41 @@ function val = get(obj, propName)
 %
 %
 %
-% Copyright 2008-12
-% @date: 13-Jun-2008
+% Copyright 2008-23
 % @author Felipe Orihuela-Espina
-% @modified: 30-Dec-2012
 %
 % See also rawData.get, set
 %
 
+%% Log
+%
+% File created: 13-Jun-2008
+% File last modified (before creation of this log): 30-Dec-2012
+%
+% 3-Dec-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + As I started to add get/set methods for struct like access
+%   to attributes in the main class file, I also updated this
+%   method to simply redirect to those.
+%   + Declare method as DEPRECATED.
+%   Bug fixed:
+%   + Errors code updated from 'ICNA' to 'ICNNA'.
+%   + Legacy support for attribute version (previously deprecated)
+%   no longer active.
+%
+
+warning('ICNNA:rawData_ETG4000:get:Deprecated',...
+        ['DEPRECATED (v1.2.1). Use struct like syntax for accessing the attribute ' ...
+         'e.g. rawData_ETG4000.' lower(propName) '.']); 
+    %Maintain method by now to accept different capitalization though.
+
+
 switch lower(propName)
-case 'version' %DEPRECATED
-   val = obj.fileVersion;
-   warning('ICNA:rawData_ETG4000:get:Deprecated',...
-           ['The use of ''version'' has been deprecated. ' ...
-            'Please use ''fileVersion'' instead.']);
+% case 'version' %DEPRECATED
+%    val = obj.fileVersion;
+%    warning('ICNNA:rawData_ETG4000:get:Deprecated',...
+%            ['The use of ''version'' has been deprecated. ' ...
+%             'Please use ''fileVersion'' instead.']);
 case 'fileversion'
    val = obj.fileVersion;
 %Patient information
@@ -105,12 +126,17 @@ case 'lpf'
 case 'movingaverage'
    val = obj.movingAvg;
 %Measure information
+case 'wLengths'
+   val = obj.wLengths;
 case 'nominalwavelengthset'
    val = obj.wLengths;
+   warning('ICNNA:rawData_ETG4000:get:Deprecated',...
+           ['The use of ''nominalwavelengthset'' has been deprecated. ' ...
+            'Please use ''wLengths'' instead.']);
 case 'nprobes'
    %val = obj.nProbes; %DEPRECATED
    val = length(obj.probesetInfo);
-   warning('ICNA:rawData_ETG4000:get:Deprecated',...
+   warning('ICNNA:rawData_ETG4000:get:Deprecated',...
            ['The use of ''nProbes'' has been deprecated. ' ...
             'Please use ''nProbeSets'' instead.']);
 case 'nprobesets'
@@ -131,7 +157,7 @@ for ps=1:nProbeSets
             case '3x5'
                 nCh =nCh+22;
             otherwise
-                error('ICNA:rawData_ETG4000:get:UnexpectedProbeSetMode',...
+                error('ICNNA:rawData_ETG4000:get:UnexpectedProbeSetMode',...
                     'Unexpected probe set mode.');
         end
     end
@@ -146,7 +172,7 @@ case 'samplingrate'
    val = 1/obj.samplingPeriod;
 case 'nblocks' %DEPRECATED
    val = obj.repeatCount;
-   warning('ICNA:rawData_ETG4000:get:Deprecated',...
+   warning('ICNNA:rawData_ETG4000:get:Deprecated',...
            ['The use of ''nBlocks'' has been deprecated. ' ...
             'Please use ''repeatCount'' instead.']);
 case 'repeatcount'

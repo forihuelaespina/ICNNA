@@ -1,11 +1,65 @@
 ====================================
 = ICNA/ICNNA Version Log File
-= Copyright 2008-2023
+= Copyright 2008-2024
 = Author: Felipe Orihuela-Espina
 ====================================
 
 ====================================
-= ICNNA v1.2.0 (released 13-Jan-2022)
+= ICNNA v1.2.1 (released 25-Feb-2024)
+====================================
+
+- Documentation of ICNNA's support for snirf is now in gitHub readme.md
+- Started to migrate class to support struct like access to attributes;
+	@rawData_ETG4000,
+
+New functions:
+
++ snirfUnfoldMeasurementList - Unfold the measurement list of a snirf
+    nirs/data into a MATLAB table object for quicker access of certain
+    operations.
++ plotSnirfDataOnProbe - Plot the snirf data layed out over the probe.
++ Class @experimentSpace - Enriched functionality of fwDuration with
+    potential values -1 (whole block) and -2 (until block offset).
+
+
+Bugs fixed
++ @Subject.set: Deprecated warning message was reporting the wrong class.
++ Packaging for version release did not include the class @rawData_Snirf
++ @rawData_Snirf.convert: The .snirf file format does NOT check whether stimulus
+    event last beyond the last sample e.g. starttime+duration may be
+    bigger than the timestamp of the last sample. However, ICNNA
+    asserts that no conditon event lasts beyond the last sample.
+    In this bug fixing, events that start or last beyond the last 
+    sample are truncated.
++ @rawData_Snirf.convert: If the stimulus timeline have events of the same stimulus
+    that overlap, when setting up the timeline this was causing an error.
+    Now, the events are merged into a single event whereby I take the
+    earliest onset and the latest offset of the "group" (if there are more
+    than two.
++ @rawData_Snirf.convert: When setting up the timeline, it was not checking for
+    onsets at 0. Onsets at 0 are now "shifted" to sample 1.
++ Methods to set icnna.data.snirf.probe.sourceLabels and
+    icnna.data.snirf.probe.detectorLabels were checking for a
+    size(val,3)==0. Now they cheks for ndims(val) == 2.
++ Method timeline.assertinvariants: Invariants related to onset or
+    durations were being check
+    regardless of whether the condition events were empty. Since MATLAB
+    does not permit certain checks on empty arrays e.g. all(onsets>0) this
+    lead to an uncaught exception. Now these invariants are only check
+    when the events are not empty.
++ Method nirs_neuroimage.decimate: Decimation of events with onsets 1, were
+    yielding a new onset at 0 (i.e. from round(1/r)). Since one of the
+    invariants of the timeline is that onsets ought to be bigger than
+    0, this lead to a subsequent error that will not be detected until
+    the time to check the invariance.
++ Method experimentSpace.compute - Improved treatment of empty blocks.
++ Function generateDB_withBreak - Improved treatment of empty blocks.
+
+
+
+
+====================================
+= ICNNA v1.2.0 (released 28-Oct-2023)
 ====================================
 
 This version is the first one with partial support for the
@@ -274,7 +328,7 @@ Version update
 + Method @rawData_NIRScout.display now shows event markers more neatly.
 + Miscellaneours funtion runIntegrityOnRaw now provides support for class
 rawData_NIRScout
-+ Added Dr. Samuel A. Montero Hernández, Dr. Harsimrat Singh and
++ Added Dr. Samuel A. Montero Hern ndez, Dr. Harsimrat Singh and
 Mrs Michele Rojas Cisneros among beta testers in User Guide
 and function @aboutICNNA.
 + Cleaner startup script. Now called icnna_startup

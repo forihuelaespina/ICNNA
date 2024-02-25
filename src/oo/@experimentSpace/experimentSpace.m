@@ -294,7 +294,12 @@ classdef experimentSpace
 %   .fwDuration - Window selection (fix window) stage parameter.
 %       Number of samples that the selected window lasts (as the
 %       sum of the baseline (-fw.onset), the delay (fwBreakDelay)
-%       and the 'task' itself. Default 25 (20 secs task + 5 secs baseline).
+%       and the 'task' itself. Default 25 (20 secs task + 5 secs
+%       baseline).
+%       If -1, then whole block/trial is used whatever the length of it.
+%       If -2, then block is used until the stimulus offset; this option
+%       is convenient when dealing with stimulus and/or events are of
+%       different length yet a fixed window length is not desired.
 %   .fwBreakDelay - Window selection (fix window) stage parameter.
 %       Number of samples ignored from the stimulus event onset
 %       (this is, NOT from the window selection onset, but from
@@ -377,6 +382,9 @@ classdef experimentSpace
 %   explicitly declared as such. Also added comments for these
 %   in the class description.
 %
+% 23-Feb-2024: FOE
+%   + Enriched functionality of fwDuration with potential values
+%   -1 (whole block) and -2 (until block offset).
 %
 
     properties (Constant, Access=private)

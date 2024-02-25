@@ -40,6 +40,11 @@ function obj=compute(obj,e)
 % 7-Jun-2023: FOE
 %   + Continue updating calls to get attributes using the struct like syntax
 %
+% 23-Feb-2024: FOE
+%   + Enriched functionality of fwDuration with potential values
+%   -1 (whole block) and -2 (until block offset).
+%   + Bug fixed. Improved treatment of empty blocks.
+%
 
 
 
@@ -57,13 +62,16 @@ obj.Findex=zeros(0,8);
 posSubj=1;
 pos=1;
 for sID=subjIDs
+    %disp(['Subject ' num2str(sID)])
     subj=getSubject(e,sID);
     sessIDs=getSessionList(subj);
     substep=step/length(sessIDs);
     for ssID=sessIDs
+        %disp([' * Session ' num2str(ssID)])
         ss=getSession(subj,ssID);
         dsIDs=getDataSourceList(ss);
         for dsID=dsIDs
+            %disp(['   * Data source ' num2str(dsID)])
             ds = getDataSource(ss,dsID);
             sdID = ds.activeStructured;
             sd = getStructuredData(ds,sdID);
@@ -76,6 +84,7 @@ for sID=subjIDs
             nStim = t.nConditions;
             for stim=1:nStim
                 stimTag=getConditionTag(t,stim);
+                %disp(['     * Stim ' num2str(stim) ': ' stimTag])
                                 
                 %% Stage 1: Block Splitting                
                 nBlocks=getNEvents(t,stimTag);
@@ -125,16 +134,41 @@ for sID=subjIDs
                 %if (get(obj,'Windowed'))
                     for bl=1:nBlocks
                         theBlock = tmpBlocks{bl};
-                        t2=theBlock.timeline;
-                        
-                        s=warning('query','ICNNA:timeline:set:EventsCropped');
-                        warning('off','ICNNA:timeline:set:EventsCropped');
-                            tmpBlocks(bl)={windowSelection(theBlock,...
-                            getConditionTag(t2,1),1,...
-                            obj.ws_onset,...
-                            obj.ws_duration)};
-                        warning(s.state,'ICNNA:timeline:set:EventsCropped');
-                            %Leave the warning state as it was
+                        if ~isempty(theBlock)
+                            t2=theBlock.timeline;
+    
+    
+                            s=warning('query','ICNNA:timeline:set:EventsCropped');
+                            warning('off','ICNNA:timeline:set:EventsCropped');
+                            if obj.ws_duration >= 0
+                                tmpBlocks(bl)={windowSelection(theBlock,...
+                                getConditionTag(t2,1),1,...
+                                obj.ws_onset,...
+                                obj.ws_duration)};
+                            elseif obj.ws_duration == -1
+                                %Take however much is needed until the block
+                                %end
+                                tmpBlocks(bl)={windowSelection(theBlock,...
+                                getConditionTag(t2,1),1,...
+                                obj.ws_onset,...
+                                t2.length)};                            
+                            elseif obj.ws_duration == -2
+                                %Take until the block offset
+                                %Note that this may result in different
+                                %lengths per event!
+                                tmpTag = t2.getConditionTag(1);
+                                tmpCEvents = t2.getConditionEvents(tmpTag);
+                                tmpBlocks(bl)={windowSelection(theBlock,...
+                                tmpTag,1,...
+                                obj.ws_onset,...
+                                tmpCEvents(:,1)+tmpCEvents(:,2))};                            
+                            end
+                            warning(s.state,'ICNNA:timeline:set:EventsCropped');
+                                %Leave the warning state as it was
+
+                        else
+                            tmpBlocks(bl)={[]};
+                        end
                     end
                 %end
 
@@ -146,10 +180,16 @@ for sID=subjIDs
                 for bl=1:nBlocks
                     %Now go through clean channels
                     for chID=1:nChannels
-%                         disp(['Channel ' num2str(chID) ': ' ...
-%                              num2str(getStatus(integrityCodes,chID))]);
+                        % disp(['Channel ' num2str(chID) ': ' ...
+                        %      num2str(getStatus(integrityCodes,chID))]);
+
+
                         if (getStatus(integrityCodes,chID)==integrityStatus.FINE)
-                            channelData=getChannel(tmpBlocks{bl},chID);
+                            if isempty(tmpBlocks{bl})
+                                channelData=[];
+                            else
+                                channelData=getChannel(tmpBlocks{bl},chID);
+                            end
                             for signID=1:nSignals
 
 %                                 disp([num2str(sID) ' ' num2str(ssID) ' ' ...
@@ -167,7 +207,11 @@ for sID=subjIDs
                                 obj.Findex(pos,obj.DIM_STIMULUS)=stim;
                                 obj.Findex(pos,obj.DIM_BLOCK)=bl;
 
-                                obj.Fvectors(pos)={channelData(:,signID)};
+                                if isempty(channelData)
+                                    obj.Fvectors(pos)={nan(0,1)};
+                                else
+                                    obj.Fvectors(pos)={channelData(:,signID)};
+                                end
 
                                 pos=pos+1;
                             end %of signals

@@ -49,6 +49,10 @@ classdef probe
 % 19-May-2023: FOE
 %   + Added constructor polymorphism for typecasting a struct.
 %
+% 21-Feb-2024: FOE
+%   + Bug fixed. Methods to set sourceLabels and detectorLabels were
+%   checking for a size(val,3)==0. Now they cheks for ndims(val) == 2.
+%
 %
 
     properties (Constant, Access=private)
@@ -255,7 +259,7 @@ classdef probe
         end
         function obj = set.sourceLabels(obj,val)
         %Updates the set of source names.
-           if (iscell(val) && size(val,2) == 1 && size(val,3)==0)
+           if (iscell(val) && size(val,2) == 1 && ndims(val)==2)
                obj.sourceLabels = val;
            else
                error(['icnna.data.snirf.probe:set.sourceLabels:InvalidPropertyValue',...
@@ -271,7 +275,7 @@ classdef probe
         end
         function obj = set.detectorLabels(obj,val)
         %Updates the set of detector names.
-           if (iscell(val) && size(val,2) == 1 && size(val,3)==0)
+           if (iscell(val) && size(val,2) == 1 && ndims(val)==2)
                obj.detectorLabels = val;
            else
                error(['icnna.data.snirf.probe:set.detectorLabels:InvalidPropertyValue',...

@@ -151,14 +151,14 @@ classdef nirs_neuroimage < neuroimage
          %Gets the object |probeMode|
          warning('ICNNA:nirs_neuroimage:probeMode:Deprecated',...
              ['Use of probeMode has now been deprecated. ' ...
-             'Please refer to neuroimage.channelLocationMap.']);
+             'Please refer to neuroimage.chLocationMap.']);
          res = obj.probeMode;
       end
       function obj = set.probeMode(obj,val)
          %Sets the object |probeMode|
          warning('ICNNA:nirs_neuroimage:probeMode:Deprecated',...
              ['Use of probeMode has now been deprecated. ' ...
-             'Please refer to neuroimage.channelLocationMap.']);
+             'Please refer to neuroimage.chLocationMap.']);
          if ismember(val,{'3x3','4x4','3x5'})
             obj.probeMode = val;
          else

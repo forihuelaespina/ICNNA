@@ -73,12 +73,23 @@ function obj=addProbeSetInfo(obj,pInfo)
 %
 %
 % Copyright 2016
-% @date: 14-Jan-2016
 % @author: Felipe Orihuela-Espina
-% @modified: 14-Jan-2016
 %
 % See also getProbeSetInfo, setProbeSetInfo
 %
+
+
+%% Log
+%
+% File created: 14-Jan-2016
+% File last modified (before creation of this log): 14-Jan-2016
+%
+% 3-Dec-2023: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Started to use get/set methods for struct like access.
+%   + Updated error codes to use 'ICNNA' instead of 'ICNA'
+%
+
 
 if (~exist('pInfo','var') || isempty(pInfo))
     %Set the default information
@@ -100,7 +111,7 @@ for ee=1:nElem
                 if (isscalar(val) && (val == 0 || val == 1))
                     %Valid; do nothing
                 else 
-                  error('ICNA:rawData_ETG4000:addProbesetInfo:InvalidFieldValue',...
+                  error('ICNNA:rawData_ETG4000:addProbesetInfo:InvalidFieldValue',...
                       ['Field .read in ' num2str(ff) ...
                        '-th probe set information record must be ' ...
                        'either a 0 -not read-, or 1 -read.']);
@@ -118,7 +129,7 @@ for ee=1:nElem
                     pInfo(ee).type=lower(pInfo(ee).type);
                     
                 else 
-                  error('ICNA:rawData_ETG4000:addProbeSetInfo:InvalidFieldValue',...
+                  error('ICNNA:rawData_ETG4000:addProbeSetInfo:InvalidFieldValue',...
                       ['Field .type in ' num2str(ff) ...
                        '-th probe set information record must be ' ...
                        'a recognized string (e.g. ''adult'').']);
@@ -134,7 +145,7 @@ for ee=1:nElem
                                     || strcmp(val,'3x5')))
                     %Valid; do nothing
                 else 
-                  error('ICNA:rawData_ETG4000:addProbeSetInfo:InvalidFieldValue',...
+                  error('ICNNA:rawData_ETG4000:addProbeSetInfo:InvalidFieldValue',...
                       ['Field .mode in ' num2str(ff) ...
                        '-th probe set information record must be ' ...
                        'a recognized string (e.g. ''3x3'').']);
@@ -142,7 +153,7 @@ for ee=1:nElem
                 
 
             otherwise
-                error('ICNA:rawData_ETG4000:addProbeSetInfo:InvalidField',...
+                error('ICNNA:rawData_ETG4000:addProbeSetInfo:InvalidField',...
                       ['Invalid field ' names{ff} ' in ' num2str(ff)...
                        '-th probe set information record.']);
         end

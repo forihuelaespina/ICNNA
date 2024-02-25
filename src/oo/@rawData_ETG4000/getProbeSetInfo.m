@@ -36,3 +36,5 @@ if exist('idx','var')
     idx(idx>length(obj.probesetInfo))=[];
     pInfo=pInfo(idx);
 end
+
+end

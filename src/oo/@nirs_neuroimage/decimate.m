@@ -47,6 +47,13 @@ function obj=decimate(obj,r)
 %   + Added this log. Got rid of old labels @date and @modified.
 %   + Updated calls to get attributes using the struct like syntax
 %
+% 23-Feb-2024: FOE
+%   Bug fixed: Decimation of events with onsets 1, were yielding
+%   a new onset at 0 (i.e. from round(1/r)). Since one of the
+%   invariants of the timeline is that onsets ought to be bigger than
+%   0, this lead to a subsequent error that will not be detected until
+%   the time to check the invariance.
+%
 
 
 
@@ -112,7 +119,7 @@ for con=1:nConds,
     events=getConditionEvents(tline,tag);
     if (~isempty(events))
         %First simply try a general case relocation of events
-        newOnsets=round(events(:,1)/r);
+        newOnsets=max(1,round(events(:,1)/r));
         newDurations=round(events(:,2)/r);
         %Some events may collapse to length 0 but this is
         %theoretically ok.

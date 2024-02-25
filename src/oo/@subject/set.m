@@ -35,12 +35,16 @@ function obj = set(obj,varargin)
 %   method to simply redirect to those.
 %   + Declare method as DEPRECATED.
 %
+% 3-Dec-2023: FOE
+%   Bugs fixed
+%   + Deprecated warning message was reporting the wrong class.
+%
 
 
 
-warning('ICNNA:timeline:set:Deprecated',...
+warning('ICNNA:subject:set:Deprecated',...
         ['DEPRECATED (v1.2). Use struct like syntax for setting the attribute ' ...
-         'e.g. timeline.' lower(varargin{1}) ' = ... ']); 
+         'e.g. subject.' lower(varargin{1}) ' = ... ']); 
 
 
 propertyArgIn = varargin;

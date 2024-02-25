@@ -220,6 +220,10 @@ end
 if opt.blockAveraging
     cevents=getConditionEvents(t,opt.blockCondTag);
     nBlocks=size(cevents,1);
+    if nBlocks==0
+        tmpSd=sd;
+        tmpChannelData = nan(tmpSd.nSamples,tmpSd.nSignals,1);
+    end
     for bb=1:nBlocks
         tmpSd=getBlock(sd,opt.blockCondTag,bb,...
                           'NBaselineSamples',opt.blockBaseline,...

@@ -107,6 +107,9 @@ function [db]=generateDB_withBreak(expSpace,options)
 %   + Got rid of old labels @date and @modified.
 %   + Adapted calls of get/set methods for struct like access
 %
+% 23-Feb-2024: FOE
+%   + Bug fixed. Improved treatment of empty blocks.
+%
 
 assert(expSpace.runStatus,'Experiment Space has not been run yet.');
 
@@ -180,20 +183,25 @@ for ii=1:nPoints
    nTotalSamples=length(fvector);
 
    %Split Fvector as appropiate
-    if (nBaselineSamples==0)
-        baseChunk=0;
-    else
-        baseChunk=fvector(1:nBaselineSamples);
-    end
+   if ~isempty(fvector)
+       if (nBaselineSamples==0)
+           baseChunk=0;
+       else
+           baseChunk=fvector(1:nBaselineSamples);
+       end
 
-    %%The following lines have been modified to allow for a break
-    assert(nTotalSamples>=(nBaselineSamples+opt.breakSamples),...
-        'Corrupt Experiment Space.');
-    if (nTotalSamples-(nBaselineSamples+opt.breakSamples)==0)
-        taskChunk=0;
-    else
-        taskChunk=fvector((nBaselineSamples+opt.breakSamples)+1:end,:);
-    end
+       %%The following lines have been modified to allow for a break
+       assert(nTotalSamples>=(nBaselineSamples+opt.breakSamples),...
+           'Corrupt Experiment Space.');
+       if (nTotalSamples-(nBaselineSamples+opt.breakSamples)==0)
+           taskChunk=0;
+       else
+           taskChunk=fvector((nBaselineSamples+opt.breakSamples)+1:end,:);
+       end
+   else
+       baseChunk=0;
+       taskChunk=0;
+   end
 
     baseVal=mean(baseChunk);
     baseStd=std(baseChunk);

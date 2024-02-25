@@ -285,6 +285,7 @@ Im=zeros(0,4);
 
 sessions=unique(db(:,dbCons.COL_SESSION))';
 for sess=sessions %1:nSessions
+    iSess = find(sessions == sess);
     %Not all sessions have all the stimulus
     sillyidx=find(db(:,dbCons.COL_SESSION)==sess);
     stimuli=unique(db(sillyidx,dbCons.COL_STIMULUS))';
@@ -378,11 +379,11 @@ for sess=sessions %1:nSessions
     end
 
     if nStimulus == 1              
-        sessLabels(end+1)={opt.sessionTags{sess}};
+        sessLabels(end+1)={opt.sessionTags{iSess}};
     elseif nSessions == 1
         sessLabels(end+1)={opt.stimulusTags{stim}};
     else
-        sessLabels(end+1)={[opt.sessionTags{sess} '; ' ...
+        sessLabels(end+1)={[opt.sessionTags{iSess} '; ' ...
                             opt.stimulusTags{stim}]};
     end
     Im(end+1,:)=[1 sess 1 stim];

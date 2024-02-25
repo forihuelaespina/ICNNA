@@ -293,11 +293,9 @@ function nimg=convert(obj,varargin)
 % Medicine and Biology  49:N255-N257
 %
 % 
-% Copyright 2008-14
+% Copyright 2008-23
 % Copyright over some comments belong to their authors.
-% @date: 13-May-2008
 % @author: Felipe Orihuela-Espina
-% @modified: 23-Jan-2014
 % 
 %
 % See also rawData_ETG4000, import, neuroimage, NIRS_neuroimage
@@ -307,6 +305,10 @@ function nimg=convert(obj,varargin)
 
 %% Log
 %
+% File created: 13-May-2008
+% File last modified (before creation of this log): 23-Jan-2014
+%
+%
 % 23-Jan-2014: New option available. Conditions can now be accepted
 %   with overlapping behaviour. Default remains non overlapping behaviour.
 %
@@ -314,13 +316,19 @@ function nimg=convert(obj,varargin)
 %   even for one probe only. Also updated the oaInfo to incorporate
 %   the optodeTopoArrangement although of course this remains empty.
 %
+%
+% 3-Dec-2023 (FOE): Comments improved.
+%   + Got rid of old labels @date and @modified.
+%   + Started to use get/set methods for struct like access.
+%   + Updated error codes to use 'ICNNA' instead of 'ICNA'
+%
 
 
 opt.allowOverlappingConditions = 1; %Default. Non-overlapping conditions
 while ~isempty(varargin) %Note that the object itself is not counted.
     optName = varargin{1};
     if length(varargin)<2
-        error('ICNA:rawData_ETG4000:convert:InvalidOption', ...
+        error('ICNNA:rawData_ETG4000:convert:InvalidOption', ...
             ['Option ' optName ': Missing option value.']);
     end
     optValue = varargin{2};
@@ -334,12 +342,12 @@ while ~isempty(varargin) %Note that the object itself is not counted.
             if (optValue==0 || optValue==1)
                 opt.allowOverlappingConditions = optValue;
             else
-                error('ICNA:rawData_ETG4000:convert:InvalidOption', ...
+                error('ICNNA:rawData_ETG4000:convert:InvalidOption', ...
                      ['Option ' optName ': Unexpected value ' num2str(optValue) '.']);
             end
             
         otherwise
-            error('ICNA:rawData_ETG4000:convert:InvalidOption', ...
+            error('ICNNA:rawData_ETG4000:convert:InvalidOption', ...
                   ['Invalid option ' optName '.']);
     end
 end
@@ -365,11 +373,11 @@ end
 
 
 %Some basic initialization
-nSamples=size(obj.lightRawData,1);
-nSignals=length(obj.wLengths);
-nChannels = get(obj,'nChannels');
-nWlengths=length(get(obj,'nominalWavelengthSet'));
-nimg=nirs_neuroimage(1,[nSamples,nChannels,nSignals]);
+nSamples  = size(obj.lightRawData,1);
+nSignals  = length(obj.wLengths);
+nChannels = obj.nChannels;
+nWlengths = length(obj.nominalWavelengthSet);
+nimg = nirs_neuroimage(1,[nSamples,nChannels,nSignals]);
 
 
 %dpf=lower('ok');
@@ -386,7 +394,7 @@ switch (obj.probesetInfo(importedPSidx(1)).type)
         %Do nothing. Use the default above.
     otherwise
         if strcmp(dpf,'ok')
-            warning('ICNA:rawData_ETG4000:convert:InexactDPF',...
+            warning('ICNNA:rawData_ETG4000:convert:InexactDPF',...
                     ['The DPF for probe type ''' ...
                         obj.probesetInfo(pp).type ''' is not currently ' ...
                      'available. The DPF for the ''adult'' probe ' ...
@@ -538,7 +546,7 @@ for pp=importedPSidx
             chOptodeArrays = [chOptodeArrays; oa*ones(oa_nCh,1)];
             oa=oa+1;
         otherwise
-            error('ICNA:rawData_ETG4000:convert:UnexpectedProbeMode',...
+            error('ICNNA:rawData_ETG4000:convert:UnexpectedProbeMode',...
                 ['Unexpected probe set mode ''' ...
                 obj.probesetInfo(pp).mode ''' ' ...
                 'for probes set #' num2str(pp)]);
@@ -556,7 +564,7 @@ c_deoxy = zeros(nSamples,nChannels);
 %% Convert intensities
 %wwait=waitbar(0,'Converting intensities->Hb data... 0%');
 
-for ch = 1:nChannels,
+for ch = 1:nChannels
     %For each channel, the light intensities have been recorded at several
     %wavelengths (e.g. two for for the case of the Hitachi ETG-4000).
     
@@ -578,7 +586,7 @@ for ch = 1:nChannels,
     
         
     % To check that absolute intensity does not reach below zero
-    tmpLRD(:,low)=tmpLRD(:,low)+(tmpLRD(:,low)==0);
+    tmpLRD(:,low) =tmpLRD(:,low)+(tmpLRD(:,low)==0);
     tmpLRD(:,high)=tmpLRD(:,high)+(tmpLRD(:,high)==0);
     
     % To calculate the attenuation for both wavelengths based on indices and not rows
@@ -636,7 +644,7 @@ end     % for each channel pair
 c_hb=zeros(nSamples,nChannels,2);
 c_hb(:,:,nirs_neuroimage.OXY)=c_oxy;
 c_hb(:,:,nirs_neuroimage.DEOXY)=c_deoxy;
-nimg=set(nimg,'Data',c_hb);
+nimg.data = c_hb;
 
 %fprintf('\n');
 
@@ -644,14 +652,14 @@ nimg=set(nimg,'Data',c_hb);
 %nimg=set(nimg,'ProbeMode',obj.probeMode); %DEPRECATED CODE
 %waitbar(1,wwait,'Updating channel location map...');
 %fprintf('Updating channel location map...\n');
-clm = get(nimg,'ChannelLocationMap');
+clm = nimg.chLocationMap;
 clm = setChannelProbeSets(clm,1:nChannels,chProbeSets);
 clm = setChannelOptodeArrays(clm,1:nChannels,chOptodeArrays);
 clm = setOptodeArraysInfo(clm,1:length(oaInfo),oaInfo);
     %At this point, neither, the channel 3D locations, the stereotactic
     %positions nor the surface positions are known.
     %Neither is known anything about the optodes.
-nimg = set(nimg,'ChannelLocationMap',clm);
+nimg.chLocationMap = clm;
 
 
 %% Set signal tags
@@ -671,7 +679,7 @@ tmpMarks = obj.marks(:,importedPSidx); %Isolate the marks of interest
 %Check that marks across imported probe sets are equal
 for pp=importedPSidx(2:end)
     if any(tmpMarks(:,importedPSidx(1))~=tmpMarks(:,importedPSidx(pp)))
-        warning('ICNA:rawData_ETG4000:convert:UnequalMarks',...
+        warning('ICNNA:rawData_ETG4000:convert:UnequalMarks',...
                 ['Different stimulus marks found across probe sets. ' ...
                 'The conversion will proceed using those marks only ' ...
                 'of the first probe set, ignoring the rest.']);
@@ -695,12 +703,12 @@ for cc=conds
     elseif (length(onsets)-1==length(endings))
         %the last onset is unmatched, i.e. the trial should
         %finish by the end of the recording
-        warning('ICNA:rawData_ETG4000:convert:MissedTrialEnding',...
+        warning('ICNNA:rawData_ETG4000:convert:MissedTrialEnding',...
                 ['Missed end of trial for condition ' tags(cc) '. ' ...
                 'Setting end of trial to the end of the recording.']);
         endings=[endings; nSamples];
     else
-        warning('ICNA:rawData_ETG4000:convert:CorruptCondition',...
+        warning('ICNNA:rawData_ETG4000:convert:CorruptCondition',...
                 ['Corrupt block/trial definitions for condition ' ...
                 tags(cc) '. Ignoring block/trial definitions.']);
         onsets=zeros(0,1);
@@ -713,7 +721,7 @@ for cc=conds
 end
 
 %... and now the same with the timestamps
-tmpTimestamps = get(obj,'Timestamps');
+tmpTimestamps = obj.timestamps;
 %It should be expected that all timestamps across all imported probe
 %sets should be equal. Check that (issuing a warning if that is
 %not the case), and work only with the timestamps of the first imported
@@ -723,7 +731,7 @@ tmpTimestamps = tmpTimestamps(:,importedPSidx);
 %Check that timestamps across imported probe sets are equal
 for pp=importedPSidx(2:end)
     if any(tmpTimestamps(:,importedPSidx(1))~=tmpTimestamps(:,importedPSidx(pp)))
-        warning('ICNA:rawData_ETG4000:convert:UnequalTimestamps',...
+        warning('ICNNA:rawData_ETG4000:convert:UnequalTimestamps',...
                 ['Different timestamps found across probe sets. ' ...
                 'The conversion will proceed using those timestamps only ' ...
                 'of the first probe set, ignoring the rest.']);
@@ -732,14 +740,18 @@ for pp=importedPSidx(2:end)
 end
 tmpTimestamps=tmpTimestamps(:,1);  %Note that tmpTimestamps already
                         %has only those of imported probe sets
-theTimeline=set(theTimeline,'Timestamps',tmpTimestamps);
+theTimeline.timestamps = tmpTimestamps;
 
-theTimeline=set(theTimeline,'StartTime',get(obj,'Date'));
-theTimeline=set(theTimeline,'NominalSamplingRate',get(obj,'SamplingRate'));
+theTimeline.startTime = obj.date;
+theTimeline.nominalSamplingRate = obj.samplingRate;
 
-nimg=set(nimg,'Timeline',theTimeline);
+nimg.timeline = theTimeline;
 
 
 
 
 %close (wwait);
+
+
+
+end

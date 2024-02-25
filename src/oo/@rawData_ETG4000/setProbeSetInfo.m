@@ -70,10 +70,8 @@ function obj=setProbeSetInfo(obj,idx,pInfo)
 %
 %
 %
-% Copyright 2012-2016
-% @date: 26-Dec-2012
+% Copyright 2012-2023
 % @author: Felipe Orihuela-Espina
-% @modified: 14-Jan-2016
 %
 % See also getProbeSetInfo, addProbeSetInfo
 %
@@ -81,9 +79,19 @@ function obj=setProbeSetInfo(obj,idx,pInfo)
 
 %% Log
 %
+%
+% File created: 26-Dec-2012
+% File last modified (before creation of this log): 14-Jan-2016
+%
 % 14-Jan-2016 (FOE): Bug fixed and comments improved.
-%   Attempts to access to obj.probesInfo were changed to obj.probesetInfo
-%   Also, added method addProbeSetInfo to the "see also" section.
+%   + Added this log. 
+%   + Attempts to access to obj.probesInfo were changed to obj.probesetInfo
+%   + Also, added method addProbeSetInfo to the "see also" section.
+%
+% 3-Dec-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Started to use get/set methods for struct like access.
+%   + Updated error codes to use 'ICNNA' instead of 'ICNA'
 %
 
 
@@ -103,7 +111,7 @@ if isempty(pInfo)
 else
     
 assert(numel(idx)==numel(pInfo),...
-        ['ICNA:rawData_ETG4000:setProbesInfo:InvalidParameterValue',...
+        ['ICNNA:rawData_ETG4000:setProbesInfo:InvalidParameterValue',...
          ' Number of probes sets indexes mismatches number of ' ...
          'associated probes sets information records.']);
 idx=reshape(idx,numel(idx),1); %Ensure both are vectors
@@ -125,7 +133,7 @@ for ee=1:nElem
                 if (isscalar(val) && (val == 0 || val == 1))
                     %Valid; do nothing
                 else 
-                  error('ICNA:rawData_ETG4000:setProbesInfo:InvalidFieldValue',...
+                  error('ICNNA:rawData_ETG4000:setProbesInfo:InvalidFieldValue',...
                       ['Field .read in ' num2str(ff) ...
                        '-th probe set information record must be ' ...
                        'either a 0 -not read-, or 1 -read.']);
@@ -143,7 +151,7 @@ for ee=1:nElem
                     pInfo(ee).type=lower(pInfo(ee).type);
                     
                 else 
-                  error('ICNA:rawData_ETG4000:setProbesInfo:InvalidFieldValue',...
+                  error('ICNNA:rawData_ETG4000:setProbesInfo:InvalidFieldValue',...
                       ['Field .type in ' num2str(ff) ...
                        '-th probe set information record must be ' ...
                        'a recognized string (e.g. ''adult'').']);
@@ -159,7 +167,7 @@ for ee=1:nElem
                                     || strcmp(val,'3x5')))
                     %Valid; do nothing
                 else 
-                  error('ICNA:rawData_ETG4000:setProbesInfo:InvalidFieldValue',...
+                  error('ICNNA:rawData_ETG4000:setProbesInfo:InvalidFieldValue',...
                       ['Field .mode in ' num2str(ff) ...
                        '-th probe set information record must be ' ...
                        'a recognized string (e.g. ''3x3'').']);
@@ -167,7 +175,7 @@ for ee=1:nElem
                 
 
             otherwise
-                error('ICNA:rawData_ETG4000:setProbesInfo:InvalidField',...
+                error('ICNNA:rawData_ETG4000:setProbesInfo:InvalidField',...
                       ['Invalid field ' names{ff} ' in ' num2str(ff)...
                        '-th probe set information record.']);
         end
@@ -186,3 +194,4 @@ obj.probesetInfo(idx)=pInfo;
 end
 assertInvariants(obj);
 
+end

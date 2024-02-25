@@ -1,5 +1,5 @@
 function obj = set(obj,varargin)
-% RAWDATA_ETG4000/SET Set object properties and return the updated object
+% RAWDATA_ETG4000/SET DEPRECATED. Set object properties and return the updated object
 %
 % obj = set(obj,varargin) Sets the indicated property propName and
 %    return the updated object
@@ -63,7 +63,11 @@ function obj = set(obj,varargin)
 
 
 
+
 %% Log
+%
+% File created: 16-Apr-2008
+% File last modified (before creation of this log): 29-Dec-2012
 %
 % 28-Jul-2017 (FOE): Bug fixed.
 %   When setting the value of the moving average it was expecting
@@ -75,6 +79,22 @@ function obj = set(obj,varargin)
 %   checks the match in size with the number of probe sets declared
 %   instead of expecting a 3D matrix.
 %
+% 21-May-2023: FOE
+%   + Got rid of old labels @date and @modified.
+%   + As I started to add get/set methods for struct like access
+%   to attributes in the main class file, I also updated this
+%   method to simply redirect to those.
+%   + Declare method as DEPRECATED.
+%   + Legacy support for attribute version (previously deprecated)
+%   no longer active.
+%
+
+
+
+warning('ICNNA:rawData_ETG4000:set:Deprecated',...
+        ['DEPRECATED (v1.2.1). Use struct like syntax for setting the attribute ' ...
+         'e.g. rawData_ETG4000.' lower(varargin{1}) ' = ... ']); 
+
 
 
 
@@ -84,106 +104,117 @@ while length(propertyArgIn) >= 2,
    val = propertyArgIn{2};
    propertyArgIn = propertyArgIn(3:end);
    switch lower(prop)
-    case 'version' %DEPRECATED
-        if (ischar(val))
-            obj.fileVersion = val;
-            warning('ICNA:rawData_ETG4000:set:Deprecated',...
-                    ['The use of ''version'' has been deprecated. ' ...
-                    'Please use ''fileVersion'' instead.']);
-        else
-            error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
-                  'Value must be a string');
-        end
+    % case 'version' %DEPRECATED
+    %     if (ischar(val))
+    %         obj.fileVersion = val;
+    %         warning('ICNA:rawData_ETG4000:set:Deprecated',...
+    %                 ['The use of ''version'' has been deprecated. ' ...
+    %                 'Please use ''fileVersion'' instead.']);
+    %     else
+    %         error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+    %               'Value must be a string');
+    %     end
 
     case 'fileversion'
-        if (ischar(val))
-            obj.fileVersion = val;
-        else
-            error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
-                  'Value must be a string');
-        end
+        obj.fileVersion = val;
+        % if (ischar(val))
+        %     obj.fileVersion = val;
+        % else
+        %     error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+        %           'Value must be a string');
+        % end
 
 %Patient information
     case 'subjectname'
-        if (ischar(val))
-            obj.userName = val;
-        else
-            error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
-                  'Value must be a string');
-        end
+        obj.userName = val;
+        % if (ischar(val))
+        %     obj.userName = val;
+        % else
+        %     error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+        %           'Value must be a string');
+        % end
 
     case 'subjectsex'
-        if (ischar(val))
-            obj.userSex = val;
-        else
-            error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
-                  'Value must be a string');
-        end
+        obj.userSex = val;
+        % if (ischar(val))
+        %     obj.userSex = val;
+        % else
+        %     error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+        %           'Value must be a string');
+        % end
 
     case 'subjectbirthdate'
-        if (ischar(val) || isvector(val) || isscalar(val))
-            obj.userBirthDate = datenum(val);
-        else
-            error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
-                  'Value must be a date (whether a string, datevec or datenum).');
-        end
+        obj.userBirthDate = datenum(val);
+        % if (ischar(val) || isvector(val) || isscalar(val))
+        %     obj.userBirthDate = datenum(val);
+        % else
+        %     error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+        %           'Value must be a date (whether a string, datevec or datenum).');
+        % end
 
     case 'subjectage'
-        if (isscalar(val) && isreal(val))
-            obj.userAge = val;
-        else
-            error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
-                  'Value must be numeric');
-        end
+        obj.userAge = val;
+        % if (isscalar(val) && isreal(val))
+        %     obj.userAge = val;
+        % else
+        %     error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+        %           'Value must be numeric');
+        % end
         
 %Analysis information (for presentation only)
     case 'analyzemode'
-        if (ischar(val))
-            obj.analyzeMode = val;
-        else
-            error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
-                  'Value must be a string');
-        end
+        obj.analyzeMode = val;
+        % if (ischar(val))
+        %     obj.analyzeMode = val;
+        % else
+        %     error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+        %           'Value must be a string');
+        % end
         
     case 'pretime'
-        if (isscalar(val) && (floor(val)==val) && val>0)
-            obj.preTime = val;
-        else
-            error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
-                  'Value must be a positive integer');
-        end
+        obj.preTime = val;
+        % if (isscalar(val) && (floor(val)==val) && val>0)
+        %     obj.preTime = val;
+        % else
+        %     error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+        %           'Value must be a positive integer');
+        % end
 
     case 'posttime'
-        if (isscalar(val) && (floor(val)==val) && val>0)
-            obj.postTime = val;
-        else
-            error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
-                  'Value must be a positive integer');
-        end
+        obj.postTime = val;
+        % if (isscalar(val) && (floor(val)==val) && val>0)
+        %     obj.postTime = val;
+        % else
+        %     error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+        %           'Value must be a positive integer');
+        % end
 
     case 'recoverytime'
-        if (isscalar(val) && (floor(val)==val) && val>0)
-            obj.recoveryTime = val;
-        else
-            error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
-                  'Value must be a positive integer');
-        end
+        obj.recoveryTime = val;
+        % if (isscalar(val) && (floor(val)==val) && val>0)
+        %     obj.recoveryTime = val;
+        % else
+        %     error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+        %           'Value must be a positive integer');
+        % end
 
     case 'basetime'
-        if (isscalar(val) && (floor(val)==val) && val>0)
-            obj.baseTime = val;
-        else
-            error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
-                  'Value must be a positive integer');
-        end
+        obj.baseTime = val;
+        % if (isscalar(val) && (floor(val)==val) && val>0)
+        %     obj.baseTime = val;
+        % else
+        %     error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+        %           'Value must be a positive integer');
+        % end
 
     case 'fittingdegree'
-        if (isscalar(val) && (floor(val)==val) && val>0)
-            obj.fittingDegree = val;
-        else
-            error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
-                  'Value must be a positive integer');
-        end
+        obj.fittingDegree = val;
+        % if (isscalar(val) && (floor(val)==val) && val>0)
+        %     obj.fittingDegree = val;
+        % else
+        %     error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+        %           'Value must be a positive integer');
+        % end
 
     case 'hpf'
         obj.hpf = val;
@@ -192,21 +223,28 @@ while length(propertyArgIn) >= 2,
         obj.hpf = val;
         
     case 'movingaverage'
-        if (isscalar(val) && val>0)
-            obj.movingAvg = val;
-        else
-            error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
-                  'Value must be a positive real number in [s].');
-        end
+        obj.movingAvg = val;
+        % if (isscalar(val) && val>0)
+        %     obj.movingAvg = val;
+        % else
+        %     error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+        %           'Value must be a positive real number in [s].');
+        % end
 
 %Measure information
+    case 'wlengths'
+        obj.wLengths = val;
     case 'nominalwavelenghtset'
-        if (isvector(val) && isreal(val))
-            obj.wLengths = val;
-        else
-            error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
-                  'Value must be a vector of wavelengths in nm.');
-        end
+        obj.wLengths = val;
+            warning('ICNA:rawData_ETG4000:set:Deprecated',...
+                    ['The use of ''nominalWavelenghtSet'' has been deprecated. ' ...
+                    'Please use ''wLengths'' instead.']);
+        % if (isvector(val) && isreal(val))
+        %     obj.wLengths = val;
+        % else
+        %     error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+        %           'Value must be a vector of wavelengths in nm.');
+        % end
 
 %     case 'probemode'
 %         if (ischar(val))
@@ -226,39 +264,43 @@ while length(propertyArgIn) >= 2,
 
 
     case 'samplingperiod'
-        if (isscalar(val) && isreal(val) && val>0)
-            obj.samplingPeriod = val;
-        else
-            error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
-                  'Value must be a positive real');
-        end
+        obj.samplingPeriod = val;
+        % if (isscalar(val) && isreal(val) && val>0)
+        %     obj.samplingPeriod = val;
+        % else
+        %     error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+        %           'Value must be a positive real');
+        % end
 
     case 'samplingrate'
-        if (isscalar(val) && isreal(val) && val>0)
-            obj.samplingPeriod = 1/val;
-        else
-            error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
-                  'Value must be a positive real');
-        end
+        obj.samplingPeriod = 1/val;
+        % if (isscalar(val) && isreal(val) && val>0)
+        %     obj.samplingPeriod = 1/val;
+        % else
+        %     error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+        %           'Value must be a positive real');
+        % end
         
 	case 'nblocks'
-        if (isscalar(val) && (floor(val)==val) && val>0)
-            obj.repeatCount = val;
+        obj.repeatCount = val;
+        % if (isscalar(val) && (floor(val)==val) && val>0)
+        %     obj.repeatCount = val;
             warning('ICNA:rawData_ETG4000:set:Deprecated',...
                     ['The use of ''nBlocks'' has been deprecated. ' ...
                     'Please use ''repeatCount'' instead.']);
-        else
-            error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
-                  'Value must be a positive integer.');
-        end
+        % else
+        %     error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+        %           'Value must be a positive integer.');
+        % end
         
     case 'repeatcount'
-        if (isscalar(val) && (floor(val)==val))
-            obj.repeatCount = val;
-        else
-            error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
-                  'Value must be a positive integer or 0.');
-        end
+        obj.repeatCount = val;
+        % if (isscalar(val) && (floor(val)==val))
+        %     obj.repeatCount = val;
+        % else
+        %     error('ICNA:rawData_ETG4000:set:InvalidParameterValue',...
+        %           'Value must be a positive integer or 0.');
+        % end
         
 %The data itself!!
     case 'lightrawdata'

@@ -1,3 +1,4 @@
+classdef rawData_ETG4000 < rawData
 %Class rawData_ETG4000
 %
 %A rawData_ETG4000 represents the experimentally recorded data
@@ -75,11 +76,14 @@
 %   .fileVersion - The HITACHI data file version. By default is set to 1.06.
 %  == Patient information
 %   .userName - The user name
-%   .userAge - The user age
-%   .userSex - The user sex
+%   .userAge - The user age. Since ICNNA v1.2,1, default to undefined 0.
+%   .userSex - The user sex. Since ICNNA v1.2,1, default to undefined 'U'.
 %   .userBirthDate - The user birth date. A date in MATLAB's datenum
-%               format.
+%               format. Since v1.2,1, default to today.
 %           Available as from HITACHI file version 1.21
+%           NOTE: In ICNNA v1.2,1 type of this attribute was change from
+%               datenum to datetime which may not be fully backward
+%               compatible.
 %  == Analysis information (for presentation only)
 %	.analyzeMode='continuous'; %Not sure of what is this used for.
 %   .preTime=1; %in [s]
@@ -182,37 +186,53 @@
 % Type methods('rawData_ETG4000') for a list of methods
 %
 %
-% Copyright 2008-16
-% @date: 12-May-2008
+% Copyright 2008-23
 % @author: Felipe Orihuela-Espina
-% @modified: 14-Jan-2016
 %
 % See also rawData, rawData_ETG4000
 %
 
 %% Log
 %
+%
+% File created: 12-May-2008
+% File last modified (before creation of this log): 14-Jan-2016
+%
 % 14-Jan-2016 (FOE): Comments improved.
+%   + Added this log.
+%
+% 3-Dec-2023 (FOE): Comments improved.
+%   + Got rid of old labels @date and @modified.
+%   + Added property classVersion. Set to '1.0' by default.
+%   + Added get/set methods support for struct like access to attributes.
+%   + For those attributes above also started to simplify the set
+%   code replacing it with validation rules on the declaration.
 %
 
 
-classdef rawData_ETG4000 < rawData
+
+
+    properties (Constant, Access=private)
+        classVersion = '1.0'; %Read-only. Object's class version.
+    end
+
+
     properties (SetAccess=private, GetAccess=private)
-        fileVersion='1.06';
+        fileVersion(1,:) char ='1.06';
         %Patient information
-        userName='';
-        userSex='';
-        userAge=[];
-        userBirthDate=[]; % A date vector
+        userName(1,:) char ='';
+        userSex(1,1) char {mustBeMember(userSex,{'M','F','U'})}='U';
+        userAge(1,1) double {mustBeInteger, mustBeNonnegative}=0;
+        userBirthDate(1,1) datetime = datetime('now'); % A datenum
         %Analysis information (for presentation only)
-        analyzeMode='continuous';
-        preTime=1; %in [s]
-        postTime=1; %in [s]
-        recoveryTime=1; %in [s]
-        baseTime=1; %in [s]
-        fittingDegree=1;
-        hpf ='No Filter'; %High pass cutoff frequency in [Hz] or 'No Filter'
-        lpf ='No Filter'; %Low pass cutoff frequency in [Hz] or 'No Filter'
+        analyzeMode(1,:) char ='continuous';
+        preTime(1,1) double {mustBeNonnegative}=1; %in [s]
+        postTime(1,1) double {mustBeNonnegative}=1; %in [s]
+        recoveryTime(1,1) double {mustBeNonnegative}=1; %in [s]
+        baseTime(1,1) double {mustBeNonnegative}=1; %in [s]
+        fittingDegree(1,1) double {mustBeInteger, mustBeNonnegative}=1;
+        hpf(1,:) char ='No Filter'; %High pass cutoff frequency in [Hz] or 'No Filter'
+        lpf(1,:) char ='No Filter'; %Low pass cutoff frequency in [Hz] or 'No Filter'
         movingAvg=1; %Moving average smoothing for presentation only
         %Measure information
         %nProbes=0;%DEPRECATED. Total number of probes imported.
@@ -220,12 +240,12 @@ classdef rawData_ETG4000 < rawData
         %nChannels=0;%DEPRECATED. The number of Channels derived
                     %from the probeMode.
         probesetInfo = struct('read',{},'type',{},'mode',{});
-        wLengths=[695 830];%The nominal wavelengths at which the light
+        wLengths(1,:) double {mustBeNonnegative}=[695 830];%The nominal wavelengths at which the light
             %intensities were acquired in [nm].
-        samplingPeriod=0.1%Sampling rate i.e. time between two
+        samplingPeriod(1,1) double {mustBeNonnegative}=0.1%Sampling rate i.e. time between two
                         %measurements in [s]
         %nBlocks=0; %DEPRECATED
-        repeatCount=0; %Repeat Count
+        repeatCount(1,1) double {mustBeInteger, mustBeNonnegative}=0; %Repeat Count
         %The data itself!!
         %NOTE: In MATLAB, an assignment:
         %   + a=nan(0,0,0) leads to an empty array 0-by-0-by-0 with ndims 3
@@ -245,6 +265,14 @@ classdef rawData_ETG4000 < rawData
         removalMarks=nan(0,0);%Removal marks
         preScan=nan(0,0);%preScan stamps
     end
+
+
+    properties (Dependent)
+        nChannels
+        nominalWavelengthSet
+        samplingRate
+    end
+
  
     methods    
         function obj=rawData_ETG4000(varargin)
@@ -285,4 +313,227 @@ classdef rawData_ETG4000 < rawData
         coe=table_abscoeff;
     end
 
+
+
+
+    methods
+
+      %Getters/Setters
+
+      function res = get.fileVersion(obj)
+         %Gets the object |fileVersion|
+         res = obj.fileVersion;
+      end
+      function obj = set.fileVersion(obj,val)
+         %Sets the object |fileVersion|
+         obj.fileVersion = val;
+      end
+
+    function res = get.userName(obj)
+         %Gets the object |userName|
+         res = obj.userName;
+      end
+      function obj = set.userName(obj,val)
+         %Sets the object |userName|
+         obj.userName = val;
+      end
+
+    function res = get.userAge(obj)
+         %Gets the object |userAge|
+         res = obj.userAge;
+      end
+      function obj = set.userAge(obj,val)
+         %Sets the object |userAge|
+         obj.userAge = val;
+      end
+
+
+    function res = get.userSex(obj)
+         %Gets the object |userSex|
+         res = obj.userSex;
+      end
+      function obj = set.userSex(obj,val)
+         %Sets the object |userSex|
+         obj.userSex = val;
+      end
+
+      function res = get.userBirthDate(obj)
+         %Gets the object |userBirthDate|
+         res = obj.userBirthDate;
+      end
+      function obj = set.userBirthDate(obj,val)
+         %Sets the object |userBirthDate|
+         obj.userBirthDate = val;
+      end
+
+      function res = get.analyzeMode(obj)
+         %Gets the object |analyzeMode|
+         res = obj.analyzeMode;
+      end
+      function obj = set.analyzeMode(obj,val)
+         %Sets the object |analyzeMode|
+         obj.analyzeMode = val;
+      end
+
+      function res = get.preTime(obj)
+         %Gets the object |preTime|
+         res = obj.preTime;
+      end
+      function obj = set.preTime(obj,val)
+         %Sets the object |preTime|
+         obj.preTime = val;
+      end
+
+      function res = get.postTime(obj)
+         %Gets the object |postTime|
+         res = obj.postTime;
+      end
+      function obj = set.postTime(obj,val)
+         %Sets the object |postTime|
+         obj.postTime = val;
+      end
+
+      function res = get.recoveryTime(obj)
+         %Gets the object |recoveryTime|
+         res = obj.recoveryTime;
+      end
+      function obj = set.recoveryTime(obj,val)
+         %Sets the object |recoveryTime|
+         obj.recoveryTime = val;
+      end
+
+      function res = get.baseTime(obj)
+         %Gets the object |baseTime|
+         res = obj.baseTime;
+      end
+      function obj = set.baseTime(obj,val)
+         %Sets the object |baseTime|
+         obj.baseTime = val;
+      end
+
+      function res = get.fittingDegree(obj)
+         %Gets the object |fittingDegree|
+         res = obj.fittingDegree;
+      end
+      function obj = set.fittingDegree(obj,val)
+         %Sets the object |fittingDegree|
+         obj.fittingDegree = val;
+      end
+
+      function res = get.lpf(obj)
+         %Gets the object |lpf|
+         res = obj.lpf;
+      end
+      function obj = set.lpf(obj,val)
+         %Sets the object |lpf|
+         obj.lpf = val;
+      end
+
+      function res = get.hpf(obj)
+         %Gets the object |hpf|
+         res = obj.hpf;
+      end
+      function obj = set.hpf(obj,val)
+         %Sets the object |hpf|
+         obj.hpf = val;
+      end
+
+      function res = get.movingAvg(obj)
+         %Gets the object |movingAvg|
+         res = obj.movingAvg;
+      end
+      function obj = set.movingAvg(obj,val)
+         %Sets the object |movingAvg|
+         obj.movingAvg = val;
+      end
+
+      function res = get.wLengths(obj)
+         %Gets the object |wLengths|
+         res = obj.wLengths;
+      end
+      function obj = set.wLengths(obj,val)
+         %Sets the object |wLengths|
+         obj.wLengths = val;
+      end
+
+      function res = get.samplingPeriod(obj)
+         %Gets the object |samplingPeriod|
+         res = obj.samplingPeriod;
+      end
+      function obj = set.samplingPeriod(obj,val)
+         %Sets the object |samplingPeriod|
+         obj.samplingPeriod = val;
+      end
+
+      function res = get.repeatCount(obj)
+         %Gets the object |repeatCount|
+         res = obj.repeatCount;
+      end
+      function obj = set.repeatCount(obj,val)
+         %Sets the object |repeatCount|
+         obj.repeatCount = val;
+      end
+
+
+
+
+
+
+
+
+      function res = get.nChannels(obj)
+         %(DEPENDENT) Gets the object |nChannels|
+         %
+         % The number of channels in the data.
+         % This is equivalent to size(obj.data,2)
+         nProbeSets=length(obj.probesetInfo);
+         nCh=0;
+         for ps=1:nProbeSets
+             if obj.probesetInfo(ps).read %Count only those which have been imported
+                 pMode=obj.probesetInfo(ps).mode;
+                 switch (pMode)
+                     case '3x3'
+                         nCh =nCh+24;
+                     case '4x4'
+                         nCh =nCh+24;
+                     case '3x5'
+                         nCh =nCh+22;
+                     otherwise
+                         error('ICNNA:rawData_ETG4000:get:UnexpectedProbeSetMode',...
+                             'Unexpected probe set mode.');
+                 end
+             end
+         end
+         res=nCh;
+      end
+
+
+      function res = get.samplingRate(obj)
+         %(DEPENDENT) Gets the object |samplingRate|
+         %
+         % The sampling rate.
+         % This is equivalent to 1/samplingPeriod
+         res = 1/obj.samplingPeriod;
+      end
+      function obj = set.samplingRate(obj,val)
+         %(DEPENDENT) sets the object |samplingRate|
+         obj.samplingPeriod = 1/val;
+      end
+
+
+      function res = get.nominalWavelengthSet(obj)
+         %(DEPENDENT) Gets the object |wLengths|
+         res = obj.wLengths;
+      end
+      function obj = set.nominalWavelengthSet(obj,val)
+         %(DEPENDENT) Sets the object |wLengths|
+         warning('ICNNA:rawData_ETG4000:set.nominalWavelengthSet:Deprecated', ...
+                 'Property date has been deprecated. Use property wLengths instead.');
+         obj.wLengths = val;
+      end
+
+
+
+
+    end
 end

@@ -327,7 +327,7 @@ function obj=import(obj,filename)
 
 
 %% Deal with the header .hdr file
-hdr_filename = [srcDir '/' theFilename '.hdr'];
+hdr_filename = [srcDir filesep theFilename '.hdr'];
 
 % Open the data file for conversion
 fidr = fopen(hdr_filename, 'r');

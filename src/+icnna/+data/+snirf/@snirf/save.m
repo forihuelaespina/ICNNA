@@ -32,6 +32,8 @@ function [res]=save(filename,theSnirf)
 %
 
 
+res=0;
+
 %Create the output file
 if exist(filename,"file")
     x = 'x';
@@ -282,6 +284,9 @@ end
 
 %Close the file
 H5F.close(fid);
+
+res=1;
+
 
 
 end

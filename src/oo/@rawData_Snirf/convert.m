@@ -72,7 +72,7 @@ function nimg=convert(obj,varargin)
 %
 %
 % 
-% Copyright 2023
+% Copyright 2023-24
 % @author: Felipe Orihuela-Espina
 % 
 %
@@ -86,7 +86,26 @@ function nimg=convert(obj,varargin)
 % 20-May-2023: FOE
 %   + File created
 %
-
+% 14-Feb-2024: FOE
+%   + Bug fixed. The .snirf file format does NOT check whether stimulus
+%       event last beyond the last sample e.g. starttime+duration may be
+%       bigger than the timestamp of the last sample. However, ICNNA
+%       asserts that no conditon event lasts beyond the last sample.
+%       In this bug fixing, event that last beyond the last sample are
+%       truncated.
+%
+% 20-Feb-2024: FOE
+%   + Bug fixed. If the stimulus timeline have events of the same stimulus
+%   that overlap, when setting up the timeline this was causing an error.
+%   Now, the events are merged into a single event whereby I take the
+%   earliest onset and the latest offset of the "group" (if there are more
+%   than two; for instance:
+%       [30 15;
+%       [35 15;   ==> max offset 40+15=65 ==> [30 35]
+%       [40 15]
+%   + Bug fixed. When setting up the timeline, it was not checking for
+%   onsets at 0. Onsets at 0 are now "shifted" to sample 1.
+%
 
 
 opt.nirsDatasetIndex = 1; %Index of the nirs dataset to be converted.
@@ -232,7 +251,55 @@ for iStim = 1:nStims
     %Convert from time to samples
     onsets   = round(tmpStim.data(:,1)*t.nominalSamplingRate);
     durations= round(tmpStim.data(:,2)*t.nominalSamplingRate);
-    t = t.addCondition(cTag,[onsets durations],0);
+
+    % 14-Feb-2024: FOE
+    %   + Bug fixed. In this bug fixing, events that start beyond the last 
+    %       sample are truncated.
+    onsets = max(0,min(onsets, nSamples));
+    
+
+    % 20-Feb-2024: FOE
+    %   + Bug fixed. When setting up the timeline, it was not checking for
+    %   onsets at 0. Onsets at 0 are now "shifted" to sample 1.
+    tmpIdx = find(onsets == 0);
+    onsets(tmpIdx) = 1; %Shift to 1st sample.
+    % 20-Feb-2024: FOE
+    %   + Bug fixed. If the stimulus timeline have events of the same stimulus
+    %   that overlap, when setting up the timeline this was causing an error.
+    %   Now, the events are merged into a single event whereby I take the
+    %   earliest onset and the latest offset of the "group" (if there are more
+    %   than two; for instance:
+    %       [30 15;
+    %       [35 15;   ==> max offset 40+15=65 ==> [30 35]
+    %       [40 15]
+    tmpcevents = unique([onsets durations],'rows');
+    %merge events if required
+    
+    jj=1;
+    while (jj < length(tmpcevents(:,1)))
+        currentOnset  = tmpcevents(jj,1);
+        currentOffset = tmpcevents(jj,1)+tmpcevents(jj,2);
+        nextOnset     = tmpcevents(jj+1,1);
+        nextOffset    = tmpcevents(jj+1,1)+tmpcevents(jj+1,2);
+        if  (currentOffset >= nextOnset)
+            latestOffset = max(currentOffset,nextOffset);
+            tmpcevents(jj,2)   = latestOffset - currentOnset; %New duration
+            tmpcevents(jj+1,:) = [];
+        else
+            jj = jj+1;
+        end
+    end
+
+    % 14-Feb-2024: FOE
+    %   + Bug fixed. The .snirf file format does NOT check whether stimulus
+    %       event last beyond the last sample e.g. starttime+duration may be
+    %       bigger than the timestamp of the last sample. However, ICNNA
+    %       asserts that no conditon event lasts beyond the last sample.
+    %       In this bug fixing, events that last beyond the last 
+    %       sample are truncated.
+    tmpcevents(:,2) = max(0,min(tmpcevents(:,2), nSamples-tmpcevents(:,1)));
+
+    t = t.addCondition(cTag,tmpcevents,0);
 end
 nimg.timeline = t;
 

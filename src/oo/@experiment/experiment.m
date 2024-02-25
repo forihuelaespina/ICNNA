@@ -86,7 +86,7 @@ classdef experiment
         name(1,:) char ='NewExperiment'; % The experiment logical name
         version(1,:) char ='1.0'; % DEPRECATED. The data structure current version.
         description(1,:) char =''; % A brief description of the experiment
-        studyDate(1,1) datetime; % DEPRECATED. A date string
+        studyDate(1,1) datetime; % A date string
     end
 
     properties (SetAccess=private, GetAccess=private)

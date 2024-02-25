@@ -78,10 +78,8 @@ function obj=import(obj,filename)
 %
 %
 % 
-% Copyright 2008-13
-% @date: 13-May-2008
+% Copyright 2008-23
 % @author: Felipe Orihuela-Espina
-% @date: 28-Jul-2017
 %
 % See also rawData_ETG4000, convert
 %
@@ -90,19 +88,32 @@ function obj=import(obj,filename)
 
 %% Log
 %
+% File created: 13-May-2008
+% File last modified (before creation of this log): 28-Jul-2017
+%
+%
 % 28-Jul-2017: FOE. Bug fixed. The findField method get cycled forever
 %   if the field was not found.
+%   + Added this log.
 %
 % 12-Oct-2013: A step back. The new code "forgot" how to read previous
 %   versions of the HITACHI file. This has now been fixed, and different
 %   file versions can be read.
 %
+% 3-Dec-2023 (FOE): Comments improved.
+%   + Got rid of old labels @date and @modified.
+%   + Started to use get/set methods for struct like access.
+%   + Updated error codes to use 'ICNNA' instead of 'ICNA'
+%
+
+
+
 
 
 % Open the data file for conversion
 fidr = fopen(filename, 'r');
 if fidr == -1
-    error('ICNA:rawData_ETG4000:import:UnableToReadFile',...
+    error('ICNNA:rawData_ETG4000:import:UnableToReadFile',...
           'Unable to read %s\n', filename);
 end
 
@@ -113,30 +124,30 @@ end
 %% Reading the header ================================
 temp=findField(fidr,'File Version');
 tmpVersion=temp(find(temp==',')+1:end);
-obj=set(obj,'FileVersion',tmpVersion);
+obj.fileVersion = tmpVersion;
     %Ignore fieldName and read the rest
 %Ignore line ID
 
 % Read Patient information
 temp=findField(fidr,'Name');
-obj=set(obj,'SubjectName',temp(find(temp==',')+1:end));
+obj.userName = temp(find(temp==',')+1:end);
     %Ignore fieldName and read the rest
     %Ignore line Comments
     
 if version_IsHigherOrEqual(tmpVersion,'1.21')
     temp=findField(fidr,'Birth Date');
-    obj=set(obj,'SubjectBirthDate',datenum(temp(find(temp==',')+1:end)));
+    obj.userBirthDate = datenum(temp(find(temp==',')+1:end));
     %Ignore fieldName and read the rest
 else
     %Previous versions. Do nothing
 end
 
 temp=findField(fidr,'Age');
-obj=set(obj,'SubjectAge',str2double(temp(find(temp==',')+1:end-1)));
+obj.userAge = str2double(temp(find(temp==',')+1:end-1));
         %Ignore fieldName and read the rest
         %ignoring the 'y' for years
 temp=findField(fidr,'Sex');
-obj=set(obj,'SubjectSex',temp(find(temp==',')+1));
+obj.userSex = temp(find(temp==',')+1);
         %Ignore fieldName and read the first
         %character of the sex
 
@@ -145,31 +156,31 @@ obj=set(obj,'SubjectSex',temp(find(temp==',')+1));
                                     
 % Read Analysis information
 temp=findField(fidr,'AnalyzeMode');
-obj=set(obj,'AnalyzeMode',temp(find(temp==',')+1:end));
+obj.analyzeMode = temp(find(temp==',')+1:end);
 temp=findField(fidr,'Pre Time[s]');
-obj=set(obj,'PreTime',str2double(temp(find(temp==',')+1:end)));
+obj.preTime = str2double(temp(find(temp==',')+1:end));
 temp=findField(fidr,'Post Time[s]');
-obj=set(obj,'PostTime',str2double(temp(find(temp==',')+1:end)));
+obj.postTime = str2double(temp(find(temp==',')+1:end));
 %waitbar(0.06,h);
 %fprintf('\b\b6%%');
 temp=findField(fidr,'Recovery Time[s]');
-obj=set(obj,'RecoveryTime',str2double(temp(find(temp==',')+1:end)));
+obj.recoveryTime = str2double(temp(find(temp==',')+1:end));
 temp=findField(fidr,'Base Time[s]');
-obj=set(obj,'BaseTime',str2double(temp(find(temp==',')+1:end)));
+obj.baseTime = str2double(temp(find(temp==',')+1:end));
 %waitbar(0.07,h);
 %fprintf('\b\b7%%');
 temp=findField(fidr,'Fitting Degree');
-obj=set(obj,'FittingDegree',str2double(temp(find(temp==',')+1:end)));
+obj.fittingDegree = str2double(temp(find(temp==',')+1:end));
 %waitbar(0.08,h);
 %fprintf('\b\b8%%');
 temp=findField(fidr,'HPF[Hz]');
-obj=set(obj,'HPF',temp(find(temp==',')+1:end));
+obj.hpf = temp(find(temp==',')+1:end);
 temp=findField(fidr,'LPF[Hz]');
-obj=set(obj,'LPF',temp(find(temp==',')+1:end));
+obj.lpf = temp(find(temp==',')+1:end);
 %waitbar(0.09,h);
 %fprintf('\b\b9%%');
 temp=findField(fidr,'Moving Average[s]');
-obj=set(obj,'MovingAverage',str2double(temp(find(temp==',')+1:end)));
+obj.movingAvg = str2double(temp(find(temp==',')+1:end));
 
 %waitbar(0.1,h);
 %fprintf('\b\b10%%');
@@ -178,7 +189,7 @@ obj=set(obj,'MovingAverage',str2double(temp(find(temp==',')+1:end)));
 
 % Get the probe mode and calculate the number of channels
 temp=findField(fidr,'Date');
-obj=set(obj,'Date',temp(find(temp==',')+1:end)); %Read Probe mode
+obj.date = temp(find(temp==',')+1:end); %Read Probe mode
 
 if version_IsHigherOrEqual(tmpVersion,'1.21')
     temp=findField(fidr,'Probe Type');
@@ -200,7 +211,7 @@ switch (tmp_pInfo.mode)
     case '3x5'
         tmp_nChannels = 22;
     otherwise
-        error('ICNA:rawData_ETG4000:import:UnexpectedProbeMode',...
+        error('ICNNA:rawData_ETG4000:import:UnexpectedProbeMode',...
              'Unexpected probe mode.');
 end
 
@@ -217,7 +228,7 @@ for wl=1:length(idx)-1
     wLengths(wl)=str2double(temp(idx(wl)+1:idx(wl+1))); %Read single wavelength
 end
 wLengths(end)=str2double(temp(idx(end)+1:end));%Read last wavelength
-obj=set(obj,'NominalWavelenghtSet',wLengths);
+obj.wLengths = wLengths;
 clear idx wLengths
 
 %waitbar(0.12,h);
@@ -247,9 +258,9 @@ clear idx
 
 % Get the sampling period in [s] and the number of blocks
 temp=findField(fidr,'Sampling Period[s]');
-obj=set(obj,'SamplingPeriod',str2double(temp(find(temp==',')+1:end)));
+obj.samplingPeriod = str2double(temp(find(temp==',')+1:end));
 temp=findField(fidr,'Repeat Count');
-obj=set(obj,'RepeatCount',str2double(temp(find(temp==',')+1:end)));
+obj.repeatCount = str2double(temp(find(temp==',')+1:end));
 
 %waitbar(0.14,h);
 %fprintf('\b\b\b14%%');
@@ -272,7 +283,7 @@ tempProbeNumber=temp(1:idx(1)-1);
 if strcmpi(tempProbeNumber(1:5),'Probe')
     tempProbeNumber=str2double(tempProbeNumber(6:end));
 else
-    error('ICNA:rawData_ETG4000:import:MissingProbeSetNumber',...
+    error('ICNNA:rawData_ETG4000:import:MissingProbeSetNumber',...
           'Probe set number not found.');
 end
 %Update the probes set information. It may be necessary to
@@ -344,7 +355,7 @@ val=tmp_pInfo.read;
 if (isscalar(val) && (val == 0 || val == 1))
     %Valid; do nothing
 else
-    error('ICNA:rawData_ETG4000:import:InvalidFieldValue',...
+    error('ICNNA:rawData_ETG4000:import:InvalidFieldValue',...
         ['Field .read in probe set information record must be ' ...
         'either a 0 -not read-, or 1 -read.']);
 end
@@ -358,7 +369,7 @@ if (ischar(val) && (strcmpi(val,'adult') ...
     %Valid; do nothing. Lower just for the sake of it
     tmp_pInfo.type=lower(tmp_pInfo.type);
 else
-    error('ICNA:rawData_ETG4000:setProbesInfo:InvalidFieldValue',...
+    error('ICNNA:rawData_ETG4000:setProbesInfo:InvalidFieldValue',...
         ['Field .type in probe set information record must be ' ...
         'a recognized string (e.g. ''adult'').']);
 end
@@ -370,7 +381,7 @@ elseif (ischar(val) && (strcmp(val,'3x3') ...
         || strcmp(val,'3x5')))
     %Valid; do nothing
 else
-    error('ICNA:rawData_ETG4000:setProbesInfo:InvalidFieldValue',...
+    error('ICNNA:rawData_ETG4000:setProbesInfo:InvalidFieldValue',...
         ['Field .mode in probe set information record must be ' ...
         'a recognized string (e.g. ''3x3'').']);
 end
@@ -435,11 +446,11 @@ temp(:,1)=[];
 
 
 %Convert times to relative to the date field.
-startTime = datevec(get(obj,'Date'))';
+startTime = datevec(obj.date)';
 %assume same day
 nSamples = size(tmpTimes,2);
 tmpTimes= [repmat(startTime(1:3),1,nSamples); tmpTimes];
-startTime = datenum(get(obj,'Date')); %Express as a datenum now
+startTime = datenum(obj.date); %Express as a datenum now
 tmpTimes= datevec(datenum(tmpTimes')' - startTime)';
 %to seconds
 tmpTimestamps = (tmpTimes(3,:)*(24*3600) ...
