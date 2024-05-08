@@ -66,7 +66,7 @@ function obj=nirs_neuroimage2snirf(obj,nimg)
 %
 %
 % 
-% Copyright 2023
+% Copyright 2023-24
 % @author: Felipe Orihuela-Espina
 % 
 %
@@ -78,7 +78,13 @@ function obj=nirs_neuroimage2snirf(obj,nimg)
 % 29-Aug-2023: FOE
 %   File created.
 %
-
+% 19-April-2024: FOE
+%   + Bug fixed. Events durations were wrongly being read from the onsets
+%       column
+%
+% 8-May-2024: FOE
+%   Added support for stim dataLabels
+%
 
 
 
@@ -199,15 +205,21 @@ for iCond = 1:t.nConditions
 
     %snirf works in timestamps whereas ICNNA works in samples.
     %I need to translate the onsets and durations
-    cEvents   = t.getConditionEvents(tmpStim.name);
+    tmpCond   = t.getCondition(tmpStim.name);
+    cEvents   = tmpCond.events;
+
     onsets    = t.timestamps(cEvents(:,1));
-    durations = cEvents(:,1)/t.nominalSamplingRate;
+    durations = cEvents(:,2)/t.nominalSamplingRate;
     if size(cEvents,2)==3
         amplitudes = cEvents(:,3);
     else
         amplitudes = ones(size(cEvents,1),1);
     end
     tmpStim.data = [onsets durations amplitudes];
+
+    if isfield(tmpCond,'dataLabels')
+        tmpStim.dataLabels = tmpCond.dataLabels;
+    end
 
     %By now do NOT export the eventsInfo. See remark above on this regard.
     % dataLabels: {0×1 cell}

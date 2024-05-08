@@ -35,6 +35,12 @@ function [res]=load(filename)
 %   stored as additional. Fix these bugs.
 %   + Added a few extra comments
 %
+% 3-Mar-2024: FOE
+%   + Bug fixed. probe.landmarkLabels is an optional field but was being
+%   treated as a mandatory field.
+%   + Bug fixed. Reading of '/data' group was "only" looking in '/nirs'
+%   group excluding the possibility of more than one neuroimage.
+%
 
 
 %Create the object
@@ -80,14 +86,18 @@ for iDataset = 1:length(theNirsFields)
 
     %Read probe
     tmpProbe = temp.(theNirsFields{iDataset}).probe;
-    %The landmarkLabels is read as a string array. Convert to cell array
-    tmpProbe.landmarkLabels = cellstr(tmpProbe.landmarkLabels);
-        %PENDING: There are some space padding on the right of the labels. It
-        %may be convenient to clean them.
+    % %Those fields read as a string array need to be converted to cell
+    % %arrays
+    % if isfield(tmpProbe,'landmarkLabels')
+    %     %The landmarkLabels is read as a string array. Convert to cell array
+    %     tmpProbe.landmarkLabels = cellstr(tmpProbe.landmarkLabels);
+    %         %PENDING: There are some space padding on the right of the labels. It
+    %         %may be convenient to clean them.
+    % end
     tmp.probe = icnna.data.snirf.probe(tmpProbe);
 
     %Read data blocks
-    [theDataFields]=findFields(temp.nirs(iDataset),'data*');
+    [theDataFields]=findFields(temp.(theNirsFields{iDataset}),'data*');
     for iDataBlock = 1:length(theDataFields)
         tmp2 = struct();
         tmp2.dataTimeSeries = temp.(theNirsFields{iDataset}).(theDataFields{iDataBlock}).dataTimeSeries;

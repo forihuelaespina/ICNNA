@@ -38,7 +38,7 @@ function assertInvariants(obj)
 %   Invariant: For all pair of conditions ci and cj
 %       ci.tag~=cj.tag
 %
-%   Invariant: For all conditions c and all events i
+%   Invariant: For all non-overlaping conditions c and all events i
 %       c.onset(i)+c.duration(i)-1 < c.onset(i+1)
 %
 %          Note that the above imply that events are sorted
@@ -69,7 +69,7 @@ function assertInvariants(obj)
 %	their events do not overlap
 %
 %       
-% Copyright 2008-23
+% Copyright 2008-24
 % @author: Felipe Orihuela-Espina
 %
 % See also timeline
@@ -96,6 +96,13 @@ function assertInvariants(obj)
 %   does not permit certain checks on empty arrays e.g. all(onsets>0) this
 %   lead to an uncaught exception. Now these invariants are only check
 %   when the events are not empty.
+%
+% 11-Apr-2024: FOE
+%   + Starting with v1.2.2 conditions can have overlapping events with itself.
+% This is controlled with the main diagonal of .exclusory.
+%
+% 8-May-2024: FOE
+%   + Added support for event amplitudes
 %
 
 
@@ -130,7 +137,7 @@ for ii=1:nConditions
     assert(ii==tagIdx, ...
         ['ICNNA:timeline:assertInvariants:InvariantViolation ' ...
         'Condition %s: Tag already defined'],tag);
-    assert(temp==2, ...
+    assert(temp==2 || temp ==3, ...
         ['ICNNA:timeline:assertInvariants:InvariantViolation ' ...
         'Condition %s: Events structure is corrupted'],tag);
     onsets = events(:,1);
@@ -154,15 +161,19 @@ for ii=1:nConditions
             ['ICNNA:timeline:assertInvariants:InvariantViolation ' ...
             'Condition %s: Durations cannot be negative'],tag);
     end
-    for jj=1:nEvents-1
-        assert(onsets(jj)+durations(jj)-1<onsets(jj+1), ...
-        ['ICNNA:timeline:assertInvariants:InvariantViolation ' ...
-        'Condition %s: Invariant ' ...
-        '(onsets(jj)+durations(jj)<onsets(jj+1)) does not hold.'],tag);
-        assert(onsets(jj)+durations(jj)-1<=obj.length, ...
-        ['ICNNA:timeline:assertInvariants:InvariantViolation ' ...
-        'Condition %s: Invariant ' ...
-        '(onsets(jj)+durations(jj)<=obj.length) does not hold.'],tag)
+    %No additional checks for amplitudes
+
+    if obj.exclusory(ii,ii)
+        for jj=1:nEvents-1
+            assert(onsets(jj)+durations(jj)-1<onsets(jj+1), ...
+            ['ICNNA:timeline:assertInvariants:InvariantViolation ' ...
+            'Condition %s: Invariant ' ...
+            '(onsets(jj)+durations(jj)<onsets(jj+1)) does not hold.'],tag);
+            assert(onsets(jj)+durations(jj)-1<=obj.length, ...
+            ['ICNNA:timeline:assertInvariants:InvariantViolation ' ...
+            'Condition %s: Invariant ' ...
+            '(onsets(jj)+durations(jj)<=obj.length) does not hold.'],tag)
+        end
     end
     if (nEvents>0)
         assert(onsets(end)+durations(end)-1<=obj.length, ...
@@ -216,4 +227,8 @@ end
             end
         end
     end
+ end
+
+
+
 end

@@ -1,0 +1,332 @@
+classdef condition
+% icnna.data.core.condition - Experimental conditions for marking a timeline
+%
+% Equivalent to a stimulus measurement defined in the snirf file format.
+%
+% Each one of the conditions marked in a @icnna.data.core.timeline.
+%
+%% Conditions
+%
+% Experimental conditions is a convenient way to mark timelines.
+% Each condition can represent an experimental stimulus (e.g. some kind
+% of factor), but also other types of information important to add
+% semantics to the data e.g. distractions or unexpected confounding
+% factors that may have occurred during a data collection session.
+%
+% A condition may ocurr never, once or more than once. Any time the
+% condition holds is referred to as an event (see next section). In
+% addition to the mere "temporal" marking, events can hold additional
+% information such as the amplitude or strength, some event associated
+% information e.g. video being presented in a case of visual stimulus, etc
+%
+%% Events
+%
+%Conditions might happen never, once, or more than one
+%time. Every time a condition occur during the experiment
+%(i.e. the condition holds) an event is inserted in the timeline
+%with a mark representing the event onset. The event
+%will last for a certain amount of time (duration) and then finish.
+%Onset and durations are not associated with real time stamps, but
+%with samples indexes. For instance an event which start at time
+%sample 30 and finishes at time sample 45 (BOTH INCLUDED)
+%will have its onset set to 30 and its duration set
+%to 16. 
+%
+% Sample  30  31  32  33  34  35  36  37  38  39  40  41  42  43  44  45
+%       ---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+%Duration  1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16
+%
+%
+%Timeline can hold experiments design under the block paradigm, the
+%event related paradigm or the self-pace paradigm. In particular for
+%the event related paradigm, duration of events is simply set to 0.
+%
+%
+%  Sample  30
+%        ---+--
+% Duration  0
+%
+%
+%% Remark
+%
+% This class is somewhat analogous to icnna.data.snirf.stim but;
+% 1) This is not attached to the evolution of the .snirf format
+% 2) This provides some additional functionality over icnna.data.snirf.stim
+%   e.g. includes eventInfo
+%
+%% Properties
+%
+%   .id - A numerical identifier.
+%   .tag - Char array. A name for the condition. By default is
+%       'condition0001'.
+%   .cevents - Table. List of condition events.
+%         Each row is an event.
+%         The list of events has AT LEAST the following columns;
+%          + onset - The rows of the table is ALWAYS sort by onsets,
+%               * IMPORTANT NOTE: If there is no column name 'onset'
+%               (see dataLabels) the onset will be assumed to be in
+%               the first column.
+%          + duration,
+%               * IMPORTANT NOTE: If there is no column name 'duration'
+%               (see dataLabels) the duration will be assumed to be in
+%               the second column.
+%          + amplitude i.e. magnitude or strength.
+%               * IMPORTANT NOTE: If there is no column name 'amplitude'
+%               (see dataLabels) the amplitude will be assumed to be in
+%               the third column.
+%          + info - Event information. Whatever the user wants to
+%                   store associated to the condition event.
+%               * IMPORTANT NOTE: If there is no column name 'info'
+%               (see dataLabels) the info will be assumed to be in
+%               the fourth column.
+%
+%       Additional columns may be added.
+%
+%       Within a condition events can overlap. Control of overlapping
+%       occurs in class timeline. This is a sharp distinction with
+%       timeline conditions until ICNNA version 1.2.1 where the conditions
+%       where not separate objects but structs stored in a cell array
+%       within class @timeline and when event overlap within timeline
+%       was not permitted. Now, this is control by the exclusory behaviour
+%       of the class @timeline, but it is in principle permitted.
+%
+%       You can use obj.cevents.onset to get/set the list of onsets and
+%       analogously for the duration, amplitude and info. See also derived
+%       property ends and eventTime.
+%
+%
+%   .unit - Char array. 'samples' (Default) or 'seconds'.
+%   .timeUnitMultiplier - Scalar (int16). The time unit multiplier exponent
+%       in base 10. It only affects the onset and duration.
+%       Default 0, i.e. attribute events would be in scale 10^0.
+%           + If .unit is 'samples', this will ALWAYS be 0. 
+%           + If .unit is 'seconds', this represents fractional units,
+%               e.g. -3 is equals to [ms]. 
+%   .amplitudeUnitMultiplier - Scalar (int16). The amplitude unit
+%       multiplier exponent in base 10. It only affects the event amplitude.
+%       Default 0, i.e. attribute events would be in scale 10^0.
+%
+%
+%% Dependent properties
+%
+%   .nEvents - Read only. Number of events. Number of rows of property |cevents|
+%   .ends  - Read only. Double array with the list of event ends. obj.onsets + obj.durations
+%   .eventTime - Read only. Double array of [onsets durations [ends]]
+%   .dataLabels - Equivalent to accessing the column names of the cevents
+%       table but typecasted to a string array.
+%
+%       When importing from snirf .stim, the dataLabels will replace the
+%       cevents table column names with some particularities;
+%           * Since snirf does not support event info, if this column
+%               is skipped, its column name won't be modified.
+%
+%
+%% Methods
+%
+% Type methods('icnna.data.core.condition') for a list of methods
+% 
+% Copyright 2024
+% @author: Felipe Orihuela-Espina
+%
+% See also timeline, icnna.data.snirf.stim
+%
+
+
+
+
+
+
+
+%UNFINISHED; PENDING PROVIDING SUPPORT FOR DATALABELS AND ADDITIONAL
+%COLUMNS IN THE CEVENTS TABLE
+
+
+
+
+
+
+%% Log
+%
+%   + Class available since ICNNA v1.2.3
+%
+% 11-Apr-2024: FOE
+%   + File and class created.
+%
+
+    properties (Constant, Access=private)
+        classVersion = '1.0'; %Read-only. Object's class version.
+    end
+
+
+
+
+    properties
+        id(1,1) double {mustBeInteger, mustBeNonnegative}=1; %Numerical identifier to make the object identifiable.
+        tag(1,:) char = ''; %Tag of the condition
+        cevents table = table('Size',[0 4],...
+                        'VariableTypes',{'double','double','double','cell'},...
+                        'VariableNames',{'onset','duration','amplitude','info'}) ;
+        unit(1,:) char {mustBeMember(unit,{'samples','seconds'})}= 'samples';
+        timeUnitMultiplier(1,1) int16 = 0;
+        amplitudeUnitMultiplier(1,1) int16 = 0;
+    end
+    
+    properties (Dependent)
+        nEvents %Read only
+        ends %Read only
+        eventTime %Read only
+    end
+    
+    
+    methods
+        function obj=stim(varargin)
+            %ICNNA.DATA.CORE.CONDITION A icnna.data.core.condition class constructor
+            %
+            % obj=icnna.data.core.condition() creates a default object.
+            %
+            % obj=icnna.data.core.condition(obj2) acts as a copy constructor
+            %
+            % obj=icnna.data.core.condition(inStruct) attempts to typecasts the struct
+            %
+            % 
+            % Copyright 2024
+            % @author: Felipe Orihuela-Espina
+            %
+            
+            if (nargin==0)
+                %Keep default values
+            elseif isa(varargin{1},'icnna.data.core.condition')
+                obj=varargin{1};
+                return;
+            elseif isstruct(varargin{1}) %Attempt to typecast
+                tmp=varargin{1};
+                tmpFields = fieldnames(tmp);
+                for iField = 1:length(tmpFields)
+                    tmpProp = tmpFields{iField};
+                    switch (tmpProp)
+                        case 'events'
+                            obj.cevents.onset     = tmp.events(:,1);
+                            obj.cevents.duration  = tmp.events(:,2);
+                            obj.cevents.amplitude = 1;
+                        case 'eventsInfo'
+                            obj.cevents.info = tmp.eventsInfo;
+                        otherwise %inc. tag
+                            if ismember(tmpProp,properties(obj))
+                                obj.(tmpProp) = tmp.(tmpProp);
+                            end
+                    end
+                end
+
+                return;
+            else
+                error(['icnna.data.core.condition:condition:InvalidNumberOfParameters' ...
+                            'Unexpected number of parameters.']);
+
+            end
+        end
+
+
+
+
+
+        %Gets/Sets
+        function res = get.id(obj)
+            %Gets the object |id|
+            res = obj.id;
+        end
+        function obj = set.id(obj,val)
+            %Sets the object |id|
+            obj.id =  val;
+        end
+
+
+        function val = get.tag(obj)
+        %Retrieves the |tag| of the condition
+            val = obj.tag;
+        end
+        function obj = set.tag(obj,val)
+        %Updates the |tag| of the condition
+            obj.tag = val;
+        end
+
+
+
+        function val = get.cevents(obj)
+        %Retrieves the events of the condition
+            val = obj.cevents;
+        end
+        function obj = set.cevents(obj,val)
+        %Updates the events of the conditions
+
+            %Check the column names to ensure the mandatory ones (onset,
+            %duration, amplitude and info) are present.
+            tmpColNames = val.VariableNames;
+            if ~ismember('onset',tmpColNames)
+                warning('icnna.data.core.condition.set@cevents:MissingEventInformation',...
+                        'Renaming first column to onset.')
+
+            end
+            
+
+            obj.cevents = val;
+            obj.cevents = sortrows(obj.cevents,'onset');
+        end
+
+        function val = get.unit(obj)
+        %Retrieves the temporal unit, whether 'samples' or 'seconds'
+            val = obj.unit;
+        end
+        function obj = set.unit(obj,val)
+        %Retrieves the temporal unit, whether 'samples' or 'seconds'
+            obj.unit = val;
+        end
+
+        function val = get.timeUnitMultiplier(obj)
+        %Retrieves the temporal unit multiplier
+            val = obj.timeUnitMultiplier;
+        end
+        function obj = set.timeUnitMultiplier(obj,val)
+        %Retrieves the temporal unit multiplier
+            obj.timeUnitMultiplier = val;
+        end
+
+
+        function val = get.amplitudeUnitMultiplier(obj)
+        %Retrieves the amplitude unit multiplier
+            val = obj.amplitudeUnitMultiplier;
+        end
+        function obj = set.amplitudeUnitMultiplier(obj,val)
+        %Retrieves the amplitude unit multiplier
+            obj.amplitudeUnitMultiplier = val;
+        end
+
+
+
+
+
+        %Dependent properties gets/sets
+        function val = get.nEvents(obj)
+            %(DEPENDENT) Gets the object |nEvents|
+            %
+            % The number of events declared in the condition.
+            val = size(obj.cevents,1);
+        end
+
+        function res = get.ends(obj)
+            %(DEPENDENT) Gets the list of event's |ends|
+            %
+            % The list of event's |ends| (onset + duration)
+            res = obj.cevents.onset + obj.cevents.duration;
+        end
+
+        function val = get.eventTime(obj)
+        %Retrieves the events ends (onset + duration)
+            val = [obj.cevents.onset obj.cevents.duration obj.ends];
+        end
+
+
+
+    end
+
+
+end

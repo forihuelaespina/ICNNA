@@ -110,7 +110,7 @@ while length(propertyArgIn) >= 2,
                 %size
                % obj.chLocationMap = ...
                %     set(obj.chLocationMap,'nChannels',size(val,2));
-                obj.chLocationMap = size(val,2);
+                obj.chLocationMap.nChannels = size(val,2);
                 %...and only then, set the data
                 obj=set@structuredData(obj,'Data',val);
             catch

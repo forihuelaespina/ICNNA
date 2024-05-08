@@ -36,8 +36,7 @@ function val = get(obj, propName)
 %
 %
 %
-% Copyright 2009
-% @date: 19-Jan-2009
+% Copyright 2009-2024
 % @author Felipe Orihuela-Espina
 %
 % See also ecg
@@ -46,32 +45,43 @@ function val = get(obj, propName)
 
 %% Log:
 %
+% File created: 19-Jan-2009
+% File last modified (before creation of this log): N/A. This class file
+%   had not been modified since creation.
+%
 % 29-May-2019: FOE:
 %   + Log started
 %   + Added support for property rPeaksAlgo
 %
+% 12-Apr-2024: FOE:
+%   + Got rid of old label @date
+%   + property name is now case insensitive.
+%
 
 
-switch propName
-case 'StartTime'
+switch lower(propName)
+case 'starttime'
    val = obj.startTime;
-case 'SamplingRate'
+case 'samplingrate'
    val = obj.samplingRate;
-case 'Timestamps'
+case 'timestamps'
    val = obj.timestamps;
-case 'NN'
+case 'nn'
    val = obj.rr;
-case 'RPeaksMode'
+case 'rpeaksmode'
    val = obj.rPeaksMode;
-case 'RPeaksAlgo'
+case 'rpeaksalgo'
    val = obj.rPeaksAlgo;
-case 'Threshold'
+case 'threshold'
    val = obj.threshold;
-case 'RPeaks'
+case 'rpeaks'
    val = obj.rPeaks;
-case 'RR'
+case 'rr'
    val = obj.rr;
 
 otherwise
    val = get@structuredData(obj, propName);
+end
+
+
 end

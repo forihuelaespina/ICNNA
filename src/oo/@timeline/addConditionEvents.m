@@ -29,6 +29,10 @@ function obj=addConditionEvents(obj,tag,events,eventsInfo)
 % 13-May-2023: FOE
 %   + Added this log. Got rid of old labels @date and @modified.
 %
+% 6-Apr-2024: FOE
+%   + Bug fixed: The method was not considering the case were added
+%   events already existed. Now only unique events are added.
+%
 
 
 
@@ -57,11 +61,17 @@ else
         eventsInfo=cell(0,1);
     end
 
-    [obj.conditions{idx}.events,index]=...
-        sortrows([obj.conditions{idx}.events; events]);
+    [obj.conditions{idx}.events,indexA,~]=...
+        unique([obj.conditions{idx}.events; events],'rows','sorted');
+    % [obj.conditions{idx}.events,index]=...
+    %     sortrows([obj.conditions{idx}.events; events]);
     obj.conditions{idx}.eventsInfo = ...
         [obj.conditions{idx}.eventsInfo; eventsInfo];
     %...and sort
-    obj.conditions{idx}.eventsInfo = obj.conditions{idx}.eventsInfo(index);
+    %obj.conditions{idx}.eventsInfo = obj.conditions{idx}.eventsInfo(index);
+    obj.conditions{idx}.eventsInfo = obj.conditions{idx}.eventsInfo(indexA);
 end
 assertInvariants(obj);
+
+
+end

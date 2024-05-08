@@ -244,8 +244,8 @@ classdef experimentSpace
 %       within theExperimental Space 
 %   .runStatus - Boolean flag to indicate whether the Experiment
 %       Space has been computed with the current configuration.
-%       The only way to set it to true
-%       is to computeExperimentSpace. It can be set to false
+%       The only way to set it to true is to compute 
+%       the ExperimentSpace or using setVectors. It can be set to false
 %       by redefining any of the computing parameters or
 %       resetting the object instance.
 %       Default false.
@@ -877,8 +877,6 @@ classdef experimentSpace
             %Gets the object |nPoints|
             res = size(obj.Findex,1);
         end
-    
-
 
 
 

@@ -153,7 +153,7 @@ classdef snirf
     methods (Static)
         [res] = load(filename); %Read snirf files
         [res,info] = readHD5file(filename);
-        [res] = save(filename,theSnirf); %Write to snirf files
+        [res] = save(filename,theSnirf,varargin); %Write to snirf files
     end
 
 end

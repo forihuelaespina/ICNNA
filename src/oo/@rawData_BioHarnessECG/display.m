@@ -5,20 +5,40 @@ function display(obj)
 %then displayed on the with an output similar to the standard
 %MATLAB output.
 %
-% Copyright 2009
-% @date: 19-Jan-2009
+% Copyright 2009-24
 % @author Felipe Orihuela-Espina
 %
 % See also rawData_BioHarnessECG, get, set
 %
 
+
+
+%% Log:
+%
+% File created: 19-Jan-2009
+% File last modified (before creation of this log): N/A. This class file
+%   had not been modified since creation.
+%
+% 12-Apr-2024: FOE
+%   + Log started. Got rid of old label @date.
+%   + Started to update calls to get attributes using the struct like syntax
+%   + Now also displays new attribute classVersion
+%
+
+
+
 disp(' ');
 disp([inputname(1),'= ']);
 disp(' ');
+try
+    disp(['   Class version: ' num2str(obj.classVersion)]);
+catch
+    disp('   Class version: N/A');
+end
 %Inherited
-disp(['   ID: ' num2str(get(obj,'ID'))]);
-disp(['   Description: ' get(obj,'Description')]);
-disp(['   date: ' get(obj,'Date')]);
+disp(['   ID: ' num2str(obj.id)]);
+disp(['   Description: ' obj.description]);
+disp(['   date: ' obj.date]);
 
 %Measurement Information
 disp(['   Start Time: ' datestr(obj.startTime,'dd-mmm-yyyy HH:MM:SS.FFF')]);

@@ -64,7 +64,7 @@ function degree=compatible(obj,t)
 %
 
 
-warning('ICNA:timeline:compatible:Deprecated',...
+warning('ICNNA:timeline:compatible:Deprecated',...
         ['The use of ''compatible'' has now been deprecated. ' ...
          'From now on, it is strongly recommended that ' ...
          'you check the degree of compatibility of your ' ...
@@ -123,4 +123,8 @@ end
 
 if (equalEvents && (obj.length==t.length))
     degree=4;
+end
+
+
+
 end

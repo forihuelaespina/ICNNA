@@ -68,8 +68,8 @@ function [rPeaks]=qrsdetection(ecgdata,options)
 
 
 opt.maskhalfsize = 2; %Half-width of the enhancement mask in [samples]
-%opt.searchingrange = 0.3; %in [s]. For adults
-opt.searchingrange = 0.1; %in [s]. For children
+opt.searchingrange = 0.3; %in [s]. For adults
+%opt.searchingrange = 0.1; %in [s]. For children
 opt.samplingrate = 50; %[Hz] Necessary to translate samples to secs
 %opt.samplingrate = 200; %[Hz] Necessary to translate samples to secs
 opt.qrsminimumamplitude = 0.5; %in [mV]. Used for triggering the QRS search.

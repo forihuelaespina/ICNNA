@@ -5,6 +5,10 @@ function obj=addCondition(obj,tag,events,varargin)
 %    to the timeline. By default the condition is exclusory with
 %    every other existent condition.
 %
+% obj=addCondition(...,dataLabels) Add a experimental
+%    condition to the timeline.
+%   The dataLabels is a strings array of data labels alike .snirf
+%
 % obj=addCondition(...,eventsInfo) Add a experimental
 %    condition to the timeline.
 %   The events info is a cell array of information associated to the
@@ -28,7 +32,7 @@ function obj=addCondition(obj,tag,events,varargin)
 %an error ICNA:timeline:addCondition:RepeatedTag is issued.
 %
 %
-% Copyright 2008-23
+% Copyright 2008-24
 % @author Felipe Orihuela-Espina
 %
 % See also getCondition, removeCondition, setConditionTag, 
@@ -45,6 +49,10 @@ function obj=addCondition(obj,tag,events,varargin)
 % 13-May-2023: FOE
 %   + Added this log. Got rid of old labels @date and @modified.
 %
+% 8-May-2024: FOE
+%   + Updated the error messages from "ICNA" to "ICNNA"
+%   + Added support for dataLabels and event amplitudes
+%
 
 
 
@@ -55,11 +63,14 @@ while ~isempty(varargin)
     if iscell(element)
         %This should be the eventsInfo
         eventsInfo = element;
+    elseif isstring(element)
+        %This should be the dataLabels. This is an optional field.
+        dataLabels = element;
     elseif isscalar(element)
         %This should be the exclusoryState
         exclusoryState = element;
     else
-        error('ICNA:timeline:addCondition:InvalidParameterValue',...
+        error('ICNNA:timeline:addCondition:InvalidParameterValue',...
             'Unexpected parameter value.');
     end
 end
@@ -69,17 +80,17 @@ if ~exist('eventsInfo','var')
 end
 eventsInfo=reshape(eventsInfo,numel(eventsInfo),1);
 assert(iscell(eventsInfo),...
-        ['ICNA:timeline:addCondition:InvalidParameterValue ',...
+        ['ICNNA:timeline:addCondition:InvalidParameterValue ',...
          'Events information must be nx1 cell array.']);
 assert(size(events,1)==length(eventsInfo),...
-        ['ICNA:timeline:addCondition:InvalidParameterValue ',...
+        ['ICNNA:timeline:addCondition:InvalidParameterValue ',...
          'Number of information records mismatches number of events.']);
 
 
 if (ischar(tag))
     cond.tag = tag;
 else
-    error('ICNA:timeline:addCondition:InvalidParameter',...
+    error('ICNNA:timeline:addCondition:InvalidParameter',...
         'Tag must be a string');
 end
 
@@ -88,13 +99,20 @@ end
 if isempty(events)
     cond.events=zeros(0,2);
     cond.eventsInfo=cell(0,1);
-elseif ((ndims(events)==2) && (size(events,2)==2))
+elseif ((ndims(events)==2) && (size(events,2)==2 || size(events,2)==3))
     [cond.events,index] = sortrows(events);
     cond.eventsInfo=eventsInfo(index);
 else
-    error('ICNA:timeline:addCondition:InvalidParameter',...
-        'Events must be a 2 column <onset duration> matrix.');
+    error('ICNNA:timeline:addCondition:InvalidParameter',...
+        ['Events must be a 2 column <onset duration> matrix ' ...
+         'or a 3 column <onset duration amplitude> matrix.']);
 end
+
+
+if exist('dataLabels','var')
+    cond.dataLabels = dataLabels;
+end
+
 
 if (~exist('exclusoryState','var'))
    exclusoryState=1; %By default, exclusory behaviour
@@ -104,7 +122,7 @@ idx=findCondition(obj,tag);
 if (isempty(idx))
     obj.conditions(end+1)={cond};
 else
-    error('ICNA:timeline:addCondition:RepeatedTag',...
+    error('ICNNA:timeline:addCondition:RepeatedTag',...
           ['Condition ' tag ' already defined.']);
 end
 
@@ -113,3 +131,6 @@ obj.exclusory(:,end+1)=exclusoryState*ones(1,length(obj.conditions));
 obj.exclusory(end,end)=0;
 
 assertInvariants(obj);
+
+
+end

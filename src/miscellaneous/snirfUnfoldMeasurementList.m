@@ -65,6 +65,10 @@
 % 21-Feb-2024: FOE
 %   + File created from previous code myHomer3_unfoldMeasurementList.m
 %
+% 6-Apr-2024: FOE
+%   + Adapted to handle optional fields.
+%   + Refined DataTypeLabel from cell array to array of objects (char)
+%
 
 function ml = snirfUnfoldMeasurementList(data)
 
@@ -75,35 +79,68 @@ end
 
 
 %Unfold measurement list for quicker access of some operations below.
-nMeasurements      = length(tmpList);
-tmpSourceIndex     = nan(nMeasurements,1);
-tmpDetectorIndex   = nan(nMeasurements,1);
-tmpWavelengthIndex = nan(nMeasurements,1);
-tmpDataType        = nan(nMeasurements,1);
-tmpDataTypeLabel   = cell(nMeasurements,1);
-tmpDataTypeIndex   = nan(nMeasurements,1);
-tmpSourcePower     = nan(nMeasurements,1);
-tmpDetectorGain    = nan(nMeasurements,1);
-tmpModuleIndex     = nan(nMeasurements,1);
+nMeasurements          = length(tmpList);
+
+tmpSourceIndex         = nan(nMeasurements,1);
+tmpDetectorIndex       = nan(nMeasurements,1);
+tmpWavelengthIndex     = nan(nMeasurements,1);
+tmpWavelengthActual    = nan(nMeasurements,1);
+tmpWavelengthEmissionActual = nan(nMeasurements,1);
+tmpDataType            = nan(nMeasurements,1);
+tmpDataUnit            = strings(nMeasurements,1);
+tmpDataTypeLabel       = strings(nMeasurements,1);
+tmpDataTypeIndex       = nan(nMeasurements,1);
+tmpSourcePower         = nan(nMeasurements,1);
+tmpDetectorGain        = nan(nMeasurements,1);
+tmpModuleIndex         = nan(nMeasurements,1);
+tmpSourceModuleIndex   = nan(nMeasurements,1);
+tmpDetectorModuleIndex = nan(nMeasurements,1);
+
 for iMeas = 1:nMeasurements
-    tmpSourceIndex(iMeas)     = tmpList(iMeas).sourceIndex;
-    tmpDetectorIndex(iMeas)   = tmpList(iMeas).detectorIndex;
-    tmpWavelengthIndex(iMeas) = tmpList(iMeas).wavelengthIndex;
-    tmpDataType(iMeas)        = tmpList(iMeas).dataType;
-    tmpDataTypeLabel(iMeas)   = {tmpList(iMeas).dataTypeLabel};
-    tmpDataTypeIndex(iMeas)   = tmpList(iMeas).dataTypeIndex;
-    tmpSourcePower(iMeas)     = tmpList(iMeas).sourcePower;
-    tmpDetectorGain(iMeas)    = tmpList(iMeas).detectorGain;
-    tmpModuleIndex(iMeas)     = tmpList(iMeas).moduleIndex;
+    tmpSourceIndex(iMeas)         = tmpList(iMeas).sourceIndex;
+    tmpDetectorIndex(iMeas)       = tmpList(iMeas).detectorIndex;
+    tmpWavelengthIndex(iMeas)     = tmpList(iMeas).wavelengthIndex;
+    if tmpList(iMeas).isproperty('wavelengthActual')
+        tmpWavelengthActual(iMeas)    = tmpList(iMeas).wavelengthActual;
+    end
+    if tmpList(iMeas).isproperty('wavelengthEmissionActual')
+        tmpWavelengthEmissionActual(iMeas) = tmpList(iMeas).wavelengthEmissionActual;
+    end
+    tmpDataType(iMeas)            = tmpList(iMeas).dataType;
+    if tmpList(iMeas).isproperty('dataUnit')
+        tmpDataUnit(iMeas)            = tmpList(iMeas).dataUnit;
+    end
+    if tmpList(iMeas).isproperty('dataTypeLabel')
+        tmpDataTypeLabel(iMeas)       = tmpList(iMeas).dataTypeLabel;
+    end
+    tmpDataTypeIndex(iMeas)       = tmpList(iMeas).dataTypeIndex;
+    if tmpList(iMeas).isproperty('sourcePower')
+        tmpSourcePower(iMeas)         = tmpList(iMeas).sourcePower;
+    end
+    if tmpList(iMeas).isproperty('detectorGain')
+        tmpDetectorGain(iMeas)        = tmpList(iMeas).detectorGain;
+    end
+    if tmpList(iMeas).isproperty('moduleIndex')
+        tmpModuleIndex(iMeas)         = tmpList(iMeas).moduleIndex;
+    end
+    if tmpList(iMeas).isproperty('sourceModuleIndex')
+        tmpSourceModuleIndex(iMeas)   = tmpList(iMeas).sourceModuleIndex;
+    end
+    if tmpList(iMeas).isproperty('detectorModuleIndex')
+        tmpDetectorModuleIndex(iMeas) = tmpList(iMeas).detectorModuleIndex;
+    end
 end
+
 ml = table(tmpSourceIndex,tmpDetectorIndex,...
-           tmpWavelengthIndex,tmpDataType,tmpDataTypeLabel,...
+           tmpWavelengthIndex,tmpWavelengthActual,tmpWavelengthEmissionActual,...
+           tmpDataType,tmpDataUnit,char(tmpDataTypeLabel),...
            tmpDataTypeIndex,tmpSourcePower,tmpDetectorGain,...
-           tmpModuleIndex, ...
+           tmpModuleIndex,tmpSourceModuleIndex,tmpDetectorModuleIndex, ...
            'VariableNames',{'sourceIndex', 'detectorIndex',...
-           'wavelengthIndex','dataType','dataTypeLabel',...
+           'wavelengthIndex','wavelengthActual','wavelengthEmissionActual',...
+           'dataType','dataUnit','dataTypeLabel',...
            'dataTypeIndex','sourcePower','detectorGain',...
-           'moduleIndex'});
+           'moduleIndex','sourceModuleIndex','detectorModuleIndex',});
 
 
 end

@@ -17,12 +17,13 @@ classdef stim
 %
 %% Methods
 %
-% Type methods('icnna.data.snirf.probe') for a list of methods
+% Type methods('icnna.data.snirf.stim') for a list of methods
 % 
 % Copyright 2022-23
 % @author: Felipe Orihuela-Espina
 %
 % See also icnna.data.snirf.snirf, icnna.data.snirf.nirsDataset
+%   icnna.data.core.condition
 %
 
 
@@ -45,10 +46,48 @@ classdef stim
 % 19-May-2023: FOE
 %   + Added constructor polymorphism for typecasting a struct.
 %
+% 3-Mar-2024: FOE
+%   + Class format update:
+%       * Attributes dataLabels is now string array instead of cell array
+%       as specified by .snirf. Compatibility support is provided; if the user
+%       passes a cell array for this attribute this is accepted, and
+%       type casted to string array. However, when getting this property,
+%       now only a string array is returned. Finally, cell array use for
+%       these attributes is now DEPRECATED.
+%   + classVersion increased to '1.0.1'
+%
+% 6-Apr-2024: FOE
+%   + Added visibility flags for optional properties.
+%       Some of the properties of the measurement are optional; they
+%       may or may not be present. In its implementation thus far, ICNNA
+%       had no way to distinguish the case when the attribute was simply
+%       missing from the case it has some default value. Having visibility
+%       or enabling flags solves the problem.
+%       ICNNA also provides a couple of further methods; one to "remove" (hide)
+%       existing optional attributes and one to check whether it has
+%       been defined (e.g. to check its visibility status) which shall
+%       prevent the need for try/catch in other functions using the class.
+%       Regarding this latter, note that;
+%       + Calling properties(measurement) will still list the "hidden"
+%       properties, which ideally should not happen -but this relates back
+%       to MATLAB's new way of the defining the get/set methods for struct
+%       like access which requires the properties to be public.
+%       + MATLAB has function isprop to determine whether a property is
+%       defined by object, but again this will "see" the hidden properties.
+%
+%       NOTE: Making the class mutable so that it can grow organically 
+%       on these optional attributes is not a good solution as this then
+%       loses control on what other attributes could be defined beyond
+%       those acceptable for snirf.
+%
+% 11-Apr-2024: FOE
+%   + Updated error message when setting the .data
+%   + Improved documentation
 %
 
     properties (Constant, Access=private)
-        classVersion = '1.0'; %Read-only. Object's class version.
+        %classVersion = '1.0'; %Read-only. Object's class version.
+        classVersion = '1.0.1'; %Read-only. Object's class version.
     end
 
 
@@ -57,8 +96,18 @@ classdef stim
     properties
         name(1,:) char = ''; %Name of the stimulus data
         data = nan(0,0); %Data stream of the stimulus channel
-        dataLabels(:,1) cell = cell(0,1); %Names of additional columns of stim data
+        dataLabels(:,1) string = strings(0,1); %Names of additional columns of stim data
     end
+    
+    properties (Access = private)
+        %Visibility/Availability flags:
+        %The optional attributes are;
+        %  1) dataLabels
+
+        flagVisible struct = struct('dataLabels',false); %Not visible by default
+    end
+
+    
     
     methods
         function obj=stim(varargin)
@@ -125,7 +174,7 @@ classdef stim
                obj.data = val;
            else
                error(['icnna.data.snirf.stim:set.data:InvalidPropertyValue',...
-                     'Value must be a MxN matrix of M samples and N stimuli].']);
+                     'Value must be a Mx3 matrix of M events and 3 columns; onset, duration and amplitude].']);
            end
            %assertInvariants(obj);
         end
@@ -134,20 +183,57 @@ classdef stim
 
         function val = get.dataLabels(obj)
         %Retrieves the list of names of additional columns of stim data
-            val = obj.dataLabels;
+            if obj.flagVisible.dataLabels
+                val = obj.dataLabels;
+            else
+                error('ICNNA:icnna.data.snirf.stim:get.dataLabels:Undefined', ...
+                    'Undefined optional field dataLabels.');
+            end
         end
         function obj = set.dataLabels(obj,val)
         %Updates the list of names of additional columns of stim data
-            for iLabel = 1:numel(val)
-                if (~ischar(val{iLabel}))
-                    error(['icnna.data.snirf.stim:set.dataLabels:InvalidPropertyValue',...
-                        'Each object of cell array val must be a string.']);
-                end
-            end
+            % for iLabel = 1:numel(val)
+            %     if (~ischar(val{iLabel}))
+            %         error(['icnna.data.snirf.stim:set.dataLabels:InvalidPropertyValue',...
+            %             'Each object of cell array val must be a string.']);
+            %     end
+            % end
             obj.dataLabels = reshape(val,numel(val),1);
+            obj.flagVisible.dataLabels = true;
         end
 
 
+
+
+
+        %%Suport methods for visibility of optional attributes
+        function res = isproperty(obj,propertyName)
+        %Check whether existing optional attributes have been defined (i.e. checks visibility)
+            propertyName = char(propertyName);
+            res = isprop(obj,propertyName);
+            switch(propertyName)
+                case {'dataLabels'}
+                    res = obj.flagVisible.(propertyName);
+                otherwise
+                    %Do nothing
+            end
+        end
+
+
+        function obj = rmproperty(obj,propertyName)
+        %"Removes" (hides) existing optional attributes
+            propertyName = char(propertyName);
+            switch(propertyName)
+                case {'dataLabels'}
+                    obj.flagVisible.(propertyName) = false;
+                case {'name','data'}
+                    error('ICNNA:icnna.data.snirf.stim:rmproperty:NonOptionalProperty', ...
+                        ['Property ' propertyName ' cannot be removed. It is not optional for .snirf format.']);
+                otherwise
+                    error('ICNNA:icnna.data.snirf.stim:rmproperty:UnknownProperty', ...
+                        ['Unknown property ' propertyName '.']);
+            end
+        end
 
     end
 

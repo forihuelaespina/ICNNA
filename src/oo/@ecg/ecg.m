@@ -1,3 +1,4 @@
+classdef ecg < structuredData
 %Class ecg
 %
 %An ECG (electrocardiogram).
@@ -53,8 +54,7 @@
 %
 % Type methods('ecg') for a list of methods
 % 
-% Copyright 2009-19
-% date: 19-Jan-2009
+% Copyright 2009-24
 % Author: Felipe Orihuela-Espina
 %
 % See also structuredData, rawData_BioHarnessECG
@@ -63,6 +63,10 @@
 
 
 %% Log:
+%
+% File created: 19-Jan-2009
+% File last modified (before creation of this log): N/A. This class file
+%   had not been modified since creation.
 %
 % 28-May-2019: FOE:
 %   + Log started
@@ -73,10 +77,17 @@
 %   + Added property rPeaksAlgo to keep arecord of the algorithm used
 %   for detecting the rPeaks
 %
+% 12-Apr-2024: FOE (ICNNA v1.2.2)
+%   + Got rid of old labels @date and @modified.
+%   + Added property classVersion. Set to '1.0' by default.
+%   + Started to update calls to get attributes using the struct like syntax
+%
+
+    properties (Constant, Access=private)
+        classVersion = '1.0'; %Read-only. Object's class version.
+    end
 
 
-
-classdef ecg < structuredData
     properties (SetAccess=private, GetAccess=private)
         samplingRate=250;%in [Hz]
         startTime=datevec(date);       
@@ -119,17 +130,21 @@ classdef ecg < structuredData
                 obj=varargin{1};
                 return;
             else
-                obj=set(obj,'ID',varargin{1});
+                obj.id = varargin{1};
 
             end
-            obj=set(obj,'Description',...
-                    ['ECG' num2str(get(obj,'ID'),'%04i')]);
+            obj.description = ['ECG' num2str(obj.id,'%04i')];
             %assertInvariants(obj);
         end
 
+
+
+
+
+ 
         %%Dependent properties
         function timestamps = get.timestamps(obj)
-            nSamples=get(obj,'NSamples');
+            nSamples = obj.nSamples;
             sr=get(obj,'SamplingRate');
             %timestamps=(0+1/sr):(1/sr):(nSamples/sr);
             %timestamps=timestamps'*1000; %to ms.

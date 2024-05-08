@@ -53,6 +53,8 @@ classdef dataSource
 %Also with data being locked, no structured data are
 %accepted unless, a raw data has already been defined.
 %
+% 
+%
 %% Properties
 %
 %   .id - Scalar integer. A numerical identifier.
@@ -67,6 +69,20 @@ classdef dataSource
 %       structured data, or 0 if none exist.
 %   .structured - Cell array. Set of structured data for this source.
 %
+%   == Derived attributes
+%   .type - String. The classname of the structuredData (or its
+%       instanciated subclass) when at least one structuredData
+%       has been defined. See section above.
+%
+%       Matlab does NOT accept initialization of a property over an abstract
+%       class i.e. it does not provide the equivalent to Java's null for objects
+%       (unless it is a handle object for which it provides method .empty).
+%       Hence I have to arbitrary pick a "default" rawData that will set the
+%       type of the dataSource. For no particular reason I have opted for
+%       rawData_Snirf, so the default type for the dataSource is nirs_neuroimage.
+%
+%   .nStructuredData - Int. Number of structuredData defined.
+%
 %% Invariants
 %
 % See private/assertInvariants
@@ -78,7 +94,7 @@ classdef dataSource
 %
 %
 %
-% Copyright 2008-23
+% Copyright 2008-24
 % @author: Felipe Orihuela-Espina
 %
 % See also subject, session, rawData, structuredData
@@ -102,6 +118,9 @@ classdef dataSource
 %       nStructuredData
 %   + Deprecated methods
 %       getNStructuredData
+%
+% 18-Mar-2024: FOE
+%   + Improved documentation on derived attributes.
 %
 %
 

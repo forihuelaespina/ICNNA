@@ -127,6 +127,10 @@ elseif (isa(element,'dataSource'))
             if ~isempty(rawChild)
                 [theStatusInRaw,flagSuccess] = ...
                         runIntegrityOnRaw(rawChild,theStatus,options);
+                %If any channel did not undergo any test, still needs to be
+                %marked.
+                idxRaw = find(getStatus(theStatusInRaw) == theStatusInRaw.UNCHECK);
+                theStatusInRaw = setStatus(theStatusInRaw,idxRaw,theStatusInRaw.FINE);
                 flagTested = true;
             end
         end

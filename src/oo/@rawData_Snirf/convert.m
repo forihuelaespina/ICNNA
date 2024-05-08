@@ -106,6 +106,19 @@ function nimg=convert(obj,varargin)
 %   + Bug fixed. When setting up the timeline, it was not checking for
 %   onsets at 0. Onsets at 0 are now "shifted" to sample 1.
 %
+% 6-Apr-2024: FOE
+%   + Adapted to handle optional fields.
+%   + Auxiliar function unfoldMeasurementList refined DataTypeLabel from
+%       cell array to array of objects (char)
+%
+% 8-May-2024: FOE
+%   + Bug fixed. Now also saves amplitudes
+%   + Bug fixed. Up to timeline class version '1.0', ICNNA does NOT have
+%   anything equivalent to snirf dataLabels, so the information on the
+%   dataLabels was getting lost. I have now added some rudimentary
+%   support in the timeline class but this is not likely a good solution...
+%
+
 
 
 opt.nirsDatasetIndex = 1; %Index of the nirs dataset to be converted.
@@ -251,6 +264,12 @@ for iStim = 1:nStims
     %Convert from time to samples
     onsets   = round(tmpStim.data(:,1)*t.nominalSamplingRate);
     durations= round(tmpStim.data(:,2)*t.nominalSamplingRate);
+    % 8-May-2024: FOE
+    %   + Bug fixed. Now also saves amplitudes
+    amplitudes = ones(numel(onsets),1);
+    if size(tmpStim.data,2)>2
+        amplitudes = tmpStim.data(:,3);
+    end
 
     % 14-Feb-2024: FOE
     %   + Bug fixed. In this bug fixing, events that start beyond the last 
@@ -272,9 +291,7 @@ for iStim = 1:nStims
     %       [30 15;
     %       [35 15;   ==> max offset 40+15=65 ==> [30 35]
     %       [40 15]
-    tmpcevents = unique([onsets durations],'rows');
-    %merge events if required
-    
+    tmpcevents = unique([onsets durations amplitudes],'rows'); %merge events if required    
     jj=1;
     while (jj < length(tmpcevents(:,1)))
         currentOnset  = tmpcevents(jj,1);
@@ -299,8 +316,24 @@ for iStim = 1:nStims
     %       sample are truncated.
     tmpcevents(:,2) = max(0,min(tmpcevents(:,2), nSamples-tmpcevents(:,1)));
 
-    t = t.addCondition(cTag,tmpcevents,0);
+    if isempty(t.getCondition(cTag))
+        % 8-May-2024: FOE
+        %   + Bug fixed. Up to timeline class version '1.0', ICNNA does NOT have
+        %   anything equivalent to snirf dataLabels, so the information on the
+        %   dataLabels was getting lost. I have now added some rudimentary 
+        %   support in the timeline class but this is not likely a good solution...
+        if isproperty(tmpStim,'dataLabels')
+            t = t.addCondition(cTag,tmpcevents,tmpStim.dataLabels,0);
+        else
+            t = t.addCondition(cTag,tmpcevents,0);
+        end
+    else
+        t = t.addConditionEvents(cTag,tmpcevents);
+    end
 end
+
+
+
 nimg.timeline = t;
 
 
@@ -387,7 +420,8 @@ switch (tmpDataType)
             end
             tmpData(:,iCh,iSignal) = tmpNirs.data.dataTimeSeries(:,iMeas);
         end
-        nimg=set(nimg,'Data',tmpData);
+        %nimg=set(nimg,'Data',tmpData);
+        nimg.data = tmpData;
 
 
     otherwise
@@ -487,34 +521,66 @@ end
 
 %Unfold measurement list for quicker access of some operations below.
 nMeasurements = length(tmpList);
-tmpSourceIndex     = nan(nMeasurements,1);
-tmpDetectorIndex   = nan(nMeasurements,1);
-tmpWavelengthIndex = nan(nMeasurements,1);
-tmpDataType        = nan(nMeasurements,1);
-tmpDataTypeLabel   = cell(nMeasurements,1);
-tmpDataTypeIndex   = nan(nMeasurements,1);
-tmpSourcePower     = nan(nMeasurements,1);
-tmpDetectorGain    = nan(nMeasurements,1);
-tmpModuleIndex     = nan(nMeasurements,1);
+tmpSourceIndex         = nan(nMeasurements,1);
+tmpDetectorIndex       = nan(nMeasurements,1);
+tmpWavelengthIndex     = nan(nMeasurements,1);
+tmpWavelengthActual    = nan(nMeasurements,1);
+tmpWavelengthEmissionActual = nan(nMeasurements,1);
+tmpDataType            = nan(nMeasurements,1);
+tmpDataUnit            = strings(nMeasurements,1);
+tmpDataTypeLabel       = strings(nMeasurements,1);
+tmpDataTypeIndex       = nan(nMeasurements,1);
+tmpSourcePower         = nan(nMeasurements,1);
+tmpDetectorGain        = nan(nMeasurements,1);
+tmpModuleIndex         = nan(nMeasurements,1);
+tmpSourceModuleIndex   = nan(nMeasurements,1);
+tmpDetectorModuleIndex = nan(nMeasurements,1);
+
 for iMeas = 1:nMeasurements
-    tmpSourceIndex(iMeas)     = tmpList(iMeas).sourceIndex;
-    tmpDetectorIndex(iMeas)   = tmpList(iMeas).detectorIndex;
-    tmpWavelengthIndex(iMeas) = tmpList(iMeas).wavelengthIndex;
-    tmpDataType(iMeas)        = tmpList(iMeas).dataType;
-    tmpDataTypeLabel(iMeas)   = {tmpList(iMeas).dataTypeLabel};
-    tmpDataTypeIndex(iMeas)   = tmpList(iMeas).dataTypeIndex;
-    tmpSourcePower(iMeas)     = tmpList(iMeas).sourcePower;
-    tmpDetectorGain(iMeas) = tmpList(iMeas).detectorGain;
-    tmpModuleIndex(iMeas) = tmpList(iMeas).moduleIndex;
+    tmpSourceIndex(iMeas)         = tmpList(iMeas).sourceIndex;
+    tmpDetectorIndex(iMeas)       = tmpList(iMeas).detectorIndex;
+    tmpWavelengthIndex(iMeas)     = tmpList(iMeas).wavelengthIndex;
+    if tmpList(iMeas).isproperty('wavelengthActual')
+        tmpWavelengthActual(iMeas)    = tmpList(iMeas).wavelengthActual;
+    end
+    if tmpList(iMeas).isproperty('wavelengthEmissionActual')
+        tmpWavelengthEmissionActual(iMeas) = tmpList(iMeas).wavelengthEmissionActual;
+    end
+    tmpDataType(iMeas)            = tmpList(iMeas).dataType;
+    if tmpList(iMeas).isproperty('dataUnit')
+        tmpDataUnit(iMeas)            = tmpList(iMeas).dataUnit;
+    end
+    if tmpList(iMeas).isproperty('dataTypeLabel')
+        tmpDataTypeLabel(iMeas)       = tmpList(iMeas).dataTypeLabel;
+    end
+    tmpDataTypeIndex(iMeas)       = tmpList(iMeas).dataTypeIndex;
+    if tmpList(iMeas).isproperty('sourcePower')
+        tmpSourcePower(iMeas)         = tmpList(iMeas).sourcePower;
+    end
+    if tmpList(iMeas).isproperty('detectorGain')
+        tmpDetectorGain(iMeas)        = tmpList(iMeas).detectorGain;
+    end
+    if tmpList(iMeas).isproperty('moduleIndex')
+        tmpModuleIndex(iMeas)         = tmpList(iMeas).moduleIndex;
+    end
+    if tmpList(iMeas).isproperty('sourceModuleIndex')
+        tmpSourceModuleIndex(iMeas)   = tmpList(iMeas).sourceModuleIndex;
+    end
+    if tmpList(iMeas).isproperty('detectorModuleIndex')
+        tmpDetectorModuleIndex(iMeas) = tmpList(iMeas).detectorModuleIndex;
+    end
 end
+
 ml = table(tmpSourceIndex,tmpDetectorIndex,...
-           tmpWavelengthIndex,tmpDataType,tmpDataTypeLabel,...
+           tmpWavelengthIndex,tmpWavelengthActual,tmpWavelengthEmissionActual,...
+           tmpDataType,tmpDataUnit,char(tmpDataTypeLabel),...
            tmpDataTypeIndex,tmpSourcePower,tmpDetectorGain,...
-           tmpModuleIndex, ...
+           tmpModuleIndex,tmpSourceModuleIndex,tmpDetectorModuleIndex, ...
            'VariableNames',{'sourceIndex', 'detectorIndex',...
-           'wavelengthIndex','dataType','dataTypeLabel',...
+           'wavelengthIndex','wavelengthActual','wavelengthEmissionActual',...
+           'dataType','dataUnit','dataTypeLabel',...
            'dataTypeIndex','sourcePower','detectorGain',...
-           'moduleIndex'});
+           'moduleIndex','sourceModuleIndex','detectorModuleIndex',});
 
 
 end

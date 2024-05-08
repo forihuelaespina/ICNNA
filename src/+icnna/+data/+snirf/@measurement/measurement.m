@@ -1,6 +1,10 @@
 classdef measurement
 % icnna.data.snirf.measurement A NIRS per-channel source-detector information as defined in the snirf file format.
 %
+% A measurement is each one of the measurements in the measurementList
+%within /nirs/data in the snirf file format.
+%
+%
 %% The Shared Near Infrared Spectroscopy Format (SNIRF).
 %
 % https://github.com/fNIRS/snirf
@@ -45,10 +49,33 @@ classdef measurement
 % 19-May-2023: FOE
 %   + Added constructor polymorphism for typecasting a struct.
 %
+% 6-Apr-2024: FOE
+%   + Added visibility flags for optional properties.
+%       Some of the properties of the measurement are optional; they
+%       may or may not be present. In its implementation thus far, ICNNA
+%       had no way to distinguish the case when the attribute was simply
+%       missing from the case it has some default value. Having visibility
+%       or enabling flags solves the problem.
+%       ICNNA also provides a couple of further methods; one to "remove" (hide)
+%       existing optional attributes and one to check whether it has
+%       been defined (e.g. to check its visibility status) which shall
+%       prevent the need for try/catch in other functions using the class.
+%       Regarding this latter, note that;
+%       + Calling properties(measurement) will still list the "hidden"
+%       properties, which ideally should not happen -but this relates back
+%       to MATLAB's new way of the defining the get/set methods for struct
+%       like access which requires the properties to be public.
+%       + MATLAB has function isprop to determine whether a property is
+%       defined by object, but again this will "see" the hidden properties.
+%
+%       NOTE: Making the class mutable so that it can grow organically 
+%       on these optional attributes is not a good solution as this then
+%       loses control on what other attributes could be defined beyond
+%       those acceptable for snirf.
 %
 
     properties (Constant, Access=private)
-        classVersion = '1.0'; %Read-only. Object's class version.
+        classVersion = '1.0.1'; %Read-only. Object's class version.
     end
 
 
@@ -69,6 +96,33 @@ classdef measurement
         detectorModuleIndex(1,1) double {mustBeInteger, mustBeNonnegative, mustBeFinite}; %Index of the detector's parent module
         
     end
+
+
+    properties (Access = private)
+        %Visibility/Availability flags:
+        %The optional attributes are;
+        % 1) wavelengthActual
+        % 2) wavelengthEmissionActual
+        % 3) dataUnit 
+        % 4) dataTypeLabel
+        % 5) sourcePower
+        % 6) detectorGain
+        % 7) moduleIndex
+        % 8) sourceModuleIndex
+        % 9) detectorModuleIndex
+
+
+        flagVisible struct = struct('wavelengthActual',false, ...
+            'wavelengthEmissionActual',false, ...
+            'dataUnit',false, ...
+            'dataTypeLabel',false, ...
+            'sourcePower',false, ...
+            'detectorGain',false, ...
+            'moduleIndex',false, ...
+            'sourceModuleIndex',false, ...
+            'detectorModuleIndex',false); %Not visible by default
+    end
+   
     
     methods
         function obj=measurement(varargin)
@@ -148,22 +202,34 @@ classdef measurement
 
         function val = get.wavelengthActual(obj)
         %Retrieves the channel actual wavelength
-            val = obj.wavelengthActual;
+            if obj.flagVisible.wavelengthActual
+                val = obj.wavelengthActual;
+            else
+                error('ICNNA:icnna.data.snirf.measurement.get.wavelengthActual:Undefined', ...
+                    'Undefined optional field wavelengthActual.');
+            end
         end
         function obj = set.wavelengthActual(obj,val)
         %Updates the channel actual wavelength
             obj.wavelengthActual = val;
+            obj.flagVisible.wavelengthActual = true;
         end
 
 
 
         function val = get.wavelengthEmissionActual(obj)
         %Retrieves the channel actual emission wavelength
-            val = obj.wavelengthEmissionActual;
+            if obj.flagVisible.wavelengthEmissionActual
+                val = obj.wavelengthEmissionActual;
+            else
+                error('ICNNA:icnna.data.snirf.measurement.get.wavelengthEmissionActual:Undefined', ...
+                    'Undefined optional field wavelengthEmissionActual.');
+            end
         end
         function obj = set.wavelengthEmissionActual(obj,val)
         %Updates the channel actual emission wavelength
             obj.wavelengthEmissionActual = val;
+            obj.flagVisible.wavelengthEmissionActual = true;
         end
 
 
@@ -181,22 +247,34 @@ classdef measurement
 
         function val = get.dataUnit(obj)
         %Retrieves the channel SI data unit
-            val = obj.dataUnit;
+            if obj.flagVisible.dataUnit
+                val = obj.dataUnit;
+            else
+                error('ICNNA:icnna.data.snirf.measurement.get.dataUnit:Undefined', ...
+                    'Undefined optional field dataUnit.');
+            end
         end
         function obj = set.dataUnit(obj,val)
         %Updates the channel SI data unit
             obj.dataUnit = val;
+            obj.flagVisible.dataUnit = true;
         end
 
 
 
         function val = get.dataTypeLabel(obj)
         %Retrieves the data type name for the channel
-            val = obj.dataTypeLabel;
+            if obj.flagVisible.dataTypeLabel
+                val = obj.dataTypeLabel;
+            else
+                error('ICNNA:icnna.data.snirf.measurement.get.dataTypeLabel:Undefined', ...
+                    'Undefined optional field dataTypeLabel.');
+            end
         end
         function obj = set.dataTypeLabel(obj,val)
         %Updates the data type name for the channel
             obj.dataTypeLabel = val;
+            obj.flagVisible.dataTypeLabel = true;
         end
 
 
@@ -214,56 +292,127 @@ classdef measurement
 
         function val = get.sourcePower(obj)
         %Retrieves the source power for the channel
-            val = obj.sourcePower;
+            if obj.flagVisible.sourcePower
+                val = obj.sourcePower;
+            else
+                error('ICNNA:icnna.data.snirf.measurement.get.sourcePower:Undefined', ...
+                    'Undefined optional field sourcePower.');
+            end
         end
         function obj = set.sourcePower(obj,val)
         %Updates the source power for the channel
             obj.sourcePower = val;
+            obj.flagVisible.sourcePower = true;
         end
 
 
 
         function val = get.detectorGain(obj)
         %Retrieves the detector gain for the channel
-            val = obj.detectorGain;
+            if obj.flagVisible.detectorGain
+                val = obj.detectorGain;
+            else
+                error('ICNNA:icnna.data.snirf.measurement.get.detectorGain:Undefined', ...
+                    'Undefined optional field detectorGain.');
+            end
         end
         function obj = set.detectorGain(obj,val)
         %Updates the detector gain for the channel
             obj.detectorGain = val;
+            obj.flagVisible.detectorGain = true;
         end
 
 
 
         function val = get.moduleIndex(obj)
         %Retrieves the channel's module index (if modular)
-            val = obj.moduleIndex;
+            if obj.flagVisible.moduleIndex
+                val = obj.moduleIndex;
+            else
+                error('ICNNA:icnna.data.snirf.measurement.get.moduleIndex:Undefined', ...
+                    'Undefined optional field moduleIndex.');
+            end
         end
         function obj = set.moduleIndex(obj,val)
         %Updates the channel's module index (if modular)
             obj.moduleIndex = val;
+            obj.flagVisible.moduleIndex = true;
         end
 
 
 
         function val = get.sourceModuleIndex(obj)
         %Retrieves the channel's source module index (if modular)
-            val = obj.sourceModuleIndex;
+            if obj.flagVisible.sourceModuleIndex
+                val = obj.sourceModuleIndex;
+            else
+                error('ICNNA:icnna.data.snirf.measurement.get.sourceModuleIndex:Undefined', ...
+                    'Undefined optional field sourceModuleIndex.');
+            end
         end
         function obj = set.sourceModuleIndex(obj,val)
         %Updates the channel's source module index (if modular)
             obj.sourceModuleIndex = val;
+            obj.flagVisible.sourceModuleIndex = true;
         end
 
 
 
         function val = get.detectorModuleIndex(obj)
         %Retrieves the channel's detector module index (if modular)
-            val = obj.detectorModuleIndex;
+            if obj.flagVisible.detectorModuleIndex
+                val = obj.detectorModuleIndex;
+            else
+                error('ICNNA:icnna.data.snirf.measurement.get.detectorModuleIndex:Undefined', ...
+                    'Undefined optional field detectorModuleIndex.');
+            end
         end
         function obj = set.detectorModuleIndex(obj,val)
         %Updates the channel's detector module index (if modular)
             obj.detectorModuleIndex = val;
+            obj.flagVisible.detectorModuleIndex = true;
         end
+
+
+
+
+
+        %%Suport methods for visibility of optional attributes
+        function res = isproperty(obj,propertyName)
+        %Check whether existing optional attributes have been defined (i.e. checks visibility)
+            propertyName = char(propertyName);
+            res = isprop(obj,propertyName);
+            switch(propertyName)
+                case {'wavelengthActual','wavelengthEmissionActual',...
+                        'dataUnit','dataTypeLabel','sourcePower', ...
+                        'detectorGain','moduleIndex','sourceModuleIndex', ...
+                        'detectorModuleIndex'}
+                    res = obj.flagVisible.(propertyName);
+                otherwise
+                    %Do nothing
+            end
+        end
+
+
+        function obj = rmproperty(obj,propertyName)
+        %"Removes" (hides) existing optional attributes
+            propertyName = char(propertyName);
+            switch(propertyName)
+                case {'wavelengthActual','wavelengthEmissionActual',...
+                        'dataUnit','dataTypeLabel','sourcePower', ...
+                        'detectorGain','moduleIndex','sourceModuleIndex', ...
+                        'detectorModuleIndex'}
+                    obj.flagVisible.(propertyName) = false;
+                case {'sourceIndex','detectorIndex','wavelengthIndex',...
+                        'dataType','dataTypeIndex'}
+                    error('ICNNA:icnna.data.snirf.measurement.rmproperty:NonOptionalProperty', ...
+                        ['Property ' propertyName ' cannot be removed. It is not optional for .snirf format.']);
+                otherwise
+                    error('ICNNA:icnna.data.snirf.measurement.rmproperty:UnknownProperty', ...
+                        ['Unknown property ' propertyName '.']);
+            end
+        end
+
 
 
 

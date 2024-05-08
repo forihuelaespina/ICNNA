@@ -100,9 +100,22 @@ classdef timeline
 %           The list of events is a two column matrix
 %         where first column represents event onsets and second
 %         column represents event durations.
+%
+%       From ICNNA version 1.2.2, a condition can have an additional
+%       OPTIONAL (i.e. might not be present) field .dataLabels alike
+%       snirf to label the events field. The usage of the first three
+%       columns of the field events are notwithstanding locked to
+%       onsets, durations and amplitudes respectively regardless of
+%       the dataLabel used. To match snirf, the .dataLabels is an array
+%       of strings.
+%
 %   .exclusory - A matrix of pairwise exclusory states.
 %	  exclusory(condA,condB)=0 => Non exclusory behaviour
 %	  exclusory(condA,condB)=1 => Exclusory behaviour
+%
+%       From ICNNA version 1.2.2, a condition can have overlapping
+%       events with itself. This is controlled with the main diagonal
+%       of .exclusory.
 %
 %% Dependent properties
 %
@@ -123,7 +136,7 @@ classdef timeline
 % Type methods('timeline') for a list of methods
 % 
 %
-% Copyright 2008-23
+% Copyright 2008-24
 % @author: Felipe Orihuela-Espina
 %
 % See also assertInvariant
@@ -169,9 +182,20 @@ classdef timeline
 %   + 2 of the errors were reporting the incorrect class in the error code.
 %
 %
+% 11-Apr-2024: FOE
+%   + Starting with ICNNA v1.2.2 conditions;
+%       * can have overlapping events with itself. This is controlled
+%       with the main diagonal of .exclusory.
+%       * can have an additional OPTIONAL (i.e. might not be present)
+%       field .dataLabels alike snirf to label the events field.
+%       * can store events "amplitudes" as the 3rd column of the condition
+%       events
+%   + classVersion increased to '1.0.1'
+%
 
     properties (Constant, Access=private)
-        classVersion = '1.0'; %Read-only. Object's class version.
+        %classVersion = '1.0'; %Read-only. Object's class version.
+        classVersion = '1.0.1'; %Read-only. Object's class version.
     end
 
 

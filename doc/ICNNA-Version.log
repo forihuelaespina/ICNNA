@@ -5,6 +5,172 @@
 ====================================
 
 ====================================
+= ICNNA v1.2.3
+====================================
+
++ New class @icnna.data.core.condition
+
+====================================
+= ICNNA v1.2.2 (released 8-May-2024)
+====================================
+
+@dataSource:
+    + Improved documentation of derived attributes
+
+
+@icnna.data.snirf.probe
+   + Class format update:
+       * Attributes sourceLabels, detectorLabels
+       and landmarkLabels are now string arrays instead of cell arrays
+       as specified by .snirf. Compatibility support is provided; if the user
+       passes a cell array for any of these attributes this is accepted, and
+       type casted to string array. However, when getting this property,
+       now only a string array is returned. Finally, cell array use for
+       these attributes is now DEPRECATED.
+       * Attributes sourcePos2D, detectorPos2D and landmarkPos2D have been
+       reformatted from free sized (:,:) to 2 columns 2D arrays (:,2).
+       * Attributes sourcePos3D, detectorPos3D and landmarkPos3D have been
+       reformatted from 3D arrays (:,:,:) to 3 columns 2D arrays (:,3).
+   + Added methods get/set for detectorPos2D and detectorPos3D (yes! I
+       forgot to add these originally!)
+   + Added visibility flags for optional properties.
+       Some of the properties of the measurement are optional; they
+       may or may not be present. In its implementation thus far, ICNNA
+       had no way to distinguish the case when the attribute was simply
+       missing from the case it has some default value. Having visibility
+       or enabling flags solves the problem.
+   + Added methods isproperty (different from MATLAB's isprop) and
+       rmproperty to check and manipulate visibility flags for optional
+       properties.
+   + classVersion increased to '1.0.1'
+
+@icnna.data.snirf.stim
+   + Class format update:
+       * Attributes dataLabels is now string array instead of cell array
+       as specified by .snirf. Compatibility support is provided; if the user
+       passes a cell array for this attribute this is accepted, and
+       type casted to string array. However, when getting this property,
+       now only a string array is returned. Finally, cell array use for
+       these attributes is now DEPRECATED.
+   + Added visibility flags for optional properties.
+       Some of the properties of the measurement are optional; they
+       may or may not be present. In its implementation thus far, ICNNA
+       had no way to distinguish the case when the attribute was simply
+       missing from the case it has some default value. Having visibility
+       or enabling flags solves the problem.
+   + Added methods isproperty (different from MATLAB's isprop) and
+       rmproperty to check and manipulate visibility flags for optional
+       properties.
+   + classVersion increased to '1.0.1'
+
+
+@icnna.data.snirf.measurement
+   + Class format update:
+   + Added visibility flags for optional properties.
+       Some of the properties of the measurement are optional; they
+       may or may not be present. In its implementation thus far, ICNNA
+       had no way to distinguish the case when the attribute was simply
+       missing from the case it has some default value. Having visibility
+       or enabling flags solves the problem.
+   + Added methods isproperty (different from MATLAB's isprop) and
+       rmproperty to check and manipulate visibility flags for optional
+       properties.
+   + classVersion increased to '1.0.1'
+
+
+@icnna.data.snirf.auxBlock
+   + Class format update:
+       * Added attribute dataUnit
+   + Added visibility flags for optional properties.
+       Some of the properties of the measurement are optional; they
+       may or may not be present. In its implementation thus far, ICNNA
+       had no way to distinguish the case when the attribute was simply
+       missing from the case it has some default value. Having visibility
+       or enabling flags solves the problem.
+   + Added methods isproperty (different from MATLAB's isprop) and
+       rmproperty to check and manipulate visibility flags for optional
+       properties.
+   + classVersion increased to '1.0.1'
+
+
+@timeline - Starting with ICNNA v1.2.2 conditions;
+    * can have overlapping events with itself. This is controlled
+    with the main diagonal of .exclusory.
+    * can have an additional OPTIONAL (i.e. might not be present)
+    field .dataLabels alike snirf to label the events field.
+    * can store events "amplitudes" as the 3rd column of the condition
+    events
+    + classVersion increased to '1.0.1'
+
+@experimentSpace
+    + New method setVectors to allow manual setting of the experimentSpace
+
+@ecg
+    + Added class version property. Set to '1.0'
+    + Method display modified to start using the struct like propoerty
+    access. This reduces the number of warnings.
+    + Method get: Property names is now case insensitive.
+
+@rawData_BioHarnessECG
+    + Method display modified to start using the struct like propoerty
+    access. This reduces the number of warnings.
+
+
+== HR tool
+Stricly originally not part of ICNNA but of ICAF. But I'm working to
+integrate it to ICNNA though. So as from v1.2.2 the HR tool is now included
+with ICNNA when packaging a new version.
+    + Started to update calls to get attributes using the struct like syntax
+    + I have now addressed the long standing issue with accessing
+    the icons folder when the working directory is not that of ICNNA
+    using function mfilename.
+
+Bugs fixed
++ @icnna.data.snirf.snirf.load: landmarkLabels is an optional field
+    but was being treated as a mandatory field.
++ @icnna.data.snirf.snirf.load: Reading of '/data' group was "only"
+    looking in '/nirs' group excluding the possibility of more than
+    one neuroimage.
++ @icnna.data.snirf.aux: Initialization of attributes dataTimeSeries, time and
+    timeOffsets are now arrays instead of an empty string.
++ @icnna.data.snirf.aux: Setting of attributes dataTimeSeries, time and timeOffsets
+    are no longer required o have 2 columns.
++ @icnna.data.snirf.snirf.save: Several bugs fixed related to the writing
+    of string arrays.
++ @icnna.data.snirf.snirf.save: /aux/name was being written as a char
+    array instead of string
++ @icnna.data.snirf.snirf.save: Access to metaDataTags.additional is
+    now checked for empty dictionaries.
++ @icnna.data.snirf.snirf.save: Optional fields were requested as if
+    compulsory. Now they are simply ignored if not present.
++ @icnna.data.snirf.snirf.save: Now also saves amplitudes
++ @icnna.data.snirf.snirf.save: Now also saves dataLabels
++ @icnna.data.snirf.snirf.readHD5File / @icnna.data.snirf.snirf.save:
+    Addressed issue of reading "transposed" data related to MATLAB's
+    HDF5 read/write utility behaviour.
++ @timeline.addConditionEvents: The method was not considering the case
+    were added events already existed. Now only unique events are added.
++ Function guiHR: Wrapping dataSource when input is an @ecg object now
+    has the right type.
+    NOTE: When class dataSource was updated in 13-May-2024 to support
+    struct like property access and included validation rules on the
+    declaration, the @dataSource property rawData can no longer be
+    initialize to null (see notes in class @dataSource), but instead,
+    it was now mandatory in MATLAB to initilize the @dataSource.rawData
+    property to some concrete class. For no particular reason, I chose
+    that to be rawData_Snirf, which means that since then, the default
+    @dataSource.type was 'nirs_neuroimage'. Becuase of this, unlocking
+    the wrapping @dataSource here was no longer sufficient to allow
+    adding the @ecg structured data to the @dataSource as it is no
+    longer of the expected type, and hence this bug. Fortunately, the
+    fixing is easy as all it takes is to replace the
+    @dataSource.rawData with an object that will convert to an @ecg,
+    e.g. @rawData_BioHarness.
+
+
+
+
+====================================
 = ICNNA v1.2.1 (released 25-Feb-2024)
 ====================================
 

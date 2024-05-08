@@ -41,7 +41,7 @@ function obj = set(obj,varargin)
 %	 RR intervals
 %
 %
-% Copyright 2009
+% Copyright 2009-24
 % @date: 19-Jan-2009
 % @author Felipe Orihuela-Espina
 %
@@ -53,6 +53,10 @@ function obj = set(obj,varargin)
 % 29-May-2019: FOE:
 %   + Log started
 %   + Added support for property rPeaksAlgo
+%
+% 12-Apr-2024: FOE
+%   + Enabled some options for controlling Chen's algorithm
+%
 %
 
 propertyArgIn = varargin;
@@ -93,6 +97,19 @@ while length(propertyArgIn) >= 2,
                                 tmpOptions.threshold = obj.threshold;
                             case 'chen2017'
                                 tmpOptions.algo = 'Chen2017';
+                                tmpOptions.maskhalfsize = 2; %Half-width of the enhancement mask in [samples]
+                                tmpOptions.searchingrange = 0.3; %in [s]. For adults
+                                %tmpOptions.searchingrange = 0.1; %in [s]. For children
+                                tmpOptions.samplingrate = get(obj,'SamplingRate'); %[Hz]
+                                tmpOptions.qrsminimumamplitude = 0.5; %in [mV]. Used for triggering the QRS search.
+                                tmpOptions.thresholdcrest = 0.22;
+                                %tmpOptions.thresholdcrest = 0.4;
+                                tmpOptions.thresholdtrough = -0.2;
+                                %tmpOptions.thresholdtrough = -0.4;
+                                tmpOptions.QRSlateny=0.12; %In [s]. Latency between two QRS. For adults
+                                %tmpOptions.QRSlateny=0.06; %In [s]. Latency between two QRS. For child
+                                %tmpOptions.QRSlateny=0.03; %In [s]. Latency between two QRS. For child plus allow arrythmias
+                                tmpOptions.nboundarysamples = 5; %Controls alleviation of boundary effects
                             otherwise
                                 error('ICAF:ecg:set',...
                                     'Unexpected R Peaks detection algorithm.');

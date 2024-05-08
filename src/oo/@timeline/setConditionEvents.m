@@ -16,7 +16,7 @@ function obj=setConditionEvents(obj,tag,events,eventsInfo)
 %
 %
 %
-% Copyright 2008-23
+% Copyright 2008-24
 % @author Felipe Orihuela-Espina
 %
 % See also getCondition, addCondition, removeCondition, setConditionTag,
@@ -31,6 +31,9 @@ function obj=setConditionEvents(obj,tag,events,eventsInfo)
 %
 % 13-May-2023: FOE
 %   + Added this log. Got rid of old labels @date and @modified.
+%
+% 8-May-2024: FOE
+%   + Added support for event amplitudes
 %
 
 
@@ -55,12 +58,13 @@ else
     if isempty(events)
         obj.conditions{idx}.events=zeros(0,2);
         obj.conditions{idx}.eventsInfo=cell(0,1);
-    elseif ((ndims(events)==2) && (size(events,2)==2))
+    elseif ((ndims(events)==2) && (size(events,2)==2 || size(events,2)==3))
         [obj.conditions{idx}.events,index]=sortrows(events);
         obj.conditions{idx}.eventsInfo=eventsInfo(index);
     else
         error('ICNA:timeline:setConditionEvents:InvalidEvents',...
-            'Events must a 2 column (onset duration) matrix.');
+            ['Events must a 2 columns (onset duration) matrix or ' ...
+             'a 3 columns (onset duration amplitude) matrix.']);
     end
 end
 assertInvariants(obj);

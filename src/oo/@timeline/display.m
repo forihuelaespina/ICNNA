@@ -22,6 +22,10 @@ function display(obj)
 %   + Updated calls to get attributes using the struct like syntax
 %   + Now also displays new attribute classVersion
 %
+% 8-May-2024: FOE
+%   + Display the stimulus amplitude if available.
+%   + Display the new .conditions.dataLabels if available.
+%
 
 
 
@@ -61,8 +65,20 @@ else
         if (isempty(cevents))
             disp('   No events defined for this condition.');
         else
-            disp('   [Onsets Durations] - Info');
-            nEvents=size(cevents,1);
+            [nEvents,nCols]=size(cevents);
+            if isfield(obj.conditions{ii},'dataLabels')
+                tmpStr = strjoin(obj.conditions{ii}.dataLabels(:),' ');
+                disp(['   [' char(tmpStr) '] - Info']);
+            else
+                if nCols == 2
+                    disp('   [Onsets Durations] - Info');
+                elseif nCols == 3
+                    disp('   [Onsets Durations Amplitude] - Info');
+                else
+                    warning('Unexpected number of columns in events structure.')
+                end
+            end
+            
             for ee=1:nEvents
                 eInfo = ceventsInfo{ee};
                 if isempty(eInfo)
@@ -84,3 +100,7 @@ else
     end
 end
 disp(' ');
+
+
+
+end

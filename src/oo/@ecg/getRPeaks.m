@@ -14,7 +14,6 @@ function [rPeaks,threshold]=getRPeaks(HRsignal,options)
 % getRpeaks is faster, but qrsdetection have much better tolerance to noise in the
 % ecg data.
 %
-
 %
 %% Remarks
 %
@@ -43,10 +42,10 @@ function [rPeaks,threshold]=getRPeaks(HRsignal,options)
 %
 %% Output
 %
-% A column vector of samples indexes to the R peaks
+% rPeaks - A column vector of samples indexes to the R peaks
 %
 %
-% Copyright 2009
+% Copyright 2009-24
 % Author: Felipe Orihuela-Espina
 % Date: 19-Jan-2009
 %
@@ -61,12 +60,36 @@ function [rPeaks,threshold]=getRPeaks(HRsignal,options)
 %   + Provided support for the new R peak detection algorithm; 'Chen2017'
 %   + Deprecated direct use of parameter thresh
 %
+% 12-Apr-2024: FOE
+%   + Enabled some options for controlling Chen's algorithm
+%
+%
 
-
+        if(isfield(options,'samplingrate'))
+            opt.samplingrate=options.samplingrate;
+        end
 %% Deal with some options
 opt.visualize=false;
 opt.algo = 'LoG';
 opt.logthreshold = []; %Threshold for the LoG algorithm
+
+%Chen 2017 related options
+opt.maskhalfsize = 2; %Half-width of the enhancement mask in [samples]
+opt.searchingrange = 0.3; %in [s]. For adults
+%opt.searchingrange = 0.1; %in [s]. For children
+opt.samplingrate = 50; %[Hz]
+opt.qrsminimumamplitude = 0.5; %in [mV]. Used for triggering the QRS search.
+opt.thresholdcrest = 0.22;
+%opt.thresholdcrest = 0.4;
+opt.thresholdtrough = -0.2;
+%opt.thresholdtrough = -0.4;
+opt.QRSlateny=0.12; %In [s]. Latency between two QRS. For adults
+%opt.QRSlateny=0.06; %In [s]. Latency between two QRS. For child
+%opt.QRSlateny=0.03; %In [s]. Latency between two QRS. For child plus allow arrythmias
+opt.nboundarysamples = 5; %Controls alleviation of boundary effects
+
+
+
 if exist('options','var')
     if ~isstruct(options)
         %Backward compatibility.
@@ -83,6 +106,37 @@ if exist('options','var')
         if(isfield(options,'visualize'))
             opt.visualize=options.visualize;
         end
+
+
+        %Chen 2017's algorithm options
+
+        if(isfield(options,'maskhalfsize'))
+            opt.maskhalfsize=options.maskhalfsize;
+        end
+        if(isfield(options,'searchingrange'))
+            opt.searchingrange=options.searchingrange;
+        end
+        if(isfield(options,'samplingrate'))
+            opt.samplingrate=options.samplingrate;
+        end
+        if(isfield(options,'qrsminimumamplitude'))
+            opt.qrsminimumamplitude=options.qrsminimumamplitude;
+        end
+        if(isfield(options,'thresholdcrest'))
+            opt.thresholdcrest=options.thresholdcrest;
+        end
+        if(isfield(options,'thresholdtrough'))
+            opt.thresholdtrough=options.thresholdtrough;
+        end
+        if(isfield(options,'QRSlateny'))
+            opt.QRSlateny=options.QRSlateny;
+        end
+         if(isfield(options,'nboundarysamples'))
+            opt.nboundarysamples=options.nboundarysamples;
+        end
+       
+
+
     end
 end
 

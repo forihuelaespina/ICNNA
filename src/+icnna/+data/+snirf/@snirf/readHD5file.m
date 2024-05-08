@@ -5,6 +5,29 @@ function [res,info]=readHD5file(filename)
 %
 %
 %
+%
+%% Remarks
+%
+% There is what appears to be a bug in MATLAB HDF5 read/write utility by
+% which data are read/written as the transpose of their actual shape.
+%
+% Now, this is not a bug but intended behaviour and it is related to how C
+% and FORTRAN behave. See:
+%
+% https://uk.mathworks.com/matlabcentral/answers/308303-why-does-matlab-transpose-hdf5-data
+%
+% Anyhow, this has to be considered when reading and writing using MATLAB's
+%HDF5 read/write utility. From the above URL:
+%
+% "The HDF Group intended the various applications (Fortran, MATLAB, C,
+% C++, Python, etc) to be able to write to the file in a native storage
+% order and simply list the dimensions of the data in the file in a
+% specified order (slowest changing first ... fastest changing last). It
+% is then incumbent on the user to know what storage order his/her
+% applications use if they are to share data through this file format ...
+% and permute the data accordingly if necessary."
+%
+%
 %% Input parameters
 %
 % filename - String. The filename including the path whether
@@ -21,7 +44,7 @@ function [res,info]=readHD5file(filename)
 %
 %
 %
-% Copyright 2023
+% Copyright 2023-24
 % @author: Felipe Orihuela-Espina
 %
 % See also icnna.data.snirf.snirf
@@ -32,6 +55,9 @@ function [res,info]=readHD5file(filename)
 %
 % 19-May-2023: FOE
 %   File created.
+%
+% 4-Mar-2024: FOE
+%   Bug fixed. Reading the transposed matrix (See remark above).
 %
 
 
@@ -65,9 +91,8 @@ function [resNode]=readNode(structNodeInfo,structNodeName,filename)
         tmpName = [structNodeName '/' structNodeInfo.Datasets(iSet).Name];
         %disp(structNodeInfo.Datasets(iSet).Name)
         tmp = h5read(filename,tmpName);
-        %For some reasons, matrices are read transposed.
         if isnumeric(tmp)
-            tmp = tmp';
+            tmp=tmp'; %See note above.
         end
         resNode.(structNodeInfo.Datasets(iSet).Name) = tmp;
     end
