@@ -64,7 +64,10 @@ function element=runIntegrity(element,options)
 %   + Added this log. Got rid of old labels @date and @modified.
 %   + Started to update the get/set methods calls for struct like access.
 %
-
+% 19-May-2025: FOE
+%   + Added option to "pass" the threshold of the new test about
+%   the coefficient of variation ('CoVThreshold').
+%
 
 optTestInRawWhenPossible=true;
 optVerbose=true;
@@ -92,6 +95,10 @@ if (isa(element,'structuredData'))
     if (optVerbose)
         tmpTests(end+1)={'verbose'};
         tmpTests(end+1)={true};
+    end
+    if isfield(options,'CoVThreshold')
+        tmpTests(end+1)={'CoVThreshold'};
+        tmpTests(end+1)={options.CoVThreshold};
     end
     %call the check integrity
     if exist('whichChannels','var')

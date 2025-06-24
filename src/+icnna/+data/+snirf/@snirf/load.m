@@ -1,7 +1,7 @@
 function [res]=load(filename)
 %Loads an snirf file
 %
-% [res]=load(filename)
+% [res] = load(filename)
 %
 %
 %

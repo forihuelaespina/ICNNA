@@ -1,5 +1,7 @@
 classdef rawData_NIRScout < rawData
-%Class rawData_NIRScout
+%DEPRECATED. Class rawData_NIRScout
+%
+% Please use icnna.data.misc.rawData_NIRx instead.
 %
 %A rawData_NIRScout represents the experimentally recorded data
 %with a NIRx NIRScout device during a fNIRS session.

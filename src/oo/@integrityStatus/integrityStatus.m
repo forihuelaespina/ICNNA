@@ -1,3 +1,4 @@
+classdef integrityStatus
 %Class integrityStatus
 %
 %IntegrityStatus keeps track of the integrity checks
@@ -25,6 +26,7 @@
 %   .NEGATIVERECORDINGS = 13; - Negative Light recordings /Complex Numbers
 %   .OPTODEMOVEMENT     = 14;
 %   .HEADMOTION         = 15;
+%   .COEFFICIENTOFVARIATION = 16;
 %
 %% References
 %
@@ -36,13 +38,27 @@
 %
 % Type methods('integrityStatus') for a list of methods
 % 
-% Copyright 2008
-% date: 14-May-2008
+% Copyright 2008-25
 % Author: Felipe Orihuela-Espina
 %
 % See also neuroimage, nirs_neuroimage, channel
 %
-classdef integrityStatus
+
+%% Log
+%
+% File created: 14-May-2008
+% File last modified (before creation of this log): 14-May-2008
+%
+% 19-May-2025: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Added constant for .COEFFICIENTOFVARIATION.
+%   + Added property classVersion. Set to '1.0' by default.
+%
+
+    properties (Constant, Access=private)
+        classVersion = '1.0'; %Read-only. Object's class version.
+    end
+
     properties (SetAccess=private, GetAccess=private)
         elements=[];
     end
@@ -59,6 +75,7 @@ classdef integrityStatus
         NEGATIVERECORDINGS = 13; %Negatiev Light recordings
         OPTODEMOVEMENT     = 14;
         HEADMOTION         = 15;
+        COEFFICIENTOFVARIATION = 16;
     end
     methods
         function obj=integrityStatus(varargin)

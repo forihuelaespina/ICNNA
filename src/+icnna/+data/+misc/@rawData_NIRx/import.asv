@@ -1,0 +1,671 @@
+function obj=import(obj,varargin)
+%ICNNA.DATA.MISC.RAWDATA_NIRX/IMPORT Reads data files recorded by NIRx NIRStar software in a session.
+%
+% obj=import(obj,path) Reads the data files recorded produced by
+%       the NIRx NIRStar software located in path. The property obj.path
+%       will be updated.
+%
+% obj=import(obj) Reads the data files recorded produced by
+%       the NIRx NIRStar software located in obj.path
+%
+%
+%% Input file(s) structure
+%
+% The NIRStar capture all data from NIRx fNIRS systems. Detailed
+%information is available in the NIRStar User Manual. The following has
+%been extracted from the user manual for the software version 14.1 which
+%may no longer be the most up-to-date NIRStar format.
+%
+%
+% In any measurement performed with a NIRx imager system (NIRScout,
+%NIRSport, or DYNOT), the following files are produced:
+%
+%    filename.hdr           [Information about the device, imaging
+%                               parameters, (experimental?) paradigm,
+%                               gain, experiment notes, events markers,
+%                               source-detector couplings, and interoptode
+%                               distances.]
+%(-) filename.set           [gain-settings table]
+%                               *I believe this has now been deprecated
+%(-) filename.evt           [event records (triggers)]
+%                               *I believe this has now been deprecated
+%(-) filename.tpl           [topo layout]
+%                               *I believe this has now been deprecated
+%(-) filename_config.txt	[information regarding experimental configuration]
+%                               *I believe this has now been superseded
+%                               by a *_config.json file.
+%    filename.wl1           [detector readings for wavelength 1 (760 nm)]
+%    filename.wl2           [detector reading for wavelength 2 (830nm, or 850 nm)]
+%    filename_probeInfo.mat	[anatomical locations of sources and
+%                               detectors and channel locations (this information is only
+%                               available starting from NIRStar version 14.1)]
+%    filename.inf           [subject related information, as specified in
+%                               NIRStar (this information is available
+%                               starting from NIRStar 14.0)]
+%
+%
+%  == Files added posterior to NIRStar 14.0
+%
+%   digpoints.txt - 3D position of fiducial locations (e.g. Nz, Iz, etc
+%       inc. sources and detectors)
+%   filename_config.json	[information regarding experimental configuration]
+%   filename_description.json	[some demographics]
+%   filename_lsl.tri	    [lsl markers]
+%   
+%
+%
+% (-) The files filename.set, filename.evt, filename_config.txt generated
+%for each measurement contain mostly information that is redundant
+%with entries in the .hdr file. These files are generated to maintain
+%compatibility with other NIRx products.
+%
+% By default, the NIRStar software organizes and names files
+%automatically, using to the date and time of acquisition to define
+%the target directory name and the common root of the file names. For
+%each experiment, the different files indicated above are generated,
+%all of which have identical filenames consisting of a prefix, a date
+%identifier, and the running number of experiments recorded on that
+%day. For instance:
+%
+%   prefix-yyyy-mm-dd_xxx.wl1
+%
+% The prefix is 'NIRS' by default, but the user can specify a
+%different prefix.
+%
+% Most of the files are saved in text (ASCII) format, apart *.nirs
+%and *_probeInfo.mat, which are saved in Matlab format. 
+%
+%
+%
+%% The header file
+%
+% (From the NIRStar v14.1 User manual, pg 68-71)
+%
+%
+% The file is structured into sections identified by a [section header]
+%containing variables ('keywords'), to which parameter values are
+%assigned according to a 'keyword=value' scheme.
+% The following explains the header file sections using exemplary values.
+%
+% General: Contains general information about the time and date of
+%   data recording, and the filename. The section looks like this:
+%
+%   [GeneralInfo]
+%   FileName="NIRS-2012-02-16_004" Filename as defined above in Section 6.3
+%   Date="Do, 16. Feb 2012" Date of recording
+%   Time="15:54" Start time of measurement
+%   Device="NIRScout 16x24" System type in use
+%   Source=”LED” Type of source used (LED or Laser)
+%   Mod=”Human Subject” Modulation amplitude according to study type
+%   NIRStar=”14.1” NIRStar version used to record the dataset
+%   Subject=1 Subject index
+%
+%
+% Imaging Setup Parameters: Lists instrument setup parameters employed
+%   for the measurement, such as the number of sources, number of
+%   detectors, and trigger channels employed in the measurement. The
+%   section looks like this:
+%
+%   [ImagingParameters]
+%   Sources=16 No. of source steps in measurement
+%   Detectors=16 No. of detector channels
+%   Steps = 16 No. of steps (illumination pattern)
+%   Wavelengths=”760 850” Wavelengths used for the measurement
+%   TrigIns=4 No. of trigger inputs
+%   TrigOuts=0 No. of trigger outputs (only available for NIRScoutX)
+%   AnIns=0 No. of auxiliary analog inputs (future option)
+%   SamplingRate=3.906250 Sampling rate in Hz
+%   Mod Amp="0.40 0.40" Modulation amplitude used for illumination
+%   Threshold=”0.00 0.00” Modulation threshold used (?0 only for Laser)
+%
+% Paradigm Information: Records details about the experimental paradigm. The
+%   section looks like this:
+%
+%   [Paradigm]
+%   StimulusType=None Specifies paradigm (future option)
+%
+% Experimental Notes: Notes entered into the notes editor of the user
+%   interface are saved here. The section looks like this:
+%
+%   [ExperimentNotes]
+%   Notes="[Type notes here]"
+%
+% Gain Settings: The gain settings used in the measurement are
+%   recorded in a matrix. The gain for channel Si-Dj is found in the
+%   ith row and jth column (counting from the upper left). Valid gains
+%   for neighboring source-detector-pairs usually are in the range
+%   of 4...7 for adults, depending on head size, hair density/color,
+%   and measurement site. A gain value of ‘8’ indicates that too
+%   little or no light was received for this particular pairing.
+%   The gain values range from 0 (gain factor 100 = 1) through 8
+%   (gain factor 108). The hash symbols '#' are used to identify
+%   the beginning and end of the table.
+%   The section looks like this:
+%   
+%   [GainSettings]
+%   Gains=#
+%   5 8 5 5 8 8 8 8 8 8 8 8 8 8 8 8
+%   4 4 5 8 8 8 8 8 8 8 8 8 8 8 8 8
+%   8 8 6 6 6 6 8 8 8 8 8 8 8 8 8 8
+%   8 8 8 5 8 6 5 8 8 8 8 8 8 8 8 8
+%   8 5 5 8 6 8 8 8 8 8 8 8 8 8 8 8
+%   8 8 8 8 8 6 5 5 8 8 8 8 8 8 8 8
+%   8 8 8 8 6 6 8 6 8 8 8 8 8 8 8 8
+%   8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8
+%   8 8 8 8 8 8 8 8 8 5 6 8 5 8 8 8
+%   8 8 8 8 8 8 8 8 4 4 5 8 8 8 8 8
+%   8 8 8 8 8 8 8 8 8 8 6 6 6 6 8 8
+%   8 8 8 8 8 8 8 8 8 8 8 8 6 6 8 6
+%   8 8 8 8 8 8 8 8 5 8 5 6 8 8 8 8
+%   8 8 8 8 8 8 8 8 8 8 8 8 8 6 5 5
+%   8 8 8 8 8 8 8 8 8 8 8 5 8 6 6 8
+%   8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8
+%   #
+%
+% 
+% Event Trigger Markers: Records the event markers received by the
+%   digital trigger inputs, with time stamp and frame number. Each event
+%   contains 3 numbers;
+%       Column 1: Time (in seconds) of trigger event after the scan
+%           started.
+%       Column 2: Trigger channel identifier, or condition marker.
+%           Triggers received on each digital input DIx (where x denotes
+%           the trigger channel) on the front panel are encoded as numbers
+%           2DI(x-1), e.g. DI1, DI2, and DI3 are encoded as 1, 2, and 8,
+%           respectively. The file stores the sum of simultaneously
+%           triggered inputs in decimal representation. By using
+%           combinations of trigger inputs, as many as 15 conditions
+%           can be encoded by NIRScout and NIRSport systems, while
+%           NIRScoutX receives up to 255 conditions (8 inputs).
+%       Column 3: The number of the scan frame during which the
+%           trigger event was received.
+%   The hash symbols '#' are used to identify the beginning and end
+%   of the table. The section looks like this:
+%   
+%   [Markers]
+%   Events=#
+%   86.40 1 300 e.g. Trigger of input 1 recorded after 1.80 s, during frame no. 12
+%   116.40 2 404
+%   146.40 1 508
+%   ... ... ...
+%   476.39 2 1654
+%   #
+%
+% Data Structure: This section records the arrangement of detector
+%   channels in the .wl1 and .wl2 files, and the channel masking pattern.
+%       + 'S-D-Key' (source-detector key) denotes the order in which
+%           the columns of the data files (*.wl1, *.wl2) are assigned
+%           to source-detector combinations. Each channel is denoted by
+%           the source number, a minus sign ('-') and the detector number.
+%           The channel pair is followed by a colon (:) and the
+%           corresponding column index in the optical data files. The
+%           column index is followed by a comma (',') and the next
+%           channel. This variable may be read to generate a table
+%           header for the data files.
+%       + 'S-D-Mask' stores the masking pattern in a table (for channel
+%           masking, see Section 5.5). Channels that are set not to be
+%           displayed are identified by '0's, while channels set to be
+%           displayed are labeled with '1's. Counting from the upper left,
+%           the column number corresponds to the detector channel, and
+%           the row number corresponds to the source position. The example
+%           below shows a 4-source/4-detector measurement, in which all
+%           channels are displayed except for source 2 / detector 3.
+%   The hash symbols '#' are used to identify the beginning and end
+%   of the table. The section looks like this:
+%
+%   [DataStructure]
+%   S-D-Key="1-1:1,1-2:2,1-3:3,1-4:4,1-5:5,1-6:6,1-7:7,1-8:8,1-9:9,1-10:10,
+%   ...
+%   S-D-Mask=#
+%   1 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0
+%   1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0
+%   0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0
+%   0 0 0 1 0 1 1 0 0 0 0 0 0 0 0 0
+%   ...
+%   0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+%   #"
+%     
+% Channels Distance: The channel distance values entered in the
+%   Hardware Configuration and used for the Beer-Lambert Law calculations
+%   during a scan are recorded here. The order corresponds to the order
+%   of the channel list in one of the software dialogs. This maybe an
+%   issue as I do not have access to that info when reading the data.
+%   The section looks like this:
+%
+%   [ChannelsDistance]
+%   ChanDis="30.0 30.0 30.0 30.0 30.0 30.0 30.0 30.0 30.0 30.0
+%               30.0 30.0 30.0 30.0 30.0 30.0 30.0 30.0 30.0 30.0”
+%
+%
+%
+%% The optical data files (.wl1/.wl2)
+%
+% (From the NIRStar v14.1 User manual, pg 67)
+%
+%   Si: ith source;
+%   Dj: jth detector;
+%   tk: kth scan, or time frame of measurement.
+%   Si-Dj(tk): reading at the jth detector, of light emitted by
+%       the ith source, during the kth scan.
+%
+% Structure of the optical data files *.wl1, *wl2.
+%
+%
+% S1-D1(t1) S1-D2(t1) … S1-Dmax(t1) S2-D1(t1) … S2-Dmax(t1) S3-D1(t1) … Smax-Dmax(t1)
+% S1-D1(t2) S1-D2(t2) … S1-Dmax(t2) S2-D1(t2) … S2-Dmax(t2) S3-D1(t2) … Smax-Dmax(t2)
+% … … … … … … … … … …
+% S1-D1(tmax) S1-D2(tmax) … S1-Dmax(tmax) S2-D1(tmax) … S2-Dmax(tmax) S3-D1(tmax) … Smax-Dmax(tmax)
+%
+% The number of columns in the file equals (number of sources x number of
+%detectors): Smax x Dmax.
+%
+% To extract a desired data channel Si-Dj from the file, use the following
+%formula to identify the appropriate column n:
+%
+%   n = (Si-1)x Dmax + Dj
+%
+%% Remarks
+%
+% Please note that the optode "effective" wavelengths at the different
+% channels at which the optode is working might slightly differ from
+% the "nominal" wavelengths. I have not found where does NIRStar save
+% the effective wavelengths for each of channel. Anyway, 
+% ICNNA is not taking that into account at the moment, and I
+% consider the nominal waveleghts to be the effective wavelengths.
+%
+% No effort is currently made in checking whether the file is
+% an original NIRx NIRScout data file. This is simply assumed
+% to be true.
+%
+%% Parameters
+%
+% path - The folder to the data files to import.
+%
+% 
+% Copyright 2025
+% @author: Felipe Orihuela-Espina
+%
+% See also icnna.data.misc.rawData_NIRx
+%
+
+
+
+%% Log
+%
+% 2-Feb-2025: FOE
+%   + Method created.
+%   Although this class supersedes class |rawData_NIRScout|, the internal
+%   rationale is completely different (see Remarks above). Hence, the
+%   whole code for this method is completely different from its analagous
+%   method import in old class |rawData_NIRScout|.
+%
+
+
+%% Deal with options
+%Check if path has been provided
+if nargin > 1
+    obj.path = varargin{1};
+    varargin{1} = [];
+end
+
+opt.verbose = 0; %0 - silent
+
+
+%% Preparations
+%Get the list of available files
+fileList= dir(obj.path);
+nFiles = length(fileList);
+
+%% Main loop
+%Each file and its content is stored as a key(string)->value(cell) entry
+%in the .dataFiles dictionary property.
+for iFile = 1:nFiles
+
+    %Retrieve the key
+    %Note that there may be subfolders, so to get the key for property
+    % .dataFiles I need to put together the whole path and then "substract"
+    %the path.
+    tmpFullPath = [fileList(iFile).folder filesep fileList(iFile).name];
+    theKey = strrep(tmpFullPath,obj.path,'');
+    if theKey(1) == filesep
+        theKey(1) = [];
+    end
+    theKey = string(theKey);
+
+    if opt.verbose >= 1
+        fprintf(1,'Reading file: %s\n', theKey);
+    end
+
+
+    [~,~,theFileExtension] = fileparts(theKey);
+    switch (theFileExtension)
+        case {'.','..','.zip'} %Ignore these files
+            %Do nothing
+        case '.hdr'
+            obj.dataFiles(theKey) = {importFileHdr(tmpFullPath)};
+                    %See auxiliar function below.
+        case '.evt'
+            obj.dataFiles(theKey) = {importFileEvt(tmpFullPath)};
+                    %See auxiliar function below.
+        case {'.wl1','.wl2'}
+            obj.dataFiles(theKey) = {importFileWl(tmpFullPath)};
+                    %See auxiliar function below.
+        case '.set'
+            obj.dataFiles(theKey) = {importFileSet(tmpFullPath)};
+                    %See auxiliar function below.
+        case '.tpl'
+            obj.dataFiles(theKey) = {importFileTpl(tmpFullPath)};
+                    %See auxiliar function below.
+        case '.tri'
+            obj.dataFiles(theKey) = {importFileTri(tmpFullPath)};
+                    %See auxiliar function below.
+        case '.txt'
+            obj.dataFiles(theKey) = {importFileTxt(tmpFullPath)};
+                    %See auxiliar function below.
+        case '.mat'
+            obj.dataFiles(theKey) = {importFileMat(tmpFullPath)};
+                    %See auxiliar function below.
+        case '.json'
+            obj.dataFiles(theKey) = {importFileJson(tmpFullPath)};
+                    %See auxiliar function below.
+        case '.snirf'
+            tmp = icnna.data.snirf.snirf();
+            obj.dataFiles(theKey) = {tmp.load(tmpFullPath)};
+                    %See auxiliar function below.
+        otherwise
+            warning('ICNNA:icnna:data:misc:rawDataNIRx:import:UnexpectedFile',...
+                 ['Unexpected file type ' char(theFileExtension) '. Skipping file.']);
+    end
+            
+
+end
+
+
+end
+
+
+%% Auxiliar functions
+function content = importFileHdr(filename)
+%Reads a NIRStar .hdr file
+%
+% filename - Char array. The filename (inc. path)
+%
+% content - Dictionary (String -> Dictionary). The file content
+%       The outer dictionary is at section level. The inner dictionary
+%       are the key-value pairs in that section.
+
+content = configureDictionary("string","dictionary");
+
+[fid,errmsg] = fopen(filename,'r');
+if fid < 0
+    fprintf(1,errmsg);
+    fprintf(1,'Unable to open .hdr file. Skipping file.');
+    return;
+end
+
+flagValueOpen = false;
+secName = "";
+while ~feof(fid)
+    tline = fgetl(fid); %This yields a char array.
+
+    %There are 3 types of lines;
+    %   - Section headers starting with '[' e.g. [GeneralInfo] 
+    %   - empty lines (preceding a new section)
+    %   - regular lines including a key-value pair.
+    %   Exception: Some regular key-value pairs may extend beyond 1 line
+    %   as for instance "Channel Mask" or "Channel indices". In these
+    %   cases I will need to keep reading lines until the end of the
+    %   value is found.
+    if isempty(tline)
+        secName = ""; %Reset the secName.
+        flagValueOpen = false;
+    elseif (tline(1) == '[')
+        %Section headers
+        secName    = tline(2:end-1);
+        secContent = configureDictionary("string","string");
+        flagValueOpen = false;
+    else
+        if flagValueOpen
+            %Continuation of key-value pair
+            tmpValue   = [tmpValue '\n' tline];
+            secContent(tmpKey) = tmpValue;
+            if (tline(end) == '"') %End multiline value
+                flagValueOpen = false;
+            end
+        else
+            %Regular lines including a key-value pair
+            idx = find(tline == '=');
+            if isempty(idx)
+                %Try to attach it to previous value
+                secContent(tmpKey) = [char(secContent(tmpKey)) '\n' tline];
+            else
+                tmpKey     = tline(1:idx-1);
+                tmpValue   = tline(idx+1:end);
+                secContent(tmpKey) = tmpValue;
+            end
+            if ~isempty(tmpValue)
+                if (tline(idx+1) == '"') %Start multiline value
+                    flagValueOpen = true;
+                end
+            end
+            %Save current section content
+            content(secName) = secContent;
+        end
+    end
+
+end
+
+fclose(fid);
+
+end
+
+
+
+
+function content = importFileEvt(filename)
+%Reads a NIRStar .evt file
+%
+% filename - Char array. The filename (inc. path)
+%
+% content - Dictionary (String -> Dictionary). The file content
+%       The outer dictionary is at section level. The inner dictionary
+%       are the key-value pairs in that section.
+
+
+warning('ICNNA:icnna:data:misc:rawDataNIRx:import:FileReaderUnavailable',...
+         'File reader for type .evt not yet available. Skipping file.');
+content = [];
+return
+
+
+% [fid,errmsg] = fopen(filename,'r');
+% if fid < 0
+%     fprintf(1,errmsg);
+%     fprintf(1,'Unable to open .evt file. Skipping file.');
+%     return;
+% end
+% 
+% fclose(fid);
+
+
+end
+
+
+
+
+
+
+
+function content = importFileWl(filename)
+%Reads a NIRStar .wl* file
+%
+% filename - Char array. The filename (inc. path)
+%
+% content - Matrix of double sized (nSamples x nChannels)
+%
+
+[fid,errmsg] = fopen(filename,'r');
+if fid < 0
+    fprintf(1,errmsg);
+    fprintf(1,'Unable to open .wl* file. Skipping file.');
+    return;
+end
+
+A=[];
+while ~feof(fid)
+    %fscanf does not read [Inf Inf] at once, and although it can do
+    % [1 Inf], it won't detect the line breaks.
+    %So do 1 line at a time.
+    tline = string(fgetl(fid));
+    A = [A; sscanf(tline,'%f',[1 Inf])];
+end
+fclose(fid);
+content = A;
+
+end
+
+
+
+
+
+
+
+function content = importFileSet(filename)
+%Reads a NIRStar .set file
+%
+% filename - Char array. The filename (inc. path)
+%
+% content - Dictionary (String -> Dictionary). The file content
+%       The outer dictionary is at section level. The inner dictionary
+%       are the key-value pairs in that section.
+
+warning('ICNNA:icnna:data:misc:rawDataNIRx:import:FileReaderUnavailable',...
+         'File reader for type .set not yet available. Skipping file.');
+content = [];
+return
+
+% [fid,errmsg] = fopen(filename,'r');
+% if fid < 0
+%     fprintf(1,errmsg);
+%     fprintf(1,'Unable to open .set file. Skipping file.');
+%     return;
+% end
+% 
+% fclose(fid);
+
+end
+
+
+
+
+
+
+
+function content = importFileTpl(filename)
+%Reads a NIRStar .tpl file
+%
+% filename - Char array. The filename (inc. path)
+%
+% content - Dictionary (String -> Dictionary). The file content
+%       The outer dictionary is at section level. The inner dictionary
+%       are the key-value pairs in that section.
+
+warning('ICNNA:icnna:data:misc:rawDataNIRx:import:FileReaderUnavailable',...
+         'File reader for type .evt not yet available. Skipping file.');
+content = [];
+return
+
+[fid,errmsg] = fopen(filename,'r');
+if fid < 0
+    fprintf(1,errmsg);
+    fprintf(1,'Unable to open .tpl file. Skipping file.');
+    return;
+end
+
+fclose(fid);
+
+end
+
+
+
+function content = importFileTri(filename)
+%Reads a NIRStar .tri file
+%
+% Likely a LSL markers file where each line has the format
+%
+%   timestamp:sample:marker
+%
+% filename - Char array. The filename (inc. path)
+%
+% content - Table
+%
+
+content = readtable(filename,'Delimiter',';','DatetimeType','datetime', ...
+                             'ReadVariableNames',false,'FileType','text');
+content.Properties.VariableNames = {'timestamp','sample','marker'};
+end
+
+
+
+
+
+
+function content = importFileTxt(filename)
+%Reads a NIRStar .txt file
+%
+% filename - Char array. The filename (inc. path)
+%
+% content - A char array
+
+[fid,errmsg] = fopen(filename,'r');
+if fid < 0
+    fprintf(1,errmsg);
+    fprintf(1,'Unable to open .txt file. Skipping file.');
+    return;
+end
+
+raw = fread(fid,inf); 
+fclose(fid); 
+content = char(raw');
+
+end
+
+
+
+
+
+
+
+function content = importFileMat(filename)
+%Reads a NIRStar .mat file
+%
+% filename - Char array. The filename (inc. path)
+%
+% content - A struct
+%This is a .mat file so it can be read directly.
+[content] = load(filename);
+end
+
+
+
+
+
+function content = importFileJson(filename)
+%Reads a NIRStar .json file
+%
+% filename - Char array. The filename (inc. path)
+%
+% content - A (JSON) struct.
+
+[fid,errmsg] = fopen(filename,'r');
+if fid < 0
+    fprintf(1,errmsg);
+    fprintf(1,'Unable to open .evt file. Skipping file.');
+    return;
+end
+raw = fread(fid,inf); 
+str = char(raw'); 
+fclose(fid); 
+content = jsondecode(str);
+end
+

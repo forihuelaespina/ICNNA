@@ -50,7 +50,7 @@ function [h]=plotChannel(sd,ch,options)
 %
 %    ==== Block Averaging related options ==============
 %
-%   .blockAveraging - Indicates wether averaging across blocks must be
+%   .blockAveraging - Indicates whether averaging across blocks must be
 %       performed. False by default i.e. the whole unaveraged signal
 %       will be displayed.
 %
@@ -112,6 +112,12 @@ function [h]=plotChannel(sd,ch,options)
 %   + Got rid of old label @date.
 %   + Updated calls to get attributes using the struct like syntax
 %
+% 17-Apr-2025: FOE:
+%   + Bug fixed: It was assuming that all blocks had the same
+%  length, which is not necessarily the case.
+%   Now, it pads with nan as appropriate when blocks have different
+%   length.
+%
 
 
 
@@ -128,10 +134,19 @@ end
 opt.mainTitle=[sd.description '; Ch:' num2str(ch)];
 opt.whichSignals=1:sd.nSignals;
 opt.scale=true;
-%Calculate an appropriate Y scale (rounding to the nearest decade)
-maxY = ceil(max(max(real(channelData)))/10)*10;
-minY = floor(min(min(real(channelData)))/10)*10;
-opt.scaleLimits=[minY maxY];
+% % %Calculate an appropriate Y scale (rounding to the nearest decade
+% % % or 1 if all values are betwen 0 and 1)
+% % maxY = max(max(real(channelData)));
+% % minY = min(min(real(channelData)));
+% % if abs(maxY) < 1 && abs(minY) < 1
+% %     maxY = ceil(maxY);
+% %     minY = floor(minY);
+% % else
+% %     maxY = ceil(maxY/10)*10;
+% %     minY = floor(minY/10)*10;
+% % end
+% % opt.scaleLimits=[minY maxY];
+opt.scaleLimits=[nan nan];
 opt.shadeTimeline=true;
 opt.fontSize=13;
 opt.lineWidth=1.5;
@@ -224,6 +239,7 @@ if opt.blockAveraging
         tmpSd=sd;
         tmpChannelData = nan(tmpSd.nSamples,tmpSd.nSignals,1);
     end
+    tmpChannelData = nan(0,sd.nSignals,nBlocks);
     for bb=1:nBlocks
         tmpSd=getBlock(sd,opt.blockCondTag,bb,...
                           'NBaselineSamples',opt.blockBaseline,...
@@ -235,15 +251,31 @@ if opt.blockAveraging
                 opt.blockResamplingRest];
             tmpSd=blockResample(tmpSd,nRSSamples);
         end
-        tmpChannelData(:,:,bb)=getChannel(tmpSd,ch);
+        %17-Apr-2025: FOE: Bug fixed
+        %The line below was assuming that all blocks had the same
+        %length, which is not necessarily the case.
+        %
+        %   tmpChannelData(:,:,bb)=getChannel(tmpSd,ch);
+        %
+        tmpThisBlock = getChannel(tmpSd,ch);
+        if size(tmpChannelData,1) == size(tmpThisBlock,1)
+            %Same size. Do nothing
+        elseif size(tmpChannelData,1) < size(tmpThisBlock,1)
+            %Enlarge tmpChannelData
+            tmpChannelData(end+1:size(tmpThisBlock,1),:,:) = nan;
+        else %size(tmpChannelData,1) > size(tmpThisBlock,1)
+            %Enlarge tmpThisChannel
+            tmpThisBlock(end+1:size(tmpChannelData,1),:) = nan;
+        end
+        tmpChannelData(:,:,bb)=tmpThisBlock;
     end
-    channelData=mean(tmpChannelData,3);
-    channelDataSTD = std(tmpChannelData,0,3);
-    t= tmpSd.timeline;
-    nSamples=size(channelData,1);
+    channelData    = mean(tmpChannelData,3,'omitnan');
+    channelDataSTD = std(tmpChannelData,0,3,'omitnan');
+    t = tmpSd.timeline;
+    nSamples = size(channelData,1);
     
     
-    if opt.scale
+    if opt.scale && ~all(isnan(opt.scaleLimits))
         maxY = ceil(max(max(real(channelData)))/10)*10;
         minY = floor(min(min(real(channelData)))/10)*10;
         if opt.blockDisplayStd
@@ -260,7 +292,7 @@ if all(isnan(opt.scaleLimits))
 elseif isnan(opt.scaleLimits(1))
     opt.scaleLimits(1)=opt.scaleLimits(2)-(2*eps);
 elseif isnan(opt.scaleLimits(2))
-    opt.scaleLimits(2)=opt.scaleLimits(1)-(2*eps);
+    opt.scaleLimits(2)=opt.scaleLimits(1)+(2*eps);
 end
 
 if opt.scaleLimits(1)>opt.scaleLimits(2)
@@ -298,8 +330,12 @@ pos=1;
 legendTags=cell(length(opt.whichSignals),1);
 for ss=opt.whichSignals
     lstyle=opt.lineStyle{mod(ss-1,length(opt.lineStyle))+1};
-    hLegend(pos)=plot(channelData(:,ss),'Color',colormap(ss,:),...
+    tmp = plot(channelData(:,ss),'Color',colormap(ss,:),...
             'LineStyle',lstyle,'LineWidth',opt.lineWidth);
+    hLegend(pos)=nan;
+    if ~isempty(tmp)
+        hLegend(pos)=tmp;
+    end
     if (any(imag(channelData(:,ss))))
         plot(real(channelData(:,ss)),'Color',colormap(ss+3,:),...
             'LineStyle',lstyle,'LineWidth',opt.lineWidth);
@@ -329,7 +365,11 @@ end
 
 %% Polish the plot
 grid on
-set(gca,'XLim',[0 nSamples]);
+if nSamples == 0
+    set(gca,'XLim',[0 1]);
+else
+    set(gca,'XLim',[0 nSamples]);
+end
 if (opt.scale)
     set(gca,'YLim',opt.scaleLimits);
 end

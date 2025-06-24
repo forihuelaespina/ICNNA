@@ -16,12 +16,18 @@ function obj=compute(obj,e)
 %space, as all data will be labelled as integrityStatus.UNCHECKED.
 %
 %
+% See note about the breakDelay in experimentSpace. This function
+%does NOT currently apply the breakDelay. Instead this is applied
+%later in generateDB_withBreakDelay. While correct, but this is
+%certainly confusing and at some point I need to change this behavior
+%and apply the breakDelay here.
+%
 %% Parameters
 %
 % e - An experiment
 %
 %
-% Copyright 2008-23
+% Copyright 2008-25
 % @author: Felipe Orihuela-Espina
 %
 % See also experimentSpace, analysis, getConnectivity
@@ -44,6 +50,9 @@ function obj=compute(obj,e)
 %   + Enriched functionality of fwDuration with potential values
 %   -1 (whole block) and -2 (until block offset).
 %   + Bug fixed. Improved treatment of empty blocks.
+%
+% 17-Apr-2025: FOE
+%   + Improved some comments.
 %
 
 

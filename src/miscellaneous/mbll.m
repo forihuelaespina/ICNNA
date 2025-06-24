@@ -8,6 +8,13 @@ function [M] = mbll(T,options)
 %   to a 3D  neuroimage tensor, using the modified Beer-Lambert law
 %   (MBLL) with the chosen options.
 %
+% M=mbll(T,...,'-v1.2') - Provides backward compatibility for older ICNNA
+%   versions.
+%       When no DPF was being used the optical path was normalize to 1 
+%   as the values would be relative anyway. Now with a better support for
+%   varying IOD since version 1.3.0, this has to be changed to the
+%   value of the IOD. Use the flag to enforce backward compatibility.
+%
 %
 % Converts NIRS light intensities to haemoglobin concentration
 %changes using the MBLL conversion. This corresponds to solving
@@ -266,10 +273,26 @@ function [M] = mbll(T,options)
 %   dimension indexes reconstructed chromophores (1 - Oxy and 2- Deoxy).
 %
 % Options - optionName, optionValue pair arguments
-%   'dpf' - Differential pathlength factor (DPF) used for reconstruction.
+%   'dpf' - Int. 
+%       Differential pathlength factor (DPF) used for reconstruction.
 %       By default is set to 6.26 (Average DPF accepted value for normal
-%       adult head). Set to [] if you want to reconstruct without DPF.
-%   'iod' - Interoptode distance in [cm]. By default is set to 3cm.
+%       adult head). Set it to [] if you want to reconstruct without DPF.
+%   'iod' - Int (scalar or vector). By default is set to 3cm.
+%       Interoptode distance in [cm]. If scalar, the same IOD will be
+%       used for all channels. If vector, there will be
+%       one IOD per channel. It can either be a column or row vector.
+%   'I0ref' - char array.
+%       Determines how to establish the reference intensity I0.
+%       Options are;
+%       'first' - Use only the first sample. Used by classical fOSA
+%       'first50' - Default. Use the first 50 samples (or all if the
+%           timeseries is less than 50). Used by fOSA v2.2 and onwards
+%           and the ICNNA option.
+%       'mean' - Use the mean of the timeseries. Used by Homer. Although
+%           in principle this provies more stability, BUT in the
+%           presence of optode movements, this mean can be severely
+%           distorted.
+%
 %   'wavelengths' - A row vector of nominal wavelengths set in [nm]. By 
 %   default is set to [695 830] nm (corresponding to those of the
 %   HITACHI ETG-4000 for historical reasons of ICNNA). The number of
@@ -309,11 +332,9 @@ function [M] = mbll(T,options)
 % Medicine and Biology  49:N255-N257
 %
 % 
-% Copyright 2008-18
+% Copyright 2018-25
 % Copyright over some comments belong to their authors.
-% @date: 13-May-2008
 % @author: Felipe Orihuela-Espina
-% @modified: 25-Abr-2018
 % 
 %
 % See also import, neuroimage, NIRS_neuroimage, rawData_ETG4000,
@@ -326,17 +347,69 @@ function [M] = mbll(T,options)
 
 %% Log
 %
+% File created: 12-Apr-2018 (but some code goes back to 2008)
+% File last modified (before creation of this log): 12-Apr-2025
+%
 % 12-Apr-2018: FOE. Extraction from rawData_ETG-4000.convert method
 %   and improved.
 %
 % 25-Apr-2018: FOE. Bug fix. Oxy and deoxy were returned swapped.
 %
+% 12-Apr-2025: FOE
+%   + Got rid of old labels @date and @modified.
+%   + Allow IOD to be different for each channel for a better support
+%   of the short channels and HD models. Correct reconstructions was
+%   possible before but required to call this function several times
+%   separetely for each different IOD. Now this can be done in 1 shot.
+%   + Allow the reference I0 to calculate the OD to be different from the
+%   first samples. This is a trick use by other software tools e.g. Homer
+%   uses the mean of the whole signal (rather than only the first 50
+%   samples as fOSA -and ICNNA by inheritance- did), that can enhance
+%   stability of the signal. For this a new option I0ref is provided.
+%   + When no DPF was being used the path was normalize to 1 as the
+%   values would be relative anyway. Now with a better support for
+%   varying IOD, this has to be changed to the value of the IOD.
+%   However, to afford backward compatibility I will provide a version
+%   flag.
+%   + I have also took advantage of revisiting this function to make
+%   it a bit more efficient.
+%
+%
+
+
+%Check if backward compatibility flag has been provided.
+compatibilityFlag = '';
+switch (nargin)
+    case 1 %Just T is provided. No options or compatibility flag
+        %Do nothing
+    case 2 %Either T and Options or T and flag
+        if ischar(options)
+            compatibilityFlag = options;
+            if ~strcmpi(compatibilityFlag,'-v1.2')
+                error('ICNNA:misc:mbll:InvalidParameterValue',...
+                        'Invalid compatibility version flag.');
+            end
+            options = [];
+        end
+   
+    case 3 %T, options and flag
+        %Do nothing
+    otherwise
+        error('ICNNA:misc:mbll:UnexpectedNumberOfParameters',...
+                'Unexpected number of parameters.');
+end
 
 
 
 opt.dpf = 6.26; %Average DPF accepted value for normal adult head.
                 %Set to [] to reconstruct without dpf correction.
 opt.iod = 3; %Interoptode distance in [cm]
+                %Since 12-Apr-2025 (v1.3.0) this changed from a simple
+                %scalar to either a scalar (same iod for ALL channels)
+                %or a column or row vector, with 1 iod per channel.
+                %This provides correct support to short channels and
+                %HD arrays.
+opt.I0ref = 'first50'; %From v1.3.0. Method to calculate I0.
 opt.wavelengths = [695 830]; %In [nm]
 if (exist('options','var') && isstruct(options))
     if isfield(options,'dpf')
@@ -345,10 +418,14 @@ if (exist('options','var') && isstruct(options))
     if isfield(options,'iod')
         opt.iod = options.iod;
     end
+    if isfield(options,'I0ref')
+        opt.I0ref = options.I0ref;
+    end
     if isfield(options,'wavelengths')
         opt.wavelengths = options.wavelengths;
     end
 end
+
 
 
 
@@ -371,7 +448,28 @@ coefficients=table_abscoeff();
 mua_HHb= coefficients(:,2); % de-oxy
 mua_HbO2= coefficients(:,3); % oxy
 kDPF = coefficients(:, 8); %8 is the column holding the DPF
-           
+
+
+
+
+%Now iod will always be used as vector.
+%If it is scalar convert to column vector by simply replicating the value.
+%If it is a vector make sure it is a column vector.
+if isscalar(opt.iod)
+    opt.iod = repmat(opt.iod,nChannels,1);
+else
+    assert(numel(opt.iod) == nChannels, ...
+        ['Unexpected number of inter-optode distances. These ought to' ...
+        'match the number of channels in T.']);
+    opt.iod = reshape(opt.iod,nChannels,1); %make it column vector
+end
+
+
+
+
+
+
+
 
 
 %% Prepare the absorption coefficients
@@ -390,7 +488,11 @@ if ~isempty(opt.dpf)
     end
     
 else %Reconstruct without DPF
-    path = 1;
+    if strcmpi(compatibilityFlag,'-v1.2')
+        path = ones(nChannels,1);
+    else
+        path = opt.iod;
+    end
     % To calculate the concentation changes for 2 wavelengths (wl) using the table (abscoeff)
     for wl = 1:nWlengths
         index = find (coefficients(:,1) == opt.wavelengths(wl));
@@ -402,34 +504,101 @@ else %Reconstruct without DPF
 end
 
 %% Convert intensities
-for ch = 1:nChannels
-    Tch = squeeze(T(:,ch,:)); %Extract channel
-        
-    % Check that absolute intensity does not reach below zero
-	Tch=Tch+(Tch==0);
-    
-    % Calculate attenuations; A=log10 [I/I0]
-    A=nan(size(Tch));
-    for wl=1:nWlengths
-        %A(:,wl) = -log10(Tch(:,wl)/Tch(1,wl)); %Old fOSA used only the first
-        k=min(50,size(Tch,1)); %fOSA v2.2 uses the mean of first 50 samples (but I need to ensure there are at least 50 samples
-        A(:,wl) = -log10(Tch(:,wl)/mean(Tch(1:k,wl))); 
-    end
-    od=A/path; %Optical Density: OD = A/d
 
-    for num = 1:nSamples
+
+if strcmpi(compatibilityFlag,'-v1.2')
+    for ch = 1:nChannels
+        Tch = squeeze(T(:,ch,:)); %Extract channel
+            
+        % Check that absolute intensity does not reach below zero
+	    Tch=Tch+(Tch==0);
+        
+        % Calculate attenuations; A=log10 [I/I0]
+        A=nan(size(Tch));
+        for wl=1:nWlengths
+            %A(:,wl) = -log10(Tch(:,wl)/Tch(1,wl)); %Old fOSA used only the first
+            k=min(50,size(Tch,1)); %fOSA v2.2 uses the mean of first 50 samples (but I need to ensure there are at least 50 samples
+            A(:,wl) = -log10(Tch(:,wl)/mean(Tch(1:k,wl))); 
+        end
+        od=A/path(ch); %Optical Density: OD = A/d
+    
+        for num = 1:nSamples
+            %%%LAMBERT LAW: A=log10 [Io/I]=e.c.d.DPF   =>   c=A/(e.d.DPF)= OD/(e.DPF)
+            %%%where DPF depends on the path defined by the optode separation
+            %%%and the avgDPF
+            conc(num,:) = od(num,:)* inv(absorb)'; 
+        end % for each sample
+        
+        
+        %Watch out! See absorb matrix! Oxy is in conc(:,2) and deoxy in conc(:,1)
+        M(:,ch,1)=conc(:,2);
+        M(:,ch,2)=conc(:,1);
+        
+    end     % for each channel pair
+    
+else %Since v1.3
+
+    %Work in matrix form is faster than doing so in tensor form,
+    %so transiently change to matrix form by "concatenating" the
+    %third axis.
+    T = reshape(T,size(T,1),size(T,2)*size(T,3));
+
+    % Check that absolute intensity does not reach below zero
+    tmpMin = min(min(T));
+    if tmpMin < 0
+	    T=T-tmpMin;
+    end
+
+
+    % Decide on the reference I0
+    k=1:min(50,size(T,1)); %By default, use the first 50 samples 
+           %as fOSA v2.2 to match previous behaviour
+    switch opt.I0ref
+        case 'first'
+            k = 1;
+        case 'first50'
+            %Do nothing. Default
+        case 'mean'
+            k=1:size(T,1);
+        otherwise
+            error('ICNNA:misc:mbll:InvalidParameterValue',...
+                  'Invalid parameter value opt.I0ref.')
+    end
+    if ~isempty(T)
+        I0 = mean(T(k,:));
+    else
+        I0 = ones(1,nChannels);
+    end
+
+    % Calculate attenuations; A=log10 [I/I0]
+    I0 = repmat(I0,nSamples,1);
+    A = -log10(T./I0);
+
+
+    %Attenuation to concentrations
         %%%LAMBERT LAW: A=log10 [Io/I]=e.c.d.DPF   =>   c=A/(e.d.DPF)= OD/(e.DPF)
         %%%where DPF depends on the path defined by the optode separation
         %%%and the avgDPF
-        conc(num,:) = od(num,:)* inv(absorb)'; 
-    end % for each sample
     
-    
-    %Watch out! See absorb matrix! Oxy is in conc(:,2) and deoxy in conc(:,1)
-    M(:,ch,1)=conc(:,2);
-    M(:,ch,2)=conc(:,1);
-    
-end     % for each channel pair
+    %Attenuation to Optical density
+    path = repmat(path',nSamples,2);
+    OD=A./path; %Optical Density: OD = A/d
+
+    %Reconstruction: OD to concentrations - Solve the inverse system
+    tmpInv = inv(absorb)';
+    for iCh = 1:nChannels
+        for num = 1:nSamples
+            conc(num,:) = OD(num,[iCh iCh+nChannels])* tmpInv;
+        end % for each sample
+
+        %Watch out! See absorb matrix! Oxy is in conc(:,2) and deoxy in conc(:,1)
+        M(:,iCh,1)=conc(:,2);
+        M(:,iCh,2)=conc(:,1);
+   end % for each channel
+
+end
+
+
 
 M = 1000 * M; % uM /*To convert from mM->uM*/
 

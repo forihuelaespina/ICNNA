@@ -41,13 +41,13 @@ end
 
 if verLessThan('matlab','8.6')
     %print(['-f' num2str(gcf)],'-dtiff','-r300',[filename '_300dpi.tif']);
-    print(['-f' num2str(gcf)],'-dtiff','-r300',[filename '_600dpi.tif']);
+    %print(['-f' num2str(gcf)],'-dtiff','-r300',[filename '_600dpi.tif']);
     print(['-f' num2str(gcf)],'-dpng','-r300',[filename '_600dpi.png']);
     %print(['-f' num2str(gcf)],'-djpeg','-r150',[filename '_150dpi.jpg']);
     
 else    
     %print(gcf,'-dtiff','-r300',[filename '_300dpi.tif']);
-    print(gcf,'-dtiff','-r300',[filename '_600dpi.tif']);
+    %print(gcf,'-dtiff','-r300',[filename '_600dpi.tif']);
     print(gcf,'-dpng','-r300',[filename '_600dpi.png']);
     %print(gcf,'-djpeg','-r150',[filename '_150dpi.jpg']);
 

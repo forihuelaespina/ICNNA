@@ -69,10 +69,18 @@ function nimg=convert(obj,varargin)
 %           1 - (Default) Non-overlapping conditions
 %
 %   'DefaultDPF' - A default DPF value. By default is set to 6.26.
+%   'I0ref' - char array.
+%       Determines how to establish the reference intensity I0.
+%       Options are;
+%       'first' - Use only the first sample. Used by classical fOSA
+%       'first50' - Default. Use the first 50 samples (or all if the
+%           timeseries is less than 50). Used by fOSA v2.2 and onwards
+%           and the ICNNA option.
+%       'mean' - Use the mean of the timeseries. Used by Homer.
 %
 %
 % 
-% Copyright 2023-24
+% Copyright 2023-25
 % @author: Felipe Orihuela-Espina
 % 
 %
@@ -118,12 +126,30 @@ function nimg=convert(obj,varargin)
 %   dataLabels was getting lost. I have now added some rudimentary
 %   support in the timeline class but this is not likely a good solution...
 %
+% 14-May-2024: FOE
+%   + Bug fixed. Only attempt conversion to samples if condition events
+%   is not empty.
+%
+% 12-Apr-2025: FOE (v1.3.0)
+%   Change in behaviour;
+%   + Allow IOD to be different for each channel for a better support
+%   of the short channels and HD models. Correct reconstructions was
+%   possible before but required to call this function several times
+%   separetely for each different IOD. Now this is done in 1 shot and
+%   by default.
+%   + Allow the reference I0 to calculate the OD to be different from the
+%   first samples. This is a trick use by other software tools e.g. Homer
+%   uses the mean of the whole signal (rather than only the first 50
+%   samples as fOSA -and ICNNA by inheritance- did), that can enhance
+%   stability of the signal. For this a new option I0ref is provided.
+%
 
 
 
 opt.nirsDatasetIndex = 1; %Index of the nirs dataset to be converted.
 opt.allowOverlappingConditions = 1; %Default. Non-overlapping conditions
 opt.defaultDPF = 6.26; %Average DPF accepted value for normal adult head
+opt.I0ref = 'first50'; %From v1.3.0. Method to calculate I0.
 while ~isempty(varargin) %Note that the object itself is not counted.
     optName = varargin{1};
     if length(varargin)<2
@@ -149,6 +175,8 @@ while ~isempty(varargin) %Note that the object itself is not counted.
             
         case 'defaultdpf'
             opt.defaultDPF = optValue;
+        case 'i0ref'
+            opt.I0ref = optValue;
         otherwise
             error('ICNNA:rawData_Snirf:convert:InvalidOption', ...
                   ['Invalid option ' optName '.']);
@@ -229,7 +257,7 @@ clm = clm.setOptodeArraysInfo(1,oaInfo);
 clm = clm.setOptodeOptodeArrays(1:clm.nOptodes,ones(clm.nOptodes,1));
 clm = clm.setOptodeProbeSets(1:clm.nOptodes,ones(clm.nOptodes,1));
 
-channelList = table2array(unique(tmpMeasurementList(:,{'sourceIndex','detectorIndex'})));
+%channelList = table2array(unique(tmpMeasurementList(:,{'sourceIndex','detectorIndex'})));
 %"translate" snirf detector index to ICNNA optode index (i.e. shift
 % indices by number of sources)
 clm = clm.setPairings(1:nChannels,[channelList(:,1) nSources+channelList(:,2)]);
@@ -262,8 +290,16 @@ for iStim = 1:nStims
     tmpStim = tmpNirs.stim(iStim);
     cTag = tmpStim.name;
     %Convert from time to samples
-    onsets   = round(tmpStim.data(:,1)*t.nominalSamplingRate);
-    durations= round(tmpStim.data(:,2)*t.nominalSamplingRate);
+    % 14-May-2025: FOE
+    %   + Bug fixed. Only attempt conversion to samples if
+    %not empty
+    if ~isempty(tmpStim.data)
+        onsets   = round(tmpStim.data(:,1)*t.nominalSamplingRate);
+        durations= round(tmpStim.data(:,2)*t.nominalSamplingRate);
+    else
+        onsets   = [];
+        durations= [];
+    end
     % 8-May-2024: FOE
     %   + Bug fixed. Now also saves amplitudes
     amplitudes = ones(numel(onsets),1);
@@ -292,6 +328,9 @@ for iStim = 1:nStims
     %       [35 15;   ==> max offset 40+15=65 ==> [30 35]
     %       [40 15]
     tmpcevents = unique([onsets durations amplitudes],'rows'); %merge events if required    
+    if isempty(tmpcevents)
+        tmpcevents = zeros(0,3);
+    end
     jj=1;
     while (jj < length(tmpcevents(:,1)))
         currentOnset  = tmpcevents(jj,1);
@@ -321,7 +360,7 @@ for iStim = 1:nStims
         %   + Bug fixed. Up to timeline class version '1.0', ICNNA does NOT have
         %   anything equivalent to snirf dataLabels, so the information on the
         %   dataLabels was getting lost. I have now added some rudimentary 
-        %   support in the timeline class but this is not likely a good solution...
+        %   support in the timeline class but this is likely not a good solution...
         if isproperty(tmpStim,'dataLabels')
             t = t.addCondition(cTag,tmpcevents,tmpStim.dataLabels,0);
         else
@@ -390,12 +429,19 @@ switch (tmpDataType)
         %Apply MBLL
         options.dpf = opt.defaultDPF; %Snirf format does NOT stores the DPF!
                                       %Thus use some default one.
-        M=mbll(tmpLightRawData,options);
-        tmpData=zeros(nSamples,nChannels,2);
-        tmpData(:,:,nirs_neuroimage.OXY)  =M(:,:,1);
-        tmpData(:,:,nirs_neuroimage.DEOXY)=M(:,:,2);
+        options.I0ref = opt.I0ref;
+        options.iod = nimg.chLocationMap.getIOD();
+                         %12-Apr-2025: FOE (v1.3.0) Change in behaviour.
+                         % Before v1.3.0 this was set to a default fixed
+                         % iod equal to 3cm.
+                         % Now direct support for short channel and HD
+                         % can be done directly
+        M = mbll(tmpLightRawData,options);
+        tmpData = zeros(nSamples,nChannels,2);
+        tmpData(:,:,nirs_neuroimage.OXY)   = M(:,:,1);
+        tmpData(:,:,nirs_neuroimage.DEOXY) = M(:,:,2);
         %nimg=set(nimg,'Data',tmpData);        
-        nimg.data =tmpData;        
+        nimg.data = tmpData;        
 
     case 99999 %Processed
         %If processed, no need to reconstruct. Data is already HbO2/HbR/HbT

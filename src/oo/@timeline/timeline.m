@@ -378,7 +378,8 @@ classdef timeline
          elseif obj.length == 1
               res = 1/obj.timestamps(1);
          else
-              res = 1/nanmean(obj.timestamps(2:end)-obj.timestamps(1:end-1));
+              res = 1/mean(obj.timestamps(2:end)-obj.timestamps(1:end-1),...
+                            'omitnan');
          end
       end
 

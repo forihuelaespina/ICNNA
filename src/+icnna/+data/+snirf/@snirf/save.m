@@ -1,7 +1,9 @@
-function [res]=save(filename,theSnirf,varargin)
+function [res]=save(par1,par2,varargin)
 %Save an icnna.data.snirf.snirf object to an snirf file
 %
-% [res]=save(filename,theSnirf)
+% [res]=icnna.data.snirf.snirf.save(filename,aSnirf) - Static call deprecated.
+%
+% [res]=save(obj,filename)
 %
 % [res]=save(...,'y') - Overwrite file if exist (if not indicated, you
 %       will be prompted.
@@ -32,10 +34,10 @@ function [res]=save(filename,theSnirf,varargin)
 %
 %% Input parameters
 %
+% obj/aSnirf - The icnna.data.snirf.snirf object to be serialized.
+%
 % filename - String. The filename including the path whether
 %   absolute or relative to current working directory.
-%
-% theSnirf - The icnna.data.snirf.snirf object to be serialized.
 %
 %% Output parameters
 %
@@ -75,6 +77,30 @@ function [res]=save(filename,theSnirf,varargin)
 %   + Bug fixed. Writing of stim array of strings dataLabels was not
 %       calculating the data size correctly.
 %
+% 12-Feb-2025: FOE
+%   + DEPRECATED static call.
+%   + New non-static call
+%   + Bug fixed. For stims, when some optional property e.g. dataLabels,
+%   was present but empty, upon trying to write, I will get an error
+%   about incorrect 'ChunkSize'. Now if the property is empty, it is skip.
+%
+
+
+%Differentiate between the static and non-static call depending on the
+%order of parameters
+obj = par1; %Assume non-static call by default.
+filename = par2;
+if ~isa(par1,'icnna.data.snirf.snirf') %Static call
+    obj = par2;
+    filename = par1;
+    warning('ICNNA:data:snirf:snirf:save:Deprecated', ...
+            ['Static call for icnna.data.snirf.snirf.save has been ' ...
+            'deprecated. Please use non-static call e.g. obj.save(filename).']);
+end
+clear par1 par2
+
+
+
 
 %% Deal with options
 opt.overwriteFile = false;
@@ -112,15 +138,15 @@ precision.float = 'single';
 %% Main loop
 
 %Save format version
-formatVersion=string(theSnirf.formatVersion);
+formatVersion=string(obj.formatVersion);
 h5create(filename,'/formatVersion',size(formatVersion),'Datatype','string');
 h5write(filename,'/formatVersion',formatVersion);
 
 
-nNIRSDatasets = theSnirf.nNirsDatasets;
+nNIRSDatasets = obj.nNirsDatasets;
 for iDataset = 1:length(nNIRSDatasets)
 
-    tmpNirsDataset = theSnirf.nirs(iDataset);
+    tmpNirsDataset = obj.nirs(iDataset);
     nirsGroup = ['/nirs' num2str(iDataset)];
     if length(nNIRSDatasets) == 1 %If there is only one neuroimage, there's no need for numbering.
         nirsGroup = '/nirs';
@@ -231,7 +257,7 @@ for iDataset = 1:length(nNIRSDatasets)
             iElem = tags{iTag};
             datasetName = [groupName '/' iElem];
 
-            if theStim.isproperty(iElem) %Some fields are optional
+            if theStim.isproperty(iElem) & ~isempty(theStim.(iElem)) %Some fields are optional
                 theData = theStim.(iElem);
                 switch(iElem)
                     case {'dataLabels'}

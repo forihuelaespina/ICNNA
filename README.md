@@ -3,7 +3,7 @@ Imperial College Near Infrared Spectroscopy Neuroimaging Analysis
 
 Previously known as Imperial College Neuroimage Analysis (ICNA), Imperial College Near Infrared Spectroscopy Neuroimaging Analysis (ICNNA) is a MATLAB based analysis tool for fNIRS neuroimaging data. Contrary to other software tools such as HomER, MNE-NIRS, NIRS Toolbox AnalyzIR or fOSA, ICNNA places the emphasis on the analysis over the processing with the experiment instead of the individual neuroimage being the central piece of information. It has statistical, topological and graph-theory based capabilities and its distinctive feature is the Manifold Embedding Neuroimaging Analysis (MENA).
 
-ICNNA is not yet .snirf nor BIDS-NIRS compliant but we are working towards it.
+ICNNA is not yet BIDS-NIRS compliant but we are working towards it.
 
 ## History
 ICNNA was developed while the main developer Felipe Orihuela-Espina (FOE) was at Imperial College London. While Imperial College London retains the intellectual property, but a lot of features were added afterwards while (FOE) was later working at the Instituto Nacional de Astrofísica, Óptica y Electrónica (INAOE) in Mexico, and later at the University of Birmingham (UK).
@@ -24,9 +24,9 @@ Software is provided as is. Use it at your own risk.
 
 However, although ICNNA is provided as is, please feel free to e-mail [FOE](mailto:f.orihuela-espina@bham.ac.uk) in case you find a bug, you would like to see any special feature in the next version, or just to comment.
 
-## ICNNA v1.2.0 supports .snirf
+## ICNNA supports .snirf
 
-ICNNA v1.2.0 now supports .snirf (long due!). Testing thus far is limited.
+Since ICNNA v1.2.0, ICNNA now supports .snirf (long due!). Testing thus far is limited.
 
 Current limitations
 

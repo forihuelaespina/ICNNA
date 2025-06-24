@@ -1,14 +1,119 @@
 ====================================
 = ICNA/ICNNA Version Log File
-= Copyright 2008-2024
+= Copyright 2008-2025
 = Author: Felipe Orihuela-Espina
 ====================================
 
 ====================================
-= ICNNA v1.2.3
+= ICNNA v1.3.0
 ====================================
 
-+ New class @icnna.data.core.condition
+@rawData:
+    + Class is now deprecated. Use @icnna.data.core.rawData instead.
+@rawData_NIRScout:
+    + Class is now deprecated. Use @icnna.data.misc.rawData_NIRx instead.
+@integrityStatus
+    + Added property classVersion. Set to '1.0' by default. 
+    + Added constant for .COEFFICIENTOFVARIATION
+
++ New classes
+* @icnna.data.core.condition
+* @icnna.data.core.rawData supersedes class @rawData.
+* @icnna.data.misc.rawData_NIRx supersedes class @rawData_NIRScout.
+
++ New methods
+* channelLocationMap.getIOD - Gets the interoptode distances.
+    
++ New packages
+* icnna.data.misc
+* icnna.op
+* icnna.op.io
+
+New functions
++ icnna.op.io.rawdata_nirx2snirf
++ iccna.op.optodeMovement_TDDR - TDDR algorithm for optode movement
+    correction to a nirs_neuroimage.
++ icnna.data.snirf.snirf.save - Changed from static to non-static method.
+    Static calls are now deprecated.
++ icnna.op.getTimelineFromSnirf - Retrieves an ICNNA timeline
+    from an iccna.data.snirf.snirf
++ icnna.op.writeTimelineToSnirf - Writes an ICNNA timeline to
+    an iccna.data.snirf.snirf
++ shortChannelRegression - Apply a short channel regression to a
+    nirs_neuroimage
+
+Bugs fixed
++ icnna.data.snirf.snirf.save. For stims, when some optional property
+    e.g. dataLabels, was present but empty, upon trying to write, there
+    was an error about incorrect 'ChunkSize'. Now if the optional property
+    is empty, it is skip.
++ rawData_snirf.convert - Only attempt conversion to samples of condition
+    events, if condition events is not empty.
++ plotChannel - It was assuming that all blocks have the same length.
+    Now, it pads with nan as appropriate when blocks have different
+    length.
++ batchBasicVisualization: When displaying a subset of channels, it is
+    not correct to calculate the number of channels from the experiment
+    index I (as this will still have ALL channels). Now the number of
+    channels is only set to the number of channels that needs to be rendered.
++ nirs_neuroimage.Pegna_detectOptodeMovement: I was NOT returning the
+    reconstructed signal yet offering it as a parameter. I have now added
+    a naive reconstruction.
+
+
+Behaviour change:
++ nirs_neuroimage.Pegna_detectOptodeMovement
+    The Original implementation (up to v1.2.2) implements strict adherence
+    to Pegna's original algorithm (letter of the law). From
+    version (v1.3.0), the algorithm has been reimplemented to
+    represent the "cumulative" change over the two samples is
+    bigger than the threshold so to capture issues sufficiently
+    large but lasting only one sample (spirit of the law). So now,
+    rather than ignoring large jumps that only show in one sample, I now
+    believe Pegna's spirit meant that the "cumulative"
+    change over the two samples is bigger than the threshold so to capture
+    both quick baselines shift as well as spikes.
+      The "old" strict interpretation is still offered for backwards
+    compatibility, but requires explicit use of options .version
++ generateDB_withBreak
+    BEFORE: Assert on whether an fvector was shorter than the
+       Baseline+BreakSamples
+       Database creation will not succeed.
+    NOW: Assert switched for warning and set that fvector chunkSize to 0.
+       Database creation will succeed.
++ mbll: Several changes
+    * Allow IOD to be different for each channel for a better support
+    of the short channels and HD models. Correct reconstructions was
+    possible before but required to call this function several times
+    separetely for each different IOD. Now this can be done in 1 shot.
+    * Allow the reference I0 to calculate the OD to be different from the
+    first samples. This is a trick use by other software tools e.g. Homer
+    uses the mean of the whole signal (rather than only the first 50
+    samples as fOSA -and ICNNA by inheritance- did), that can enhance
+    stability of the signal. For this a new option I0ref is provided.
+    * When no DPF was being used the path was normalize to 1 as the
+    values would be relative anyway. Now with a better support for
+    varying IOD, this has to be changed to the value of the IOD.
+    However, to afford backward compatibility a version flag has
+    been added. Please check documentation of the function.
+    * The code has also been refactored slightly to make the function a bit
+    more efficient (naive testing suggest a good 25% gain in time).
+@rawData_Snirf.convert: Now exploits the capacity of mbll to deal
+        with different IOD by default. IOD are being calculated using
+    the Euclidean distance rather than the geodesic for now.
+
+
+
+
+Misc
++ batchBasicVisualization:
+    - Added option to pass a precalculated experimentSpace for the series GA.
+    - Improved documentation of series GA options.
++ nirs_neuroimage.Pegna_detectOptodeMovement
+    - Threshold is now offered as a option.
++ nirs_neuroimage.checkIntegrity
+    - Added test for checking the coefficient of variation
+
 
 ====================================
 = ICNNA v1.2.2 (released 8-May-2024)

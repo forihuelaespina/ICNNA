@@ -21,13 +21,17 @@ classdef condition
 %
 %% Events
 %
+% Onset and durations may be associated with real time stamps or
+%with samples indexes (see property |unit|), however, the condition
+%has no notion of the sampling rate, i.e. it does NOT know how to
+%convert samples to seconds or viceversa.
+%
 %Conditions might happen never, once, or more than one
-%time. Every time a condition occur during the experiment
+%time. Every time a condition occurs during the experiment
 %(i.e. the condition holds) an event is inserted in the timeline
 %with a mark representing the event onset. The event
 %will last for a certain amount of time (duration) and then finish.
-%Onset and durations are not associated with real time stamps, but
-%with samples indexes. For instance an event which start at time
+%For instance an event which start at time
 %sample 30 and finishes at time sample 45 (BOTH INCLUDED)
 %will have its onset set to 30 and its duration set
 %to 16. 
@@ -39,7 +43,7 @@ classdef condition
 %
 %Timeline can hold experiments design under the block paradigm, the
 %event related paradigm or the self-pace paradigm. In particular for
-%the event related paradigm, duration of events is simply set to 0.
+%the instantaneous events, duration of events is simply set to 0, e.g.
 %
 %
 %  Sample  30
@@ -63,24 +67,17 @@ classdef condition
 %         Each row is an event.
 %         The list of events has AT LEAST the following columns;
 %          + onset - The rows of the table is ALWAYS sort by onsets,
-%               * IMPORTANT NOTE: If there is no column name 'onset'
-%               (see dataLabels) the onset will be assumed to be in
-%               the first column.
 %          + duration,
-%               * IMPORTANT NOTE: If there is no column name 'duration'
-%               (see dataLabels) the duration will be assumed to be in
-%               the second column.
 %          + amplitude i.e. magnitude or strength.
-%               * IMPORTANT NOTE: If there is no column name 'amplitude'
-%               (see dataLabels) the amplitude will be assumed to be in
-%               the third column.
 %          + info - Event information. Whatever the user wants to
 %                   store associated to the condition event.
-%               * IMPORTANT NOTE: If there is no column name 'info'
-%               (see dataLabels) the info will be assumed to be in
-%               the fourth column.
 %
-%       Additional columns may be added.
+%       Additional columns may be added, but the 4 columns above
+%       ought to be present and be named 'onset', 'duration', 'amplitude'
+%       and 'info' respectively. Although, the order does not matter in
+%       principle, if any of these four columns are missing when setting
+%       up the value, a default order will be assumed and the column will
+%       be renamed accordingly.
 %
 %       Within a condition events can overlap. Control of overlapping
 %       occurs in class timeline. This is a sharp distinction with
@@ -112,13 +109,9 @@ classdef condition
 %   .nEvents - Read only. Number of events. Number of rows of property |cevents|
 %   .ends  - Read only. Double array with the list of event ends. obj.onsets + obj.durations
 %   .eventTime - Read only. Double array of [onsets durations [ends]]
-%   .dataLabels - Equivalent to accessing the column names of the cevents
-%       table but typecasted to a string array.
-%
-%       When importing from snirf .stim, the dataLabels will replace the
-%       cevents table column names with some particularities;
-%           * Since snirf does not support event info, if this column
-%               is skipped, its column name won't be modified.
+%   .dataLabels - Equivalent to accessing the variables names of the
+%       cevents table but typecasted to a string array.
+%       These are automatically updated when setting property |cevents|
 %
 %
 %% Methods
@@ -133,14 +126,12 @@ classdef condition
 
 
 
-
-
-
-
-%UNFINISHED; PENDING PROVIDING SUPPORT FOR DATALABELS AND ADDITIONAL
-%COLUMNS IN THE CEVENTS TABLE
-
-
+%PENDING: Making the unit read-only (only writable upon creating a
+%condition) and then having a method the returns a new condition
+%with the other units that takes a sampling rate as parameter.
+%This gives more certainty that the entries in the cevents are intended
+%to be on that units, than if the attribute unit can be updated without
+%updating the cevents.
 
 
 
@@ -152,12 +143,14 @@ classdef condition
 % 11-Apr-2024: FOE
 %   + File and class created.
 %
+% 8-May-2024: FOE
+%   + Added support for more columns in the cevents table.
+%   + Added support for dataLabels
+%
 
     properties (Constant, Access=private)
         classVersion = '1.0'; %Read-only. Object's class version.
     end
-
-
 
 
     properties
@@ -175,6 +168,7 @@ classdef condition
         nEvents %Read only
         ends %Read only
         eventTime %Read only
+        dataLabels
     end
     
     
@@ -231,11 +225,11 @@ classdef condition
 
         %Gets/Sets
         function res = get.id(obj)
-            %Gets the object |id|
+        %Gets the object |id|
             res = obj.id;
         end
         function obj = set.id(obj,val)
-            %Sets the object |id|
+        %Sets the object |id|
             obj.id =  val;
         end
 
@@ -245,7 +239,7 @@ classdef condition
             val = obj.tag;
         end
         function obj = set.tag(obj,val)
-        %Updates the |tag| of the condition
+        %Sets the |tag| of the condition
             obj.tag = val;
         end
 
@@ -256,17 +250,51 @@ classdef condition
             val = obj.cevents;
         end
         function obj = set.cevents(obj,val)
-        %Updates the events of the conditions
+        %Sets the events of the conditions
+
+            %Check if the number of columns is AT LEAST 4
+            if size(val,2) < 4
+                error('icnna:data:core:condition:set_cevents:InvalidValue',...
+                       ['Condition events ought to have at least 4 columns; ' ...
+                        'onset, duration, amplitude and info.']);
+            end
 
             %Check the column names to ensure the mandatory ones (onset,
             %duration, amplitude and info) are present.
-            tmpColNames = val.VariableNames;
+            tmpColNames = val.Properties.VariableNames;
             if ~ismember('onset',tmpColNames)
-                warning('icnna.data.core.condition.set@cevents:MissingEventInformation',...
-                        'Renaming first column to onset.')
-
+                %Find the first non-mandatory column not yet used and rename
+                idx = find(~ismember(tmpColNames,{'onset','duration','amplitude','info'}),1,'first');
+                warning('icnna:data:core:condition:set_cevents:MissingEventInformation',...
+                        ['Renaming column ' num2str(idx) ' to onset.'])
+                tmpColNames{idx} = 'onset';
             end
-            
+            if ~ismember('duration',tmpColNames)
+                idx = find(~ismember(tmpColNames,{'onset','duration','amplitude','info'}),1,'first');
+                warning('icnna:data:core:condition:set_cevents:MissingEventInformation',...
+                        ['Renaming column ' num2str(idx) ' to duration.'])
+                tmpColNames{idx} = 'duration';
+            end
+            if ~ismember('amplitude',tmpColNames)
+                idx = find(~ismember(tmpColNames,{'onset','duration','amplitude','info'}),1,'first');
+                warning('icnna:data:core:condition:set_cevents:MissingEventInformation',...
+                        ['Renaming column ' num2str(idx) ' to amplitude.'])
+                tmpColNames{idx} = 'amplitude';
+            end
+            if ~ismember('info',tmpColNames)
+                idx = find(~ismember(tmpColNames,{'onset','duration','amplitude','info'}),1,'first');
+                warning('icnna:data:core:condition:set_cevents:MissingEventInformation',...
+                        ['Renaming column ' num2str(idx) ' to info.'])
+                tmpColNames{idx} = 'info';
+            end
+            assert(ismember('onset',tmpColNames) ...
+                && ismember('duration',tmpColNames) ...
+                && ismember('amplitude',tmpColNames) ...
+                && ismember('info',tmpColNames), ...
+                ['icnna:data:core:condition:set_cevents:MissingEventInformation', ...
+                'Unable to find one or more mandatory columns (onset, '...
+                'duration, amplitude, info).']);
+            val.Properties.VariableNames = tmpColNames;
 
             obj.cevents = val;
             obj.cevents = sortrows(obj.cevents,'onset');
@@ -277,8 +305,14 @@ classdef condition
             val = obj.unit;
         end
         function obj = set.unit(obj,val)
-        %Retrieves the temporal unit, whether 'samples' or 'seconds'
+        %Sets the temporal unit, whether 'samples' or 'seconds'
+        %
+        %When switching from seconds to samples, the |timeUnitMultiplier|
+        %will be reset to 0.
             obj.unit = val;
+            if strcmp(val,'samples')
+                obj.timeUnitMultiplier = 0;
+            end
         end
 
         function val = get.timeUnitMultiplier(obj)
@@ -286,7 +320,11 @@ classdef condition
             val = obj.timeUnitMultiplier;
         end
         function obj = set.timeUnitMultiplier(obj,val)
-        %Retrieves the temporal unit multiplier
+        %Sets the temporal unit multiplier
+            if strcmp(obj.unit,'samples') && val~=0
+                error('icnna:data:core:condition:set_timeUnitMultiplier:InvalidValue',...
+                      'timeUnitMultiplier ought to be 0 when condition unit is "samples".');
+            end
             obj.timeUnitMultiplier = val;
         end
 
@@ -296,7 +334,7 @@ classdef condition
             val = obj.amplitudeUnitMultiplier;
         end
         function obj = set.amplitudeUnitMultiplier(obj,val)
-        %Retrieves the amplitude unit multiplier
+        %Sets the amplitude unit multiplier
             obj.amplitudeUnitMultiplier = val;
         end
 
@@ -322,6 +360,66 @@ classdef condition
         function val = get.eventTime(obj)
         %Retrieves the events ends (onset + duration)
             val = [obj.cevents.onset obj.cevents.duration obj.ends];
+        end
+
+        function val = get.dataLabels(obj)
+        %(DEPENDENT) Retrieves the variable names of the cevents table as a string array
+        %
+        %If you need the data labels as a cell array use:
+        %       obj.cevents.Properties.VariableNames
+            val = string(obj.cevents.Properties.VariableNames);
+        end
+        function obj = set.dataLabels(obj,val)
+        %(DEPENDENT) Sets the variable names of the cevents table
+            %Check that it is typed as string array
+            if ~isstring(val)
+                error('icnna:data:core:condition:set_dataLabels:InvalidType',...
+                       'Property dataLabels ought to be a string array.');
+            end
+            val = cellstr(val); %Typecast to cell array
+
+            %Check if the number of elements matches the number of columns
+            %in cevents
+            val=reshape(val,numel(val),1);
+            if length(val) ~= length(obj.cevents.Properties.VariableNames)
+                error('icnna:data:core:condition:set_dataLabels:InvalidValue',...
+                       ['Number of dataLabels ought to match the number ' ...
+                       'of columns in property .cevents.']);
+            end
+            %Check the column names to ensure the mandatory ones (onset,
+            %duration, amplitude and info) are present.
+            if ~ismember('onset',val)
+                %Find the first non-mandatory column not yet used and rename
+                idx = find(~ismember(val,{'onset','duration','amplitude','info'}),1,'first');
+                warning('icnna:data:core:condition:set_dataLabels:MissingEventInformation',...
+                        ['Renaming column ' num2str(idx) ' to onset.'])
+                val{idx} = 'onset';
+            end
+            if ~ismember('duration',val)
+                idx = find(~ismember(val,{'onset','duration','amplitude','info'}),1,'first');
+                warning('icnna:data:core:condition:set_dataLabels:MissingEventInformation',...
+                        ['Renaming column ' num2str(idx) ' to duration.'])
+                val{idx} = 'duration';
+            end
+            if ~ismember('amplitude',val)
+                idx = find(~ismember(val,{'onset','duration','amplitude','info'}),1,'first');
+                warning('icnna:data:core:condition:set_dataLabels:MissingEventInformation',...
+                        ['Renaming column ' num2str(idx) ' to amplitude.'])
+                val{idx} = 'amplitude';
+            end
+            if ~ismember('info',val)
+                idx = find(~ismember(val,{'onset','duration','amplitude','info'}),1,'first');
+                warning('icnna:data:core:condition:set_dataLabels:MissingEventInformation',...
+                        ['Renaming column ' num2str(idx) ' to info.'])
+                val{idx} = 'info';
+            end
+            assert(ismember('onset',val) && ismember('duration',val) ...
+                && ismember('amplitude',val) && ismember('info',val), ...
+                ['icnna:data:core:condition:set_dataLabels:MissingEventInformation', ...
+                'Unable to find one or more mandatory columns (onset, '...
+                'duration, amplitude, info).']);
+            
+            obj.cevents.Properties.VariableNames = val;
         end
 
 

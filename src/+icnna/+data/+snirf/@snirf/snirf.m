@@ -62,6 +62,10 @@ classdef snirf
 % 18-Aug-2023: FOE
 %   + Added static method save to write to snirf files.
 %
+% 18-Aug-2023: FOE
+%   + Added non-static method save to write to snirf files.
+%   + Deprecated static method save 
+%
 
     
     properties (Constant, Access=private)
@@ -147,13 +151,12 @@ classdef snirf
         
 
         % Public methods
-
+        [res] = save(obj,filename,varargin); %Write to snirf files
     end
 
     methods (Static)
         [res] = load(filename); %Read snirf files
         [res,info] = readHD5file(filename);
-        [res] = save(filename,theSnirf,varargin); %Write to snirf files
     end
 
 end

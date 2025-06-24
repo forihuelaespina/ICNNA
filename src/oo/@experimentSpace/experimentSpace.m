@@ -90,7 +90,7 @@ classdef experimentSpace
 %The number of points depends on the number
 %of stimulus or conditions, blocks, and whether averaging is
 %across blocks applied. The block splitting stage, extract
-%independent blocks fro structuredData so that they are the seed
+%independent blocks from structuredData so that they are the seed
 %of the point in the Experiment Space.
 %
 %This stage is closely related to the window selection stage
@@ -103,7 +103,7 @@ classdef experimentSpace
 %the window selection stage, each signal and channel is separated
 %to yield different entries in the ExperimentSpace, and importantly
 %all vectors will have the same length (this is regardless of
-%the resampling stage!!).
+%the resampling stage!!) unless .fwDuration is set to -2.
 % See also the window selection stage for more information.
 %
 % 2) The resampling stage (Optional)
@@ -273,17 +273,17 @@ classdef experimentSpace
 %       will extend until next onset or end of timecourse.
 %       (See structuredData.getBlock)
 %
-%   .rsBaseline - Resample stage parameter. Number of samples
+%   .rsBaseline / rs_baseline - Resample stage parameter. Number of samples
 %       into which the baseline prior to the stimulus must be
 %       resampled. Default 0.
-%   .rsTask - Resample stage parameter. Number of samples
+%   .rsTask / rs_task - Resample stage parameter. Number of samples
 %       into which the task block of the stimulus must be
 %       resampled. Default 20.
-%   .rsRest - Resample stage parameter. Number of samples
+%   .rsRest / rs_rest - Resample stage parameter. Number of samples
 %       into which the rest after the stimulus must be
 %       resampled. Default 0.
 %
-%   .fwOnset - Window selection (fix window) stage parameter.
+%   .fwOnset / ws_onset - Window selection (fix window) stage parameter.
 %       Number of samples from the onset of the stimulus block
 %       which the window starts. If negative, then the selection
 %       of samples starts from the baseline subperiod. If 0, then
@@ -291,7 +291,7 @@ classdef experimentSpace
 %       Positive values n indicate that the window starts n
 %       samples after the task block onset. Default -5
 %       (5 secs baseline).
-%   .fwDuration - Window selection (fix window) stage parameter.
+%   .fwDuration / ws_duration - Window selection (fix window) stage parameter.
 %       Number of samples that the selected window lasts (as the
 %       sum of the baseline (-fw.onset), the delay (fwBreakDelay)
 %       and the 'task' itself. Default 25 (20 secs task + 5 secs
@@ -300,13 +300,25 @@ classdef experimentSpace
 %       If -2, then block is used until the stimulus offset; this option
 %       is convenient when dealing with stimulus and/or events are of
 %       different length yet a fixed window length is not desired.
-%   .fwBreakDelay - Window selection (fix window) stage parameter.
+%   .fwBreakDelay - ws_breakDelay - Window selection (fix window) stage parameter.
 %       Number of samples ignored from the stimulus event onset
 %       (this is, NOT from the window selection onset, but from
 %       the task subperiod onset itself!). Default is 0, i.e.
 %       a continuous selection. A value
 %       of n, will discard the first n samples from the task
 %       subperiod.
+%
+%         +========================================================+
+%         | IMPORTANT NOTE: The breakDelay is applied at the time  |
+%         | of computing the database (using generateDB_WithBreak) |
+%         | and NOT at the time of computing the experimentSpace.  |
+%         | Altough in principle this is correct, but it is        |
+%         | certainly not intuitive, and can lead to errors if     |
+%         | someone uses generateDB instead. At some point, I need |
+%         | to "fix" this and apply the breakDelay during the      |
+%         | computation of the experimentSpace.                    |
+%         +========================================================+
+%
 %
 %   .normalizationMethod - Normalization stage parameter.
 %       Indicates normalization method; either 'normal' or
@@ -385,6 +397,10 @@ classdef experimentSpace
 % 23-Feb-2024: FOE
 %   + Enriched functionality of fwDuration with potential values
 %   -1 (whole block) and -2 (until block offset).
+%
+%
+% 17-Apr-2025: FOE
+%   + Slight update of comments.
 %
 
     properties (Constant, Access=private)

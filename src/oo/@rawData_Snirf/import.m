@@ -1,7 +1,7 @@
 function obj=import(obj,filename)
 %RAWDATA_SNIRF/IMPORT Reads the raw light intensities 
 %
-% obj=import(obj,filename) Reads the light intensities recorded in
+% obj = import(obj,filename) Reads the light intensities recorded in
 %   a .csv file produced by the NIRx NIRScout NIRS family systems.
 %
 %

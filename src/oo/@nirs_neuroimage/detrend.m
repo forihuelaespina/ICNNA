@@ -1,5 +1,7 @@
 function obj=detrend(obj)
-%NIRS_NEUROIMAGE/DETREND Apply a linear detrending to the image
+%DEPRECATED. NIRS_NEUROIMAGE/DETREND Apply a linear detrending to the image
+%
+% DEPRECATED. Use MATLAB's detrend instead e.g. detrend(nirs_neuroimage.data)
 %
 %   obj2 = detrend(obj,r) Apply a signal linear detrending
 %       based on the rest periods (i.e. baseline).
@@ -14,7 +16,7 @@ function obj=detrend(obj)
 %picture elements and signals.
 %
 %
-% Copyright 2007-23
+% Copyright 2007-25
 % @author: Felipe Orihuela-Espina
 %
 % See also decimate, rawData.convert, timeline
@@ -34,6 +36,19 @@ function obj=detrend(obj)
 %   + Added this log. Got rid of old labels @date and @modified.
 %   + Added get/set methods support for struct like access to attributes.
 %
+% 14-Feb-2025: FOE
+%   + DEPRECATED. Since R2024b Matlab now offers a detrend function.
+%
+
+
+warning('ICNNA:nirs_neuroimage:get:Deprecated',...
+        ['DEPRECATED. Since R2024b Matlab now offers a detrend function. ' ...
+         'You may now use; '
+         'e.g. detrend(nirs_neuroimage.data).' ...
+         'Note the the results of my detrend this method may ' ...
+         'differ from that of using MATLAB''s detrend directly ' ...
+         'as this method only considers block data.']); 
+    %Maintain method by now to accept different capitalization though.
 
 
 %Temporarily create a fictitious timeline with only

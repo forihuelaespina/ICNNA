@@ -37,12 +37,12 @@ disp(['   ID: ' num2str(obj.id)]);
 disp(['   name: ' obj.name]);
 disp(['   Device Number: ' num2str(obj.deviceNumber)]);
 disp('   rawData: ');
+r=obj.rawData;
+display(r);
 type=obj.type;
 if (~isempty(type))
 disp(['   Type: ''' type '''']);
 end
-r=obj.rawData;
-display(r);
 if (obj.lock)
     disp('   lock: LOCKED');
 else

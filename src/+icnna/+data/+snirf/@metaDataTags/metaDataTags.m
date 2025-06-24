@@ -142,8 +142,7 @@ classdef metaDataTags
             %attribute should be a string, but I'm keeping it as a
             %datetime.
             try
-                [YY,MM,DD] = ymd(datetime(val)); %Ignore the time if given
-                obj.measurementDate = datetime([YY MM DD 0 0 0]);
+                obj.measurementDate = datetime(val);
             catch
                 error(['icnna.data.snirf.metaDataTags:set.measurementDate:InvalidPropertyValue',...
                     'String cannot be converted to date.'])
@@ -153,7 +152,7 @@ classdef metaDataTags
 
         function val = get.measurementTime(obj)
         %Retrieves the measurement time
-            val = obj.measurementTime;
+            val = datestr(obj.measurementTime,'HH:MM:SS.FFF');
         end
         function obj = set.measurementTime(obj,val)
         %Updates the measurement time
@@ -166,8 +165,7 @@ classdef metaDataTags
             %attribute should be a string, but I'm keeping it as a
             %datetime.
             try
-                [HH,MM,SS] = hms(datetime(val)); %Ignore the date if given
-                obj.measurementTime = datetime([0 0 0 HH MM SS]);
+                obj.measurementTime = datetime(val);
             catch
                 error(['icnna.data.snirf.metaDataTags:set.measurementTime:InvalidPropertyValue',...
                     'String cannot be converted to date.'])

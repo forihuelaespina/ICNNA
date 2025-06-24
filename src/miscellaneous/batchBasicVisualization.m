@@ -128,6 +128,67 @@ function batchBasicVisualization(E,options)
 %       will be used.
 %       Note: A negative value shifts the window prior to the onset.
 %
+% == Parameters for subseries GA
+%
+%   The series GA necessitates an experiment space. You can either provided
+%   a pre-calculated experimentSpace object OR you can provide the options
+%   to calculate the experimentSpace here.
+%
+%   .seriesGA_ExperimentSpace - A experimentSpace. By default this is
+%       empty (i.e. not provided).
+%       A precalculated experimentSpace. If provided, all
+%       other .seriesGA_* options will be ignored.
+%
+%   -- Block Splitting parameters
+%   .seriesGA_BaselineSamples - Integer. Default is 15
+%       Number of samples to extract for the baseline of the block
+%   .seriesGA_RestSamples - Integer. Default is -1 (all samples until next block)
+%       Number of samples to extract for the recovery period of the block
+%       after the offset of the event.
+%   -- Window Selection parameters
+%   .seriesGA_wsOnset - Integer. Default is -10
+%       Number of samples backwards i.e. the minus sign, from the event
+%       onset to be used for the baseline during analysis.
+%   .seriesGA_wsDuration - Integer. Default is 40
+%       Number of samples into the task from the event
+%       onset to be used for the event during analysis.
+%   .seriesGA_BreakDelay - Integer. Default is 0
+%       Number of samples between the event onset and the event window
+%       to be used for the event during analysis.
+%   -- Resample parameters
+%   .seriesGA_resampleFla - Boolean. Default true.
+%       Flag to indicate whether resampling must be carried out when
+%       computing the experimentSpace.
+%   .seriesGA_rsBaseline - Integer. Default is 10
+%       Number of samples onto which resample the block's baseline period. 
+%   .seriesGA_rsTask - Integer. Default is 20
+%       Number of samples onto which resample the block's task period. 
+%   .seriesGA_rsRest - Integer. Default is 10
+%       Number of samples onto which resample the block's recovery period.
+%   -- Normalization parameters
+%   .seriesGA_normalizationFlag - Boolean. Default false.
+%       Flag to indicate whether normalization must be carried out when
+%       computing the experimentSpace.
+%   .seriesGA_nScope - Char array. Default is 'blockIndividual'
+%       Strategy for normalization. Three options are available;
+%       - 'BlockIndividual'
+%       - 'Individual'
+%       - 'Collective'
+%   .seriesGA_nDimension - Char array. Default is 'Combined'
+%       Dimensions across which normalize. Three options are available;
+%       - 'Channel' - Spatial
+%       - 'Signal'  - Temporal
+%       - 'Combined'- Spatiotemporal
+%   .seriesGA_nMethod - Char array. Default is 'Normal'
+%       Normalization method. Two options are available;
+%       - 'Normal'
+%       - 'Range'
+%   .seriesGA_nMean=0;    
+%   .seriesGA_nVar=1;    
+%   .seriesGA_nMin=-1;    
+%   .seriesGA_nMax=1;
+%
+%
 % == Channel positioning and labelling
 %
 %   .channelPositioning - Choose how to arrange the channels spatially.
@@ -210,7 +271,21 @@ function batchBasicVisualization(E,options)
 %   + The options for the GA* series are now accesible (but remain
 %   undocumented).
 %
-
+% 9-Apr-2025: FOE
+%   + Documented a few options for the GA series that were undocumented.
+%   + Added option to pass a pre-calculated experimentSpace for the GA
+%   series.
+%
+% 19-Apr-2025: FOE
+%  + Bug fixed: When displaying a subset of channels, it is not correct
+%   to calculate the number of channels from the experiment index I (as
+%   this will still have ALL channels). Now the number of channels is only
+%   set to the number of channels that needs to be rendered.
+%
+%   22-May-2025: FOE
+%   + Small improvement. Series GA now only visit channels in opt.whichChannels
+%
+%
 
 expName= E.name;
 %Remove spaces (to avoid problems with MATLAB)
@@ -244,6 +319,7 @@ opt.blockResamplingRest=20;
 
 
 %%= To construct the experiment space for GA series =====================
+opt.seriesGA_ExperimentSpace=[];
 %Block Splitting parameters
 opt.seriesGA_BaselineSamples=15;
 opt.seriesGA_RestSamples=-1;   
@@ -373,10 +449,15 @@ if exist('options','var')
 
 
 
+    %From v1.2.3; 
+    if isfield(options,'seriesGA_ExperimentSpace')
+        opt.seriesGA_ExperimentSpace=options.seriesGA_ExperimentSpace;
+    end
 
     %From v1.2.0; The following options were available from within the
     % code but not accesible from outside. From v1.2.0 they are now
     % made available. They remain undocumented (11-Sep-2023).
+    % 9-Apr-2025: Options are now documented.
     if isfield(options,'seriesGA_BaselineSamples')
         opt.seriesGA_BaselineSamples=options.seriesGA_BaselineSamples;
     end
@@ -1039,41 +1120,78 @@ if (opt.seriesGAACHAVG)
 %Moreover the plotAllChannelsAvg will no longer be suitable, so
 %I need to plot the Std by hand.
 %
+if isempty(opt.seriesGA_ExperimentSpace) || ...
+    ~isa(opt.seriesGA_ExperimentSpace,'experimentSpace')
+    s=experimentSpace;
+    %Block Splitting parameters
+    s.baselineSamples = opt.seriesGA_BaselineSamples;
+    s.restSamples     = opt.seriesGA_RestSamples;   
+    %Window Selection parameters
+    s.ws_onset      = opt.seriesGA_wsOnset;
+    s.ws_duration   = opt.seriesGA_wsDuration;
+    s.ws_breakDelay = opt.seriesGA_BreakDelay;
+    %Resample parameters
+    s.resampled = opt.seriesGA_resampleFlag;
+    s.rs_baseline = opt.seriesGA_rsBaseline;   
+    s.rs_task = opt.seriesGA_rsTask;
+    s.rs_rest = opt.seriesGA_rsRest;
+    %Average parameters 
+    s.averaged = false; %I do not want the experimentSpace to average
+                               %otherwise I will be still in a double stage
+                               %averaging situation
+    %Normalization parameters
+    s.normalized = opt.seriesGA_normalizationFlag;
+    s.normalizationScope = opt.seriesGA_nScope; %'BlockIndividual'
+                                                       %'Individual'
+                                                       %'Collective'
+    s.normalizationDimension = opt.seriesGA_nDimension; %'Channel'
+                                                       %'Signal'
+                                                       %'Combined'
+    s.normalizationMethod = opt.seriesGA_nMethod; %'Normal'
+                                                       %'Range'
+    s.normalizationMean = opt.seriesGA_nMean;    
+    s.normalizationVar  = opt.seriesGA_nVar;    
+    s.normalizationMin  = opt.seriesGA_nMin;    
+    s.normalizationMax  = opt.seriesGA_nMax;    
+    
+    %Now compute
+    s=compute(s,E);
+else
+    s = opt.seriesGA_ExperimentSpace;
+end
 
-s=experimentSpace;
-%Block Splitting parameters
-s.baselineSamples = opt.seriesGA_BaselineSamples;
-s.restSamples     = opt.seriesGA_RestSamples;   
-%Window Selection parameters
-s.ws_onset      = opt.seriesGA_wsOnset;
-s.ws_duration   = opt.seriesGA_wsDuration;
-s.ws_breakDelay = opt.seriesGA_BreakDelay;
-%Resample parameters
-s.resampled = opt.seriesGA_resampleFlag;
-s.rs_baseline = opt.seriesGA_rsBaseline;   
-s.rs_task = opt.seriesGA_rsTask;
-s.rs_rest = opt.seriesGA_rsRest;
-%Average parameters 
-s.averaged = false; %I do not want the experimentSpace to average
-                           %otherwise I will be still in a double stage
-                           %averaging situation
-%Normalization parameters
-s.normalized = opt.seriesGA_normalizationFlag;
-s.normalizationScope = opt.seriesGA_nScope; %'BlockIndividual'
-                                                   %'Individual'
-                                                   %'Collective'
-s.normalizationDimension = opt.seriesGA_nDimension; %'Channel'
-                                                   %'Signal'
-                                                   %'Combined'
-s.normalizationMethod = opt.seriesGA_nMethod; %'Normal'
-                                                   %'Range'
-s.normalizationMean = opt.seriesGA_nMean;    
-s.normalizationVar  = opt.seriesGA_nVar;    
-s.normalizationMin  = opt.seriesGA_nMin;    
-s.normalizationMax  = opt.seriesGA_nMax;    
 
-%Now compute
-s=compute(s,E);
+
+%Note that I and F are already "filtered" by opt.whichChannels above
+% but I need them complete to get the channelLocationMap.
+[I,F,COL]=unfoldExperiment(E);
+%Filter
+if ~isempty(opt.whichSubjects)
+    idx = ismember(I(:,COL.SUBJECT),opt.whichSubjects);
+    I = I(idx,:);
+    F = F(idx);
+else %if is empty, then choose all
+    opt.whichSubjects = unique(I(:,COL.SUBJECT))';
+end
+if ~isempty(opt.whichSessions)
+    idx = ismember(I(:,COL.SESSION),opt.whichSessions);
+    I = I(idx,:);
+    F = F(idx);
+else %if is empty, then choose all
+    opt.whichSessions = unique(I(:,COL.SESSION))';
+end
+if ~isempty(opt.whichDataSources)
+    idx = ismember(I(:,COL.DATASOURCE),opt.whichDataSources);
+    I = I(idx,:);
+    F = F(idx);
+else %if is empty, then choose all
+    opt.whichDataSources = unique(I(:,COL.DATASOURCE))';
+end
+
+
+
+
+
 
 
 %Filter the subset of interest
@@ -1088,6 +1206,7 @@ subsetDefinition{3}.values = opt.whichChannels;
 [I2,Fvectors]=s.getSubset(subsetDefinition);
 
 
+[I,F,COL]=unfoldExperiment(E);
 
 
 % if ~isempty(opt.whichChannels)
@@ -1174,7 +1293,23 @@ t  = sd.timeline; %Currently I am counting on this one
 
 %I need to produce a figure per stimulus
 stimulus=unique(I2(:,experimentSpace.DIM_STIMULUS))';
-nChannels=max(I2(:,experimentSpace.DIM_CHANNEL))';
+
+%19-Apr-2025: FOE
+% Bug fixed: When displaying a subset of channels, it is not correct
+%to calculate the number of channels from the experiment index I (as
+%this will still have ALL channels). Now the number of channels is only
+%set to the number of channels that needs to be rendered.
+%
+%Old line:
+%   nChannels=max(I2(:,experimentSpace.DIM_CHANNEL))';
+%
+%
+%22-May-2025: FOE
+%The following line is no longer needed. Now only visiting those
+%channels in opt.whichChannels
+%
+% %nChannels=clm.nChannels;
+
 
 % opt.lineWidth=1.5;
 % opt.fontSize=8;
@@ -1183,7 +1318,12 @@ for st=stimulus
     
     figure('Units','normalized','Position',[0.05,0.05,0.85,0.85]);
 
-    for ch=1:nChannels
+    %22-May-2025: FOE
+    %The following line is no longer needed. Now only visiting those
+    %channels in opt.whichChannels
+    %
+    % %for ch=1:nChannels
+    for ch = opt.whichChannels
         idxOxy = find(I2(:,experimentSpace.DIM_STIMULUS)==st...
             & I2(:,experimentSpace.DIM_CHANNEL)==ch...
             & I2(:,experimentSpace.DIM_SIGNAL)==nirs_neuroimage.OXY);
@@ -1195,10 +1335,10 @@ for st=stimulus
         %chData_totalHb = chData_oxy+chData_deoxy;
         %chData_Hbdiff = chData_oxy-chData_deoxy;
         
-        chData_oxy_mean=mean(chData_oxy,2);
-        chData_oxy_std=std(chData_oxy,0,2);
-        chData_deoxy_mean=mean(chData_deoxy,2);
-        chData_deoxy_std=std(chData_deoxy,0,2);
+        chData_oxy_mean  = mean(chData_oxy,2,'omitnan');
+        chData_oxy_std   = std(chData_oxy,0,2,'omitnan');
+        chData_deoxy_mean= mean(chData_deoxy,2,'omitnan');
+        chData_deoxy_std = std(chData_deoxy,0,2,'omitnan');
         
         %plot channel
         nSamples = length(chData_oxy_mean);
@@ -1462,6 +1602,7 @@ for ch=1:nChannels
         location=getAxesPosition(ch,clm,opt.channelPositioning);
         h(ch)=axes('OuterPosition',location);
         opt.axesHandle=h(ch);
+        opt.scale=true;
         opt.blockAveraging=true;
         opt.blockCondTag=condTag;
         % opt.blockBaseline=10;
@@ -1472,9 +1613,9 @@ for ch=1:nChannels
         % opt.blockResamplingRest=20;
         opt.displayLegend = false;
         plotChannel(sd,ch,opt);
-        nSamples=sum([opt.blockResamplingBaseline ...
-                        opt.blockResamplingTask ...
-                        opt.blockResamplingRest]);
+        % nSamples=sum([opt.blockResamplingBaseline ...
+        %                 opt.blockResamplingTask ...
+        %                 opt.blockResamplingRest]);
     
         set(gca,'XTick',[]);
 %        set(gca,'XLim',[1 nSamples]);

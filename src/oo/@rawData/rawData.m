@@ -1,5 +1,7 @@
 classdef rawData
-% rawData Data as recorded by some device
+% DEPRECATED. rawData Data as recorded by some device
+%
+% Please use icnna.data.core.rawData instead.
 %
 %A rawData represents the experimentally recorded data
 %during a session from a particular source (neuroimaging

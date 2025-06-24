@@ -24,7 +24,7 @@ classdef timeline
 %For each experimental stimulus type you define an @icnna.data.core.condition.
 %Every @icnna.data.core.condition represent a different stimulus type.
 % A @icnna.data.core.timeline support any number of different
-% @icnna.data.core.condition (other than memmory limits), each identified
+% @icnna.data.core.condition (other than memory limits), each identified
 % by its tag. Within a timeline, all tags ought to be unique.
 % 
 % @li All tags ought to be unique,
@@ -48,7 +48,7 @@ classdef timeline
 %% Properties
 %
 %   .classVersion - (Read only) The class version of the object
-%   .length - The experiment duration (in time samples)
+%   .id - A numerical identifier.
 %   .startTime - A reference absolute start time (stored as datenum).
 %         The default start time is the object creation time. 
 %   .timestamps - A vector of .lengthx1 timestamps in seconds
@@ -58,30 +58,35 @@ classdef timeline
 %         sampling rate to automatically generate timestamps.
 %   .nominalSamplingRate - A nominal sampling rate in Hz. By default
 %         it is set to 1Hz. This is different from the "real" average
-%         sampling rate that is calculated on the fly from
-%         the timesamples.
-%   .conditions - A cell array of conditions. Each condition is a struct
-%         with a tag (.conditions{i}.tag), the list of events.
-%         (.conditions{i}.events) and a field to store information
-%         associated to the events (.conditions{i}.eventsInfo).
-%           The list of events is a two column matrix
-%         where first column represents event onsets and second
-%         column represents event durations.
-%   .exclusory - A matrix of pairwise exclusory states.
-%	  exclusory(condA,condB)=0 => Non exclusory behaviour
-%	  exclusory(condA,condB)=1 => Exclusory behaviour
+%         sampling rate (dependent property) that is calculated directy
+%         from the timesamples.
+%   .conditions - An array of icnna.data.core.conditions.
+%       All conditions within a timeline ought to have distinct .id and
+%       distinct .tag
+%   .exclusory - Array of logical. A matrix of pairwise exclusory states.
+%	  exclusory(condA,condB)= icnna.data.core.timeline.CONDITIONS_NON_EXCLUSORY => Non exclusory behaviour
+%	  exclusory(condA,condB)= icnna.data.core.timeline.CONDITIONS_EXCLUSORY => Exclusory behaviour
+%
+%       exclusory(condA,condA) indicates whether a condition is allowed
+%       to have self-overlapping events (non-exclusory) or not (exclusory).
 %
 %       From ICNNA version 1.2.2, a condition can have overlapping
 %       events with itself. This is controlled with the main diagonal
 %       of .exclusory.
 %
+%  -- Constants provided:
+%
+%   .CONDITIONS_NON_EXCLUSORY - logical. Represent non-exclusory behaviour (false)
+%   .CONDITIONS_EXCLUSORY - logical. Represent exclusory behaviour (true)
+%
 %% Dependent properties
 %
+%   .length - The experiment duration (in samples). Length of the
+%       timestamps property.
 %   .nConditions - Number of conditions. Length of the |conditions|
 %       property.
-%
-%   .samplingRate - Average sampling rate. This is calculated on the
-%       fly from the timestamps and use in many operations
+%   .averageSamplingRate - Average sampling rate. This is calculated
+%       on the fly from the timestamps and use in many operations
 %       e.g. getAvgTaskTime. This is different from the nominal
 %       sampling rate property.
 %
@@ -91,10 +96,10 @@ classdef timeline
 %       
 %% Methods
 %
-% Type methods('timeline') for a list of methods
+% Type methods('icnna.data.core.timeline') for a list of methods
 % 
 %
-% Copyright 2008-24
+% Copyright 2025
 % @author: Felipe Orihuela-Espina
 %
 % See also assertInvariant
@@ -102,132 +107,104 @@ classdef timeline
 
 
 
+
 %% Log
 %
-% File created: 18-Apr-2008
-% File last modified (before creation of this log): 30-Dec-2012
-%
-% 13-May-2023: FOE
-%   + Added this log. Got rid of old labels @date and @modified.
-%   + Added property classVersion. Set to '1.0' by default.
-%   + Added get/set methods support for struct like access to attributes.
-%
-%   +=====================================================+
-%   | WATCH OUT!!! With the struct like syntax correct    |
-%   | maintenance of interdependent properties e.g. length|
-%   | and timestamps becomes more difficult, since it is  | 
-%   | not possible to transiently violate postconditions  |
-%   | invariants. Hence, at this point, ICNNA is no longer|
-%   | checking the invariants after updating the          |
-%   | timestamps. The obvious way to fix this is to make  |
-%   | length a dependent variable (e.g. the length of the |
-%   | timestamps, but since this would represent a change |
-%   | in the data structure which is not backward         |
-%   | compatible this is not yet implemented by now.      |
-%   | In the meantime, violations of some class invariants|
-%   | are being relaxed to warnings.                      |
-%   +=====================================================+
-% 
-%   + For those attributes above also started to simplify the set
-%   code replacing it with validation rules on the declaration.
-%   + Added private method cropOrRemoveEvents (extracted from previous
-%   nested method in method set).
-%   + Dependent properties nConditions and samplingRate are now
-%   explicitly declared as such. Also added comments for these
-%   in the class description.
-%   + Improved some comments.
-%   Bug fixing
-%   + 2 of the errors were reporting the incorrect class in the error code.
-%
+%   + Class available since ICNNA v1.2.3
 %
 % 11-Apr-2024: FOE
-%   + Starting with ICNNA v1.2.2 conditions can have overlapping events
-% with itself. This is controlled with the main diagonal of .exclusory.
+%   + File and class created. Reused some code from predecessor class
+%   timeline. Class is still unfinished (and not documented)
+%
+% 12-Apr-2025: FOE
+%   + Continued working on the class.
+%   + Timeline are now also identifiable objects.
+%   + Updated the property condition from a cell array of struct to
+%       an array of icnna.data.core.condition.
+%   + Nominal sampling rate is now valued 0 Hz by default to be consitent
+%       with the derived real sampling rate which will be 0 when a timeline
+%       is initialized.
+%   + Length of the timeline is now a dependent property; simply the
+%   length of the timestamps.
+%   + exclusory attribute is now bool.
+%   + Added two constants to provide support for maintaining the exclusory
+%   behaviour; CONDITIONS_EXCLUSORY and CONDITIONS_NON_EXCLUSORY
+%   + Modified the class constructors;
+%       * Removed the constructor permitting declaring a condition
+%       * Substituted the constructor that used only the length
+%       for another that uses the length and the nominalSamplingRate.
+%   + Added methods findCondition and cropOrRemoveEvents
+%
+%   PENDING: set.conditions not yet working properly as this does not
+%       update the exclusory table accordingly.
 %
 
     properties (Constant, Access=private)
         classVersion = '1.0'; %Read-only. Object's class version.
     end
 
-
     properties %(SetAccess=private, GetAccess=private)
-        length(1,1) double {mustBeInteger, mustBeNonnegative}=0; % The length of the timeline in samples.
+        id(1,1) double {mustBeInteger, mustBeNonnegative}=1; %Numerical identifier to make the object identifiable.
         startTime = datenum(datetime('now')); % Absolute start time (as datenum)
             %NOTE: Datenum has now been deprecated by matlab and
             %use of datetime is recommended instead.
             %However, I'm keeping datenum for compatibility by now.
         timestamps(:,1) double = zeros(0,1); %List of timestamps in seconds relative to .startTime
-        nominalSamplingRate(1,1) double {mustBeNonnegative} = 1; %Nominal sampling rate in Hz
-        conditions=cell(1,0); %Collection of conditions
-        exclusory=zeros(0,0); %Pairwise exclusory states
+        nominalSamplingRate(1,1) double {mustBeNonnegative} = 0; %Nominal sampling rate in Hz
+        conditions(:,1) icnna.data.core.condition; %Collection of conditions
+        exclusory(:,:) logical = false(0,0); %Pairwise exclusory states
     end
 
+
+    properties (Constant) %but public access
+        CONDITIONS_EXCLUSORY(1,1) logical = true; %Represents exclusory behaviour.
+        CONDITIONS_NON_EXCLUSORY(1,1) logical = false; %Represents non-exclusory behaviour.
+    end
+   
     properties (Dependent)
+        length
         nConditions
-        samplingRate
+        averageSamplingRate
     end
     
     methods
         function obj=timeline(varargin)
             %TIMELINE Timeline class constructor
             %
-            % obj=timeline() creates a default empty timeline with no conditions
-            %   defined.
+            % obj=timeline() creates a default empty timeline with no
+            %   conditions defined nor samples (empty timestamps).
             %
             % obj=timeline(obj2) acts as a copy constructor of timeline
             %
-            % obj=timeline(l) creates a new timeline of length l with
-            %    no conditions defined.
+            % obj=timeline(length,nominalSamplingRate) creates a new
+            %   timeline of a given |length| and |nominalSamplingRate|
+            %   with no conditions defined.
             %
-            % obj=timeline(l,tag,m) creates a new timeline of length l with
-            %   a single condition 'tag' whose events are represented in
-            %   matrix m. Matrix m will be a two column matrix where first
-            %   column represents event onsets and second column represents
-            %   event durations.
-            %       Example: obj=timeline(90,'A',[30 15; 60 15])
-            %            Two events starting at samples 30 and 60, both
-            %          lasting for 15 samples.
-            %                obj=timeline(90,'A',[])
-            %            No events. Note that the [] in the third parameter is still
-            %            compulsory.
 
             if (nargin==0)
                 %Keep default values
             elseif isa(varargin{1},'timeline')
-                obj=varargin{1};
+                obj = varargin{1};
                 return;
             else
                 %val=varargin{1};
-                %obj=set(obj,'Length',val);
-                obj.length=varargin{1};
-                if (nargin==3)
-                    if (ischar(varargin{2}))
-                        cond.tag = varargin{2};
-                    else
-                        error('Tag must be a string');
-                    end
-                    if isempty(varargin{3})
-                        cond.events=zeros(0,2);
-                        cond.eventsInfo=cell(0,1);
-                    else
-                        cond.events = varargin{3};
-                        cond.eventsInfo=cell(size(cond.events,1),1);
-                    end
-                    obj.conditions(1)={cond};
-                    obj.exclusory=zeros(1,1);
-                end
+                tmpLength = varargin{1};
+                obj.nominalSamplingRate = varargin{2};
+                obj.timestamps = (1/obj.nominalSamplingRate)*[0:tmpLength-1];
+                    %This automatically sets the length (dependent)
             end
-            assertInvariants(obj);
+            %assertInvariants(obj);
         end
     end
     
-    methods (Access=protected)
-        assertInvariants(obj);
-    end
+    % methods (Access=protected)
+    %     assertInvariants(obj);
+    % end
     
     methods (Access=private)
-        idx=findCondition(obj,tag);
-        [obj,res]=cropOrRemoveEvents(obj,newLength)
+        idx = findCondition(obj,tag); %Search condition by |id| or |tag|
+        obj = cropOrRemoveEvents(obj); %Crops or remove events exceeding
+                                        %the timeline length.
     end
 
 
@@ -236,56 +213,18 @@ classdef timeline
       %Getters/Setters
 
       function res = get.length(obj)
-         %Gets the object |length|
+         %(DEPENDENT) Gets the object |length|
          %
          % The length of the timeline in samples.
-         res = obj.length;
+         res = size(timestamps,1);
       end
-      function obj = set.length(obj,val)
-         %Sets the object |length|
-         %
-         % This is the length of the timeline in number of samples
-         %When updating the 'length', if the current timeline has
-         %events defined that last beyond the new size, this operation
-         %will issue a warning before cropping or removing those events.
-         %
-
-         %Remove or crop events beyond the new length.
-         [obj,res]=obj.cropOrRemoveEvents(val);
-         if (res)
-             warning('ICNNA:timeline:set:EventsCropped',...
-                 ['Events lasting beyond the new length ' ...
-                 'will be cropped or removed.']);
-         end
-
-         if val>obj.length
-             %Generate extra timestamps
-             initStamp = 0;
-             if ~isempty(obj.timestamps)
-                 initStamp = obj.timestamps(end);
-             end
-             extraTimestamps = initStamp + ...
-                 (1:val-obj.length) / obj.nominalSamplingRate;
-             obj.timestamps = [obj.timestamps; extraTimestamps'];
-         elseif val<obj.length
-             %Remove the later timestamps
-             obj.timestamps(val+1:end) = [];
-         end
-
-         obj.length = val;
-            
-         assertInvariants(obj);
-      end
-
-
-
 
 
       function res = get.nConditions(obj)
          %(DEPENDENT) Gets the object |nConditions|
          %
          % The number of conditions declared in the timeline.
-         res = size(obj.conditions,2);
+         res = size(obj.conditions,1);
       end
 
 
@@ -310,14 +249,14 @@ classdef timeline
          % when these latter are unknown. Note however that setting the
          % nominalSamplingRate does not recompute (existing) timestamps.
          obj.nominalSamplingRate = val;
-         assertInvariants(obj);
+         %assertInvariants(obj);
       end
 
 
 
 
-      function res = get.samplingRate(obj)
-         %(DEPENDENT) Gets the object |samplingRate|
+      function res = get.averageSamplingRate(obj)
+         %(DEPENDENT) Gets the object |averageSamplingRate|
          %
          % This is the average sampling rate. This is calculated on the
          % fly from the timestamps and use in many operations
@@ -349,10 +288,10 @@ classdef timeline
         if (ischar(val) || isvector(val) || isscalar(val) || isdatetime(val))
             obj.startTime = datenum(val);
         else
-            error('ICNA:timeline:set:InvalidParameterValue',...
+            error('icnna:data:core:timeline:set_startTime:InvalidParameterValue',...
                   'Value must be a date (whether a string, datevec or datetime).');
         end
-        assertInvariants(obj);
+        %assertInvariants(obj);
       end
 
 
@@ -372,25 +311,57 @@ classdef timeline
          % expressed relative to the startTime. From these, the real
          % average sampling rate (different from the nominal sampling
          % rate) is calculated.
-         
+         %
+         % Changing the timestamps also changes the length, and hence
+         % events on condition may need to be cropped or removed.
          if (isvector(val) && ~ischar(val) ...
                  && all(val(1:end-1)<val(2:end)) )
              %ensure it is a column vector
              val = reshape(val,numel(val),1);
 
-             assert(size(obj.timestamps,1) == obj.length,...
-                 ['ICNNA:timeline:assertInvariants:InvariantViolation ' ...
-                 'Number of timestamps mismatches timeline length.']);
-
-             obj.timestamps = val;
+             try
+                warning('icnna:data:core:timeline:set_timestamps:EventsCropOrRemoved',...
+                        'Events may have been crop or removed.')
+                obj.timestamps = val;
+                obj = cropOrRemoveEvents(obj);
+             catch ME
+                 error('icnna:data:core:timeline:set_timestamps:InvalidParameterValue',...
+                     'Unable to set the timestamps.');
+             end
          else
-             error('ICNA:timeline:set:InvalidParameterValue',...
+             error('icnna:data:core:timeline:set_timestamps:InvalidParameterValue',...
                  'Value must be a vector of length obj.length.');
          end
 
          %See note in the log
-         assertInvariants(obj);
+         %assertInvariants(obj);
       end
+
+
+
+
+
+      function res = get.conditions(obj)
+         %Gets the object |conditions|
+         res = obj.conditions;
+      end
+      function obj = set.conditions(obj,val)
+         %Sets the object |conditions|
+         obj.conditions = reshape(val,numel(val),1);
+         %Assert that there aren't conditions sharing the same id or tag
+         ids  = nan(0,1);
+         tags = cell(0,1);
+         for iCond=1:size(obj.conditions,1)
+            ids(iCond)  = obj.conditions(iCond).id;
+            tags(iCond) = {obj.conditions(iCond).tag};
+         end
+         assert(size(ids,1) == size(unique(ids,1)),...
+                'icnna:data:core:timeline:set_conditions:RepeatedConditionIDs')
+         assert(size(tags,1) == size(unique(tags,1)),...
+                'icnna:data:core:timeline:set_conditions:RepeatedConditionTags')
+
+      end
+
 
 
 

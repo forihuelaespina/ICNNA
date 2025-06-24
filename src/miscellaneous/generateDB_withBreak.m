@@ -110,6 +110,12 @@ function [db]=generateDB_withBreak(expSpace,options)
 % 23-Feb-2024: FOE
 %   + Bug fixed. Improved treatment of empty blocks.
 %
+% 14-Feb-2024: FOE
+%   + Behaviour change:
+%       BEFORE: Assert on whether an fvector was shorter than the
+%       Baseline+BreakSamples
+%       NOW: Assert switched for warning and set that fvector chunkSize to 0.
+%
 
 assert(expSpace.runStatus,'Experiment Space has not been run yet.');
 
@@ -191,9 +197,17 @@ for ii=1:nPoints
        end
 
        %%The following lines have been modified to allow for a break
-       assert(nTotalSamples>=(nBaselineSamples+opt.breakSamples),...
-           'Corrupt Experiment Space.');
-       if (nTotalSamples-(nBaselineSamples+opt.breakSamples)==0)
+       %14-Feb-2025: FOE
+       %    Change of behvaiour. Assert substituted by warning.
+       %
+       %assert(nTotalSamples>=(nBaselineSamples+opt.breakSamples),...
+       %    'Corrupt Experiment Space.');
+       if (nTotalSamples<(nBaselineSamples+opt.breakSamples))
+           warning('ICNNA:generateDB_withBreak:UnexpectedSize',...
+                   ['Number of total samples is lower than expected ' ...
+                    'for experimentSpace vector ' num2str(ii) '.'])
+           taskChunk=0;
+       elseif (nTotalSamples-(nBaselineSamples+opt.breakSamples)==0)
            taskChunk=0;
        else
            taskChunk=fvector((nBaselineSamples+opt.breakSamples)+1:end,:);
