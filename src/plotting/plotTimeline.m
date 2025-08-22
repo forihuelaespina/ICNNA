@@ -1,40 +1,43 @@
 function [f]=plotTimeline(t,options)
-%Display a timeline object
+%DEPRECATED. Display a timeline object
 %
 % [f]=plotTimeline(sd,options) Display a timeline object.
 %
 % This plots the analogous figure to guiTimeline but without the GUI.
 %
+% This function is now deprecated. See icnna.plot.plotTimeline
 %
 %
+%% Input parameters
 %
-%% Options
+%   t - A timeline
 %
-%   .mainTitle: The main title of the figure as a string. By default
-%       is set to 'Timeline'.
+%   options - A struct of options with the following fields.
+%       .mainTitle: The main title of the figure as a string. By default
+%           is set to 'Timeline'.
 %
-%   .fontSize - The font size used in the plots. Size 13 points used by
-%   default
+%       .fontSize - The font size used in the plots. Size 13 points used by
+%           default
 %
-%   .lineWidth - The line width used in the plots. Size 1.5 used by
-%   default
+%       .lineWidth - The line width used in the plots. Size 1.5 used by
+%           default
 %
-%   .visibleConditionsList - Either a vector of conditions' ID or
-%       a cell array of condition tags. List the conditions to be
-%       shown. By default ALL conditions are shown.
+%       .visibleConditionsList - Either a vector of conditions' ID or
+%           a cell array of condition tags. List the conditions to be
+%           shown. By default ALL conditions are shown.
 %
-%   .showOnsets - Displays a text label with the value event onsets
-%       besides the event squares.
+%       .showOnsets - Displays a text label with the value event onsets
+%           besides the event squares.
 %
-%   .showDurations - Displays a text label with the value event durations
-%       besides the event squares.
+%       .showDurations - Displays a text label with the value event durations
+%           besides the event squares.
 %
 %
 %% Output
 %
-% A figure/axis handle.
+% f - A uifigure handle.
 %
-% Copyright 2023
+% Copyright 2023-25
 % @author Felipe Orihuela-Espina
 %
 % See also structuredData, plotChannel, shadeTimeline
@@ -47,6 +50,13 @@ function [f]=plotTimeline(t,options)
 % 24-May-2023: FOE
 %   + File created from code in guiTimeline
 %
+% 12-Jul-2025: FOE
+%   + Added warning for deprecated code
+%
+
+
+warning('icnna:plotTimeline:deprecated',...
+        'This function is now deprecated. Please use icnna.plot.plotTimeline instead.')
 
 
 

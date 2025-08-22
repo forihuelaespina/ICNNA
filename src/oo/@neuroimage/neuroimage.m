@@ -134,8 +134,9 @@ classdef neuroimage < structuredData
                     end
                 end
                 
+                obj.name        = ['Neuroimage' num2str(obj.id,'%04i')];
+                obj.description = ['Neuroimage' num2str(obj.id,'%04i')];
             end
-            obj.description = ['Neuroimage' num2str(obj.id,'%04i')];
             %assertInvariants(obj);
         end
     end

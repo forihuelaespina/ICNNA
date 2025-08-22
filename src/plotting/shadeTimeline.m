@@ -11,14 +11,6 @@ function [H]=shadeTimeline(axesHandle,t,options)
 %function.
 %
 %
-%% Options
-%
-% edgeColor - Edge color. 'none' by default
-%
-% faceAlpha - Transparency from 0 (transparent) to 1 (opaque). Default
-%   value is 0.3
-%
-%
 %% Parameters
 %
 % axesHandle - The handle of the figure to be modified. This
@@ -27,7 +19,15 @@ function [H]=shadeTimeline(axesHandle,t,options)
 %
 % timeline - A timeline
 %
-% options - [Optional] A struct of options. See section options
+% options - [Optional] Struct. A struct of options with the following
+%   options
+%    .edgeColor - Edge color. 'none' by default
+%    .faceAlpha - double. Default value is 0.3
+%       Transparency from 0 (transparent) to 1 (opaque).
+%    .whichConditions - Either vector of ids or cell array of condition
+%       tags. By default is empty.
+%       + If empty, all conditions will be rendered.
+%       + If not empty, only the chosen conditions will be rendered.
 %
 %% Output
 %
@@ -38,7 +38,7 @@ function [H]=shadeTimeline(axesHandle,t,options)
 %
 %
 %
-% Copyright 2008-23
+% Copyright 2008-25
 % @author Felipe Orihuela-Espina
 %
 % See also timeline, plotChannel
@@ -63,6 +63,9 @@ function [H]=shadeTimeline(axesHandle,t,options)
 %   + Slightly modify behaviour so that the shading does not alter
 %   the Y axes scaling.
 %
+% 25-Jun-2025: FOE
+%   + Added option to pick the conditions to shade.
+%
 
 
 
@@ -72,6 +75,7 @@ function [H]=shadeTimeline(axesHandle,t,options)
 %%Deal with options
 opt.edgeColor='none';
 opt.faceAlpha=0.3;
+opt.whichConditions=[];
 if(exist('options','var'))
     %%Options provided
     if(isfield(options,'edgeColor'))
@@ -80,21 +84,42 @@ if(exist('options','var'))
     if(isfield(options,'faceAlpha'))
         opt.faceAlpha=options.faceAlpha;
     end
+    if(isfield(options,'whichConditions'))
+        opt.whichConditions=options.whichConditions;
+    end
+end
+
+
+%Translate conditions tags/names to ids if needed
+if isempty(opt.whichConditions)
+    opt.whichConditions = nan(1,t.nConditions);
+    if isa(t,'timeline')
+        opt.whichConditions = 1:t.nConditions;
+    else %icnna.data.core.timeline
+        for iCond = 1:t.nConditions
+            opt.whichConditions(iCond) = t.conditions(iCond).id;
+        end
+    end
+elseif iscell(opt.whichConditions)
+    tmpWhichConditions  = opt.whichConditions;
+    opt.whichConditions = [];
+    for iCond = 1:t.nConditions
+        opt.whichConditions(iCond) = t.getConditionId(...
+                                            tmpWhichConditions{iCond});
+    end
+    clear tmpWhichConditions
 end
 
 %% Display the timeline
 axes(axesHandle);
-
 hold on
 
-
-nConds=t.nConditions;
-switch (nConds) %this switch is not strictly necessary but makes things
+switch (t.nConditions) %this switch is not strictly necessary but makes things
                 %more aesthetically beautiful... ;)
     case 1
         cmap=[0 1 0]; 
     otherwise
-        cmap=colormap(hsv(nConds));
+        cmap=colormap(hsv(t.nConditions));
 end
 
 
@@ -106,11 +131,17 @@ limits=[getY(3) getY(4) getY(4) getY(3)];
 
 %hold on;
 
-H=cell(nConds,1);
-for condID=1:nConds
-    condTag=getConditionTag(t,condID);
-    condEvents=getConditionEvents(t,condTag);
-    nEvents=getNEvents(t,condTag);
+H=cell(t.nConditions,1);
+for condID = 1:t.nConditions
+
+    tmpVisible = 'off';
+    if ismember (condID,opt.whichConditions)
+        tmpVisible = 'on';
+    end
+
+    condTag   = t.getConditionTag(condID);
+    condEvents= t.getConditionEvents(condTag);
+    nEvents   = t.getNEvents(condTag);
 %%Shade the regions of stimulus
 %%Get the time marks indicating where the task start and finish
 onsets=condEvents(:,1);
@@ -124,7 +155,8 @@ for ee=1:nEvents
         limits,0.1,...
         'EdgeColor',opt.edgeColor,...
         'FaceAlpha',opt.faceAlpha,...
-        'FaceColor','flat');
+        'FaceColor','flat',...
+        'Visible',tmpVisible);
     set(tmph,'FaceColor',cmap(condID,:));
     
     tmpH(ee)=tmph;

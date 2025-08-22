@@ -131,11 +131,17 @@ classdef structuredData
 %   + Added property classVersion. Set to '1.0' by default.
 %   + Added get/set methods support for struct like access to attributes.
 %
+% 7-Jul-2025: FOE
+%   + Set classVersion to '1.1'
+%   + Added property name.
+%   + Property timeline is now of type icnna.data.core.timeline
+%
+%
 
 
 
     properties (Constant, Access=private)
-        classVersion = '1.0'; %Read-only. Object's class version.
+        classVersion = '1.1'; %Read-only. Object's class version.
     end
 
 
@@ -143,8 +149,9 @@ classdef structuredData
 
     properties %(SetAccess=private, GetAccess=private)
         id(1,1) double {mustBeInteger, mustBeNonnegative} = 1; %Numerical identifier to make the object identifiable.
+        name(1,:) char = 'StructuredData0001'; %A name
         description(1,:) char = 'StructuredData0001'; %A short description of the data.
-        timeline(1,1) timeline = timeline; %The timeline of experimental conditions and events
+        timeline(1,1) icnna.data.core.timeline; %The timeline of experimental conditions and events
         data(:,:,:) double = zeros(0,0,0); %The observation data in a 3D tensor format.
             %Ensures 3D
         integrity(1,1) integrityStatus = integrityStatus; %The integrity record for quality control.
@@ -181,6 +188,11 @@ classdef structuredData
             %
             %
 
+            obj.timeline = icnna.data.core.timeline();
+                %NOTE: Do not initialize a handle object directly in 
+                %the declaration of the properties. Matlab ONLY initilizes
+                %objects for the "class" once, and hence initializing
+                %handle objects there can lead to nasty collateral effects.
             if (nargin==0)
                 %Keep default values
             elseif isa(varargin{1},'structuredData')
@@ -209,8 +221,8 @@ classdef structuredData
                             '[nSamples, nChannels, nSignals].']);
                     end
                 end
+                obj.description = ['StructuredData' num2str(obj.id,'%04i')];
             end
-            obj.description = ['StructuredData' num2str(obj.id,'%04i')];
             obj.integrity=integrityStatus(obj.nChannels);
             assertInvariants(obj);
         end
@@ -252,7 +264,12 @@ classdef structuredData
          %Gets the object |timeline|
          %
          % An timeline object
-         res = obj.timeline;
+         if version_IsHigherOrEqual(obj.classVersion,'1.1')
+             res = obj.timeline;
+         else % version '1.0' or no classVersion at all
+             res = timeline(tmpT); %Typecast to old timeline
+         end
+
       end
       function obj = set.timeline(obj,val)
          %Sets the object |timeline|
@@ -419,7 +436,30 @@ classdef structuredData
                    obj.data = val;
                end
                t = obj.timeline;
-               t.length = obj.nSamples;
+               if version_IsHigherOrEqual(obj.classVersion,'1.1')
+                   %Length of the timeline now depends
+                   %on the timestampts, so crop or extends the
+                   %timestamps accordingly
+                   if obj.nSamples > t.length
+                       nNewSamples = obj.nSamples - t.length;
+                       if isempty(t.timestamps)
+                           t.timestamps = ...
+                               (1/t.nominalSamplingRate)*(1:nNewSamples);
+                       else
+                           t.timestamps(end+1:obj.nSamples) = ...
+                               t.timestamps(end) + ...
+                               (1/t.nominalSamplingRate)*(1:nNewSamples);
+                       end
+                   elseif obj.nSamples < t.length
+                       warning('off')
+                       t.timestamps = t.timestamps(1:obj.nSamples);
+                       warning('on')
+                   else %obj.nSamples == t.length
+                       %Do nothing
+                   end
+               else % version '1.0' or no classVersion at all
+                    t.length = obj.nSamples;
+               end
                obj.timeline = t;
                obj.integrity= setNElements(obj.integrity,obj.nChannels);
                if v_nSignals>length(obj.signalTags)

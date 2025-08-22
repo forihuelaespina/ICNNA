@@ -192,6 +192,10 @@ classdef timeline
 %       events
 %   + classVersion increased to '1.0.1'
 %
+% 8-Jul-2025: FOE
+%   + Added copy constructor to provide typecasting capacity from
+%   icnna.data.core.timeline.
+%
 
     properties (Constant, Access=private)
         %classVersion = '1.0'; %Read-only. Object's class version.
@@ -225,6 +229,8 @@ classdef timeline
             %
             % obj=timeline(obj2) acts as a copy constructor of timeline
             %
+            % obj=timeline(t) type casts from icnna.data.core.timeline
+            %
             % obj=timeline(l) creates a new timeline of length l with
             %    no conditions defined.
             %
@@ -244,6 +250,29 @@ classdef timeline
                 %Keep default values
             elseif isa(varargin{1},'timeline')
                 obj=varargin{1};
+                return;
+            elseif isa(varargin{1},'icnna.data.core.timeline')
+                srcT = varargin{1};
+                %Convert the icnna.data.core.timeline to a timeline
+                tmpT = timeline();
+                tmpT.length               = srcT.length;
+                tmpT.startTime            = srcT.startTime;
+                tmpT.timestamps           = srcT.timestamps;
+                tmpT.nominalSamplingRate  = srcT.nominalSamplingRate;
+                conds = srcT.getConditions();
+                for iCond = 1:srcT.nConditions
+                    theCond = conds(iCond);
+                    theCond.unit = 'samples';
+                    theCond.timeUnitMultiplier = 0;
+                    tmpT = tmpT.addCondition(theCond.name,...
+                        [theCond.cevents.onsets ...
+                         theCond.cevents.durations...
+                         theCond.cevents.amplitudes], ...
+                        theCond.cevents.info, ...
+                        0);
+                end
+                tmpT.exclusory            = srcT.exclusory;
+                obj=tmpT;
                 return;
             else
                 %val=varargin{1};

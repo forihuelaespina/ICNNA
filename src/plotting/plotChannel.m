@@ -89,7 +89,7 @@ function [h]=plotChannel(sd,ch,options)
 %
 % A figure/axis handle.
 %
-% Copyright 2008-23
+% Copyright 2008-25
 % @author: Felipe Orihuela-Espina
 %
 % See also structuredData, timeline, shadeTimeline,

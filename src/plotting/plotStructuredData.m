@@ -84,7 +84,7 @@ function [f]=plotStructuredData(sd,options)
 %
 % 2-Jan-2021: FOE
 %   + Improvement. I noticed that sometimes it is convenient to
-%   change the working directory in ICNNA but stil be able to call
+%   change the working directory in ICNNA but still be able to call
 %   ICNNA functions. When this happens calling this function will
 %   yield an error since the icons directory is fixed with respect
 %   to ICNNA main directory being the current directory e.g.

@@ -23,6 +23,9 @@ function display(obj)
 %   + Updated calls to get attributes using the struct like syntax
 %   + Now also displays new attribute classVersion
 %
+% 7-Jul-2025: FOE
+%   + Updated to support icnna.core.data.timeline.
+%
 
 
 
@@ -51,7 +54,7 @@ end
 %disp(['   Data: ']);
 %disp(obj.data);
 disp('   Timeline: ');
-t=timeline(obj.timeline);
+t=obj.timeline;
 display(t);
 disp('   Integrity: ');
 disp(['     ' mat2str(double(obj.integrity))]);

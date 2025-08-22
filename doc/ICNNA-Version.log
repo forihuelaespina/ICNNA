@@ -5,7 +5,135 @@
 ====================================
 
 ====================================
-= ICNNA v1.3.0
+= ICNNA v1.3.1
+====================================
+
++ New classes
+* @icnna.data.core.identifiableObject - Intended to act as a superclass
+        for all ICNNA objects that have an id and a name. Further,
+        because this is a handle, all child classes become handles.
+
+    +====================================================================+
+    | This breaks ICNNA traditional approach of using ONLY pass-by-value |
+    | parameters and has the increased risk of collateral effects, but   |
+    | of course relying on pass-by-reference should speed up a lot       |
+    | of operations substantially.                                       |
+    +====================================================================+
+
+
+* @icnna.data.core.experimentBundle - Intended to supersede @experimentSpace
+* @icnna.data.core.experimentalUnit - While not yet in use, it shall
+        eventually generalize the class @subject.
+* @icnna.data.core.subject - Subclass of @icnna.data.core.experimentalUnit
+        Intended to supersede @subject but there are important differnces.
+        See the class documentation for further details.
+* @icnna.data.core.experimentalGroup - Represent an experimental group.
+        While not yet in use, it shall together with (future) class
+        @icnna.data.core.session, "unfolds" the class
+        @session/@sessionDefinition in its two fundamental components;
+            * the treatment allocation i.e. the group, and
+            * the sampling time i.e. the session.
+
++ New methods
+* icnna.data.core.conditions:classVersion - Retrieves the class version.
+* icnna.data.core.conditions:addEvents - Adds events to a condition
+* icnna.data.core.conditions:clearEvents - Removes all events from a condition
+
+* icnna.data.core.timeline:classVersion - Retrieves the class version.
+* icnna.data.core.timeline:get.exclusory - Sets the exclusory behaviour
+    between conditions.
+* icnna.data.core.timeline:getConditions - Retrieve conditions from a timeline
+* icnna.data.core.timeline:getConditionsList - Retrieve conditions IDs from a timeline
+* icnna.data.core.timeline:addConditions - Adds conditions to a timeline
+* icnna.data.core.timeline:clearConditions - Removes all conditions from the timeline
+* icnna.data.core.timeline:removeConditions - Removes conditions from the timeline
+* icnna.data.core.timeline:setExclusory - Sets the exclusory behaviour among conditions
+* icnna.data.core.timeline:getEvents - Retrieve events from a timeline
+* icnna.data.core.timeline:addEvents - Add events from a timeline
+
+
+
+
++ New packages
+* icnna.plot - Functions related to data visualization.
+
+
+New functions
++ icnna.plot.plotTimeline - Intended to replace the old plotTimeline
++ icnna.plot.plotStructuredData
++ icnna_rootDirectory - Returns name of the directory where ICNNA
+    is installed.
++ icnna_generateUML - NOT YET WORKING CORRECTLY.
+    A supporting script to generate UML documentation
+    using m2uml external tool.
+        * Requires external tool m2uml
+            https://uk.mathworks.com/matlabcentral/fileexchange/59722-m2uml
++ icnna.op.getTrialData - Somewhat analogous to @structuredData.getBlock,
+    but lighter. Instead of retrievnig a full structuredData object, this
+    function concentrates on extracting the data subtensor only.
+
+
+Bugs fixed:
++ @icnna.data.core.timeline:set.conditions - Syntax of assert when
+    setting |conditions| was incorrect.
++ util/mySaveFig - gcf was being used instead of hfig. Most of the
+    the time that works because the figure to save is one used
+    inmediately before. But gca and gcf do not work properly when a
+    uifigure instead of a figure object.
+
+
+
+Behaviour change:
++ package icnna.op.io is now icnna.io - No backward compatibility
+    is provided.
+ 
+@icnna.data.core.condition -
+    * Class version - Updated to 1.1
+    * Now is a child of new class icnna.data.core.identifiableObject.
+    * Property |id| has changed type from double to uint32
+    * Events can no longer be added in the constructor. They ought
+        to be added afterwards using the methods to manipulate events.
+    * Property |amplitudeUnitMultiplier| is no longer supported.
+    * Modiyfing the |unit| no longer modifies the |timeUnitMultiplier|
+    * Property |name| replaces |tag|. |tag| will still be accepted
+      for backward compatibility but it is now deprecated.
+    * Added (read only) dependent properties to access onsets, durations
+    and amplitudes. This addresses the asymmetry that will occur otherwise
+    when accesing the events end.
+    * Added property nominalSamplingRate
+
+    
+@icnna.data.core.timeline -
+    * Class version - Updated to 1.1
+    * Property |id| has changed type from double to uint32
+    * Property |startTime| has changed type from datenum to datetime
+    * Added properties |unit| and |timeUnitMultiplier|
+    * Added properties |unit| and |timeUnitMultiplier|
+    * Conditions are now sorted internally by the condition's |id|
+    * Added get/set methods for |exclusory|
+    * Added private method assertExclusory
+    * A new constructor permits "typecasting" old @timelines
+    % Changed the way the conditions are stored internally for more
+    efficient access. The class interface in this regard however remains
+    the same.
+    * Added derived read-only properties nTotalEvents and condEvents
+
+@structuredData -
+    * Class version - Updated to 1.1
+    * Added property name.
+    * Property timeline is now of type icnna.data.core.timeline
+
+
+Misc
++ plotTimeline - Deprecated
++ util/mySaveFig - Added support for uifigure
++ @icnna.data.core.condition - Improved some comments.
++ @icnna.data.core.timeline  - Improved some comments.
+
+
+
+====================================
+= ICNNA v1.3.0 (released 24-Jun-2025)
 ====================================
 
 @rawData:
@@ -18,6 +146,7 @@
 
 + New classes
 * @icnna.data.core.condition
+* @icnna.data.core.timeline - This class behaviour is still incomplete.
 * @icnna.data.core.rawData supersedes class @rawData.
 * @icnna.data.misc.rawData_NIRx supersedes class @rawData_NIRScout.
 
@@ -26,8 +155,8 @@
     
 + New packages
 * icnna.data.misc
-* icnna.op
-* icnna.op.io
+* icnna.op - General operation
+* icnna.op.io - Functions related to input/output operations i.e. read/write files.
 
 New functions
 + icnna.op.io.rawdata_nirx2snirf

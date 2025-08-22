@@ -1,9 +1,10 @@
-classdef condition
+classdef condition < icnna.data.core.identifiableObject
 % icnna.data.core.condition - Experimental conditions for marking a timeline
 %
-% Equivalent to a stimulus measurement defined in the snirf file format.
-%
 % Each one of the conditions marked in a @icnna.data.core.timeline.
+%
+% Somewhat equivalent to a stimulus measurement defined in the snirf
+% file format but with some additional niceties such as the event info.
 %
 %% Conditions
 %
@@ -22,7 +23,7 @@ classdef condition
 %% Events
 %
 % Onset and durations may be associated with real time stamps or
-%with samples indexes (see property |unit|), however, the condition
+%with samples indexes (see property |unit|). However, the condition
 %has no notion of the sampling rate, i.e. it does NOT know how to
 %convert samples to seconds or viceversa.
 %
@@ -34,11 +35,11 @@ classdef condition
 %For instance an event which start at time
 %sample 30 and finishes at time sample 45 (BOTH INCLUDED)
 %will have its onset set to 30 and its duration set
-%to 16. 
+%to 15. 
 %
 % Sample  30  31  32  33  34  35  36  37  38  39  40  41  42  43  44  45
 %       ---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
-%Duration  1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16
+%Duration  0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15
 %
 %
 %Timeline can hold experiments design under the block paradigm, the
@@ -51,24 +52,41 @@ classdef condition
 % Duration  0
 %
 %
-%% Remark
+%% Remarks
+%
+% @icnna.data.core.condition are @icnna.data.core.identifiableObject,
+% and therefore they are handles. Beware of collateral effects.
+%
 %
 % This class is somewhat analogous to icnna.data.snirf.stim but;
 % 1) This is not attached to the evolution of the .snirf format
 % 2) This provides some additional functionality over icnna.data.snirf.stim
 %   e.g. includes eventInfo
 %
+%
+% Switching time units (i.e. from samples to seconds) and back may
+% result in rounding errors.
+%
 %% Properties
 %
-%   .id - A numerical identifier.
-%   .tag - Char array. A name for the condition. By default is
-%       'condition0001'.
+%   -- Private properties
+%   .classVersion - Char array. (Read only. Constant)
+%       The class version of the object
+%       This is separate from the superclass' own |classVersion|.
+%
+%   -- Inherited properties
+%   .id - uint32. default is 1.
+%       A numerical identifier.
+%   .name - (Since v1.3.1) Char array. By default is 'condition0001'.
+%       A name for the condition. 
+%
+%   -- Public properties
 %   .cevents - Table. List of condition events.
 %         Each row is an event.
 %         The list of events has AT LEAST the following columns;
-%          + onset - The rows of the table is ALWAYS sort by onsets,
-%          + duration,
-%          + amplitude i.e. magnitude or strength.
+%          + onsets - The rows of the table is ALWAYS sort by onsets,
+%          + durations,
+%          + amplitudes i.e. magnitude or strength.
 %          + info - Event information. Whatever the user wants to
 %                   store associated to the condition event.
 %
@@ -93,47 +111,68 @@ classdef condition
 %
 %
 %   .unit - Char array. 'samples' (Default) or 'seconds'.
-%   .timeUnitMultiplier - Scalar (int16). The time unit multiplier exponent
-%       in base 10. It only affects the onset and duration.
-%       Default 0, i.e. attribute events would be in scale 10^0.
-%           + If .unit is 'samples', this will ALWAYS be 0. 
-%           + If .unit is 'seconds', this represents fractional units,
-%               e.g. -3 is equals to [ms]. 
-%   .amplitudeUnitMultiplier - Scalar (int16). The amplitude unit
-%       multiplier exponent in base 10. It only affects the event amplitude.
-%       Default 0, i.e. attribute events would be in scale 10^0.
+%       In switching between 'samples' and 'seconds' or the other
+%       way around, the |nominalSamplingRate| is used to convert
+%       the |cevents| onsets and durations.
+%       Also, when unit is 'samples', the timeUnitMultiplier is
+%       transiently ignored. But when unit is 'seconds', the
+%       timeUnitMultiplier is also considered.
+%
+%   .timeUnitMultiplier - Scalar (int16). Default 0.
+%       The time unit multiplier exponent in base 10. This represents
+%       fractional units, e.g. -3 is equals to [ms]. The default 0
+%       means that the |cevents| would be in scale 10^0 with respect
+%       to seconds.
+%       This property affects the |cevents| onsets and duration.
+%         If the condition |unit| is in 'samples', changing the
+%       |timeUnitMultiplier| does NOT affect the |cevents| onsets
+%       and durations.
+%         If the condition |unit| is in 'seconds', changing the
+%       |timeUnitMultiplier| does affect the |cevents| onsets
+%       and durations. For instance, if an onset occurs at second 1,
+%       changing the |timeUnitMultiplier| to -3 i.e. expressing it
+%       in [ms] means that now the value of the onset is 1000.
+%
+%   .nominalSamplingRate - Scalar (double). Default is 1 [Hz].
+%       The nominal sampling rate in [Hz]. Permits converting sampling
+%       into seconds and viceversa.
+%         If the condition |unit| is in samples, changing the
+%       |nominalSamplingRate| affects the |cevents| onsets and durations.
+%       For instance, an onset at sample 5 sampled at 5 Hz, i.e. equal
+%       to that sample being taken at second 1, if sampled at 10 Hz, to
+%       represent the same time, then the onset would have been in
+%       sample 10.
+%         If the condition |unit| is in seconds, changing the
+%       |nominalSamplingRate| does NOT affect the |cevents| onsets
+%       and durations.
 %
 %
 %% Dependent properties
 %
 %   .nEvents - Read only. Number of events. Number of rows of property |cevents|
-%   .ends  - Read only. Double array with the list of event ends. obj.onsets + obj.durations
+%   .onsets  - Read only. Double array with the list of events' onsets.
+%   .durations - Read only. Double array with the list of events' durations.
+%   .amplitudes - Read only. Double array with the list of events' amplitudes.
+%   .ends  - Read only. Double array with the list of events' ends.
+%       obj.onsets + obj.durations
 %   .eventTime - Read only. Double array of [onsets durations [ends]]
-%   .dataLabels - Equivalent to accessing the variables names of the
-%       cevents table but typecasted to a string array.
+%   .dataLabels - Read only. Equivalent to accessing the variables
+%       names of the cevents table but typecasted to a string array.
 %       These are automatically updated when setting property |cevents|
+%   .tag - DEPRECATED since v1.3.1. See |name|
+%       |tag| is now only a "shell" for |name|. If you update the |name|
+%       you will also be updating the name and viceversa.
 %
 %
 %% Methods
 %
 % Type methods('icnna.data.core.condition') for a list of methods
 % 
-% Copyright 2024
+% Copyright 2024-25
 % @author: Felipe Orihuela-Espina
 %
-% See also timeline, icnna.data.snirf.stim
+% See also icnna.data.core.timeline, icnna.data.snirf.stim
 %
-
-
-
-%PENDING: Making the unit read-only (only writable upon creating a
-%condition) and then having a method the returns a new condition
-%with the other units that takes a sampling rate as parameter.
-%This gives more certainty that the entries in the cevents are intended
-%to be on that units, than if the attribute unit can be updated without
-%updating the cevents.
-
-
 
 
 %% Log
@@ -147,70 +186,85 @@ classdef condition
 %   + Added support for more columns in the cevents table.
 %   + Added support for dataLabels
 %
+%
+% -- ICNNA v1.3.1
+%
+% 25-Jun-2025: FOE 
+%   + Some improved comments.
+%   + Class version - Updated to 1.1
+%   + Property id has changed type from double to uint32
+%   + Events can no longer be added in the constructor. They ought
+%     to be added afterwards using the methods to manipulate events.
+%   + Property |amplitudeUnitMultiplier| is no longer supported.
+%   + Modiyfing the |unit| no longer modifies the |timeUnitMultiplier|
+%   + Property |name| replaces |tag|. |tag| will still be accepted
+%     for backward compatibility but it is now deprecated.
+%
+% 26-Jun-2025: FOE 
+%   + Added dependent properties to access onsets, durations and amplitudes.
+%       This addresses the assymmetry that otherwise will occurr when
+%       accessing the ends, i.e.
+%           * if these dependent properties were not added, then;
+%               To access onsets: cond.cevents.onsets
+%               To access end:    cond.ends
+%           * With these dependent properties added, now;
+%               To access onsets: cond.onsets
+%               To access end:    cond.ends
+%
+% 9-Jul-2025: FOE 
+%   + Declared it as a child of identifiableObject. Properties
+%   id and name are now inherited. Set methods no longer return
+%   the object as output.
+%   + Added property nominalSamplingRate
+%   + Changing the unit can now also update the events.
+%   + Some improved comments.
+%
 
     properties (Constant, Access=private)
-        classVersion = '1.0'; %Read-only. Object's class version.
+        classVersion = '1.1'; %Read-only. Object's class version.
     end
 
-
     properties
-        id(1,1) double {mustBeInteger, mustBeNonnegative}=1; %Numerical identifier to make the object identifiable.
-        tag(1,:) char = ''; %Tag of the condition
         cevents table = table('Size',[0 4],...
                         'VariableTypes',{'double','double','double','cell'},...
-                        'VariableNames',{'onset','duration','amplitude','info'}) ;
-        unit(1,:) char {mustBeMember(unit,{'samples','seconds'})}= 'samples';
+                        'VariableNames',{'onsets','durations','amplitudes','info'}) ;
+        unit(1,:) char {mustBeMember(unit,{'samples','seconds'})} = 'samples';
         timeUnitMultiplier(1,1) int16 = 0;
-        amplitudeUnitMultiplier(1,1) int16 = 0;
+        nominalSamplingRate(1,1) double = 1; %In Hz
     end
     
     properties (Dependent)
         nEvents %Read only
+        onsets %Read only
+        durations %Read only
+        amplitudes %Read only
         ends %Read only
         eventTime %Read only
-        dataLabels
+        dataLabels %Read only
+        tag %DEPRECATED. Use |name| instead.
     end
     
     
     methods
-        function obj=stim(varargin)
-            %ICNNA.DATA.CORE.CONDITION A icnna.data.core.condition class constructor
+        function obj=condition(varargin)
+            %A icnna.data.core.condition class constructor
             %
             % obj=icnna.data.core.condition() creates a default object.
             %
             % obj=icnna.data.core.condition(obj2) acts as a copy constructor
             %
-            % obj=icnna.data.core.condition(inStruct) attempts to typecasts the struct
-            %
             % 
-            % Copyright 2024
+            % Copyright 2024-25
             % @author: Felipe Orihuela-Espina
             %
             
+            obj@icnna.data.core.identifiableObject();
+            tmp = split(class(obj),'.');
+            obj.name = [tmp{end} num2str(obj.id,'%04d')];
             if (nargin==0)
                 %Keep default values
             elseif isa(varargin{1},'icnna.data.core.condition')
                 obj=varargin{1};
-                return;
-            elseif isstruct(varargin{1}) %Attempt to typecast
-                tmp=varargin{1};
-                tmpFields = fieldnames(tmp);
-                for iField = 1:length(tmpFields)
-                    tmpProp = tmpFields{iField};
-                    switch (tmpProp)
-                        case 'events'
-                            obj.cevents.onset     = tmp.events(:,1);
-                            obj.cevents.duration  = tmp.events(:,2);
-                            obj.cevents.amplitude = 1;
-                        case 'eventsInfo'
-                            obj.cevents.info = tmp.eventsInfo;
-                        otherwise %inc. tag
-                            if ismember(tmpProp,properties(obj))
-                                obj.(tmpProp) = tmp.(tmpProp);
-                            end
-                    end
-                end
-
                 return;
             else
                 error(['icnna.data.core.condition:condition:InvalidNumberOfParameters' ...
@@ -224,32 +278,11 @@ classdef condition
 
 
         %Gets/Sets
-        function res = get.id(obj)
-        %Gets the object |id|
-            res = obj.id;
-        end
-        function obj = set.id(obj,val)
-        %Sets the object |id|
-            obj.id =  val;
-        end
-
-
-        function val = get.tag(obj)
-        %Retrieves the |tag| of the condition
-            val = obj.tag;
-        end
-        function obj = set.tag(obj,val)
-        %Sets the |tag| of the condition
-            obj.tag = val;
-        end
-
-
-
         function val = get.cevents(obj)
         %Retrieves the events of the condition
             val = obj.cevents;
         end
-        function obj = set.cevents(obj,val)
+        function set.cevents(obj,val)
         %Sets the events of the conditions
 
             %Check if the number of columns is AT LEAST 4
@@ -262,56 +295,75 @@ classdef condition
             %Check the column names to ensure the mandatory ones (onset,
             %duration, amplitude and info) are present.
             tmpColNames = val.Properties.VariableNames;
-            if ~ismember('onset',tmpColNames)
+            if ~ismember('onsets',tmpColNames)
                 %Find the first non-mandatory column not yet used and rename
-                idx = find(~ismember(tmpColNames,{'onset','duration','amplitude','info'}),1,'first');
+                idx = find(~ismember(tmpColNames,{'onsets','durations','amplitudes','info'}),1,'first');
                 warning('icnna:data:core:condition:set_cevents:MissingEventInformation',...
-                        ['Renaming column ' num2str(idx) ' to onset.'])
-                tmpColNames{idx} = 'onset';
+                        ['Column onsets not found. ' ...
+                         'Renaming column ' num2str(idx) ' to onsets.'])
+                tmpColNames{idx} = 'onsets';
             end
-            if ~ismember('duration',tmpColNames)
-                idx = find(~ismember(tmpColNames,{'onset','duration','amplitude','info'}),1,'first');
+            if ~ismember('durations',tmpColNames)
+                idx = find(~ismember(tmpColNames,{'onsets','durations','amplitudes','info'}),1,'first');
                 warning('icnna:data:core:condition:set_cevents:MissingEventInformation',...
-                        ['Renaming column ' num2str(idx) ' to duration.'])
-                tmpColNames{idx} = 'duration';
+                        ['Column durations not found. ' ...
+                         'Renaming column ' num2str(idx) ' to durations.'])
+                tmpColNames{idx} = 'durations';
             end
-            if ~ismember('amplitude',tmpColNames)
-                idx = find(~ismember(tmpColNames,{'onset','duration','amplitude','info'}),1,'first');
+            if ~ismember('amplitudes',tmpColNames)
+                idx = find(~ismember(tmpColNames,{'onsets','durations','amplitudes','info'}),1,'first');
                 warning('icnna:data:core:condition:set_cevents:MissingEventInformation',...
-                        ['Renaming column ' num2str(idx) ' to amplitude.'])
-                tmpColNames{idx} = 'amplitude';
+                        ['Column amplitudes not found. ' ...
+                         'Renaming column ' num2str(idx) ' to amplitudes.'])
+                tmpColNames{idx} = 'amplitudes';
             end
             if ~ismember('info',tmpColNames)
-                idx = find(~ismember(tmpColNames,{'onset','duration','amplitude','info'}),1,'first');
+                idx = find(~ismember(tmpColNames,{'onsets','durations','amplitudes','info'}),1,'first');
                 warning('icnna:data:core:condition:set_cevents:MissingEventInformation',...
-                        ['Renaming column ' num2str(idx) ' to info.'])
+                        ['Column info not found. ' ...
+                         'Renaming column ' num2str(idx) ' to info.'])
                 tmpColNames{idx} = 'info';
             end
-            assert(ismember('onset',tmpColNames) ...
-                && ismember('duration',tmpColNames) ...
-                && ismember('amplitude',tmpColNames) ...
+            assert(ismember('onsets',tmpColNames) ...
+                && ismember('durations',tmpColNames) ...
+                && ismember('amplitudes',tmpColNames) ...
                 && ismember('info',tmpColNames), ...
                 ['icnna:data:core:condition:set_cevents:MissingEventInformation', ...
-                'Unable to find one or more mandatory columns (onset, '...
-                'duration, amplitude, info).']);
+                'Unable to find one or more mandatory columns (onsets, '...
+                'durations, amplitudes, info).']);
             val.Properties.VariableNames = tmpColNames;
 
             obj.cevents = val;
-            obj.cevents = sortrows(obj.cevents,'onset');
+            obj.cevents = sortrows(obj.cevents,'onsets');
         end
 
         function val = get.unit(obj)
         %Retrieves the temporal unit, whether 'samples' or 'seconds'
             val = obj.unit;
         end
-        function obj = set.unit(obj,val)
+        function set.unit(obj,val)
         %Sets the temporal unit, whether 'samples' or 'seconds'
-        %
-        %When switching from seconds to samples, the |timeUnitMultiplier|
-        %will be reset to 0.
+            currentUnit = obj.unit; 
             obj.unit = val;
-            if strcmp(val,'samples')
-                obj.timeUnitMultiplier = 0;
+            if ~strcmp(currentUnit,obj.unit)
+                %Conversion needed.
+                tmpMultiplier = double(obj.timeUnitMultiplier); %typecasting is
+                                                      %explicitly needed
+                if strcmp(obj.unit,'samples')
+                     %Convert from seconds to samples
+                    obj.cevents.onsets = round(obj.cevents.onsets * ...
+                        obj.nominalSamplingRate * 10^tmpMultiplier);
+                    obj.cevents.durations = round(obj.cevents.durations * ...
+                        obj.nominalSamplingRate * 10^tmpMultiplier);
+                     
+                else %Convert from samples to seconds
+                    obj.cevents.onsets = obj.cevents.onsets ./ ...
+                        (obj.nominalSamplingRate * 10^tmpMultiplier);
+                    obj.cevents.durations = obj.cevents.durations ./ ...
+                        (obj.nominalSamplingRate * 10^tmpMultiplier);
+                     
+                end
+
             end
         end
 
@@ -319,24 +371,41 @@ classdef condition
         %Retrieves the temporal unit multiplier
             val = obj.timeUnitMultiplier;
         end
-        function obj = set.timeUnitMultiplier(obj,val)
+        function set.timeUnitMultiplier(obj,val)
         %Sets the temporal unit multiplier
-            if strcmp(obj.unit,'samples') && val~=0
-                error('icnna:data:core:condition:set_timeUnitMultiplier:InvalidValue',...
-                      'timeUnitMultiplier ought to be 0 when condition unit is "samples".');
-            end
+            currentMultiplier = obj.timeUnitMultiplier;
             obj.timeUnitMultiplier = val;
+            if strcmp(obj.unit,'seconds')
+                obj.cevents.onsets = obj.cevents.onsets * ...
+                    10^double(currentMultiplier - obj.timeUnitMultiplier);
+                obj.cevents.durations = obj.cevents.durations * ...
+                    10^double(currentMultiplier - obj.timeUnitMultiplier);
+            end
         end
 
 
-        function val = get.amplitudeUnitMultiplier(obj)
-        %Retrieves the amplitude unit multiplier
-            val = obj.amplitudeUnitMultiplier;
+        function val = get.nominalSamplingRate(obj)
+        %Retrieves the |nominalSamplingRate| of the condition
+            val = obj.nominalSamplingRate;
         end
-        function obj = set.amplitudeUnitMultiplier(obj,val)
-        %Sets the amplitude unit multiplier
-            obj.amplitudeUnitMultiplier = val;
+        function set.nominalSamplingRate(obj,val)
+        %Sets the |nominalSamplingRate| of the condition
+            if (val == 0)
+                warning('icnna:data:core:condition:set_nominalSamplingRate:ParameterValue',...
+                    ['A nominal sampling rate equal to 0 can lead to ' ...
+                    'incorrect conversions between samples and seconds.'])
+            end
+            currentSR = obj.nominalSamplingRate;
+            obj.nominalSamplingRate = val;
+            if strcmp(obj.unit,'samples')
+                obj.cevents.onsets = round(obj.cevents.onsets * ...
+                    (obj.nominalSamplingRate / currentSR));
+                obj.cevents.durations = round(obj.cevents.durations * ...
+                    (obj.nominalSamplingRate / currentSR));
+            end
         end
+
+
 
 
 
@@ -350,77 +419,63 @@ classdef condition
             val = size(obj.cevents,1);
         end
 
+        function res = get.onsets(obj)
+            %(DEPENDENT) Gets the list of events' |onsets|
+            %
+            % The list of events' |onsets|
+            res = obj.cevents.onsets;
+        end
+
+        function res = get.durations(obj)
+            %(DEPENDENT) Gets the list of events' |durations|
+            %
+            % The list of events' |durations|
+            res = obj.cevents.durations;
+        end
+
+        function res = get.amplitudes(obj)
+            %(DEPENDENT) Gets the list of events' |amplitudes|
+            %
+            % The list of events' |amplitudes|
+            res = obj.cevents.amplitudes;
+        end
+
         function res = get.ends(obj)
-            %(DEPENDENT) Gets the list of event's |ends|
+            %(DEPENDENT) Gets the list of events' |ends|
             %
             % The list of event's |ends| (onset + duration)
-            res = obj.cevents.onset + obj.cevents.duration;
+            res = obj.cevents.onsets + obj.cevents.durations;
         end
 
-        function val = get.eventTime(obj)
-        %Retrieves the events ends (onset + duration)
-            val = [obj.cevents.onset obj.cevents.duration obj.ends];
+        function res = get.eventTime(obj)
+        %(DEPENDENT) Retrieves the events ends (onset + duration)
+            res = [obj.cevents.onsets obj.cevents.durations obj.ends];
         end
 
-        function val = get.dataLabels(obj)
+        function res = get.dataLabels(obj)
         %(DEPENDENT) Retrieves the variable names of the cevents table as a string array
         %
         %If you need the data labels as a cell array use:
         %       obj.cevents.Properties.VariableNames
-            val = string(obj.cevents.Properties.VariableNames);
+            res = string(obj.cevents.Properties.VariableNames);
         end
-        function obj = set.dataLabels(obj,val)
-        %(DEPENDENT) Sets the variable names of the cevents table
-            %Check that it is typed as string array
-            if ~isstring(val)
-                error('icnna:data:core:condition:set_dataLabels:InvalidType',...
-                       'Property dataLabels ought to be a string array.');
-            end
-            val = cellstr(val); %Typecast to cell array
 
-            %Check if the number of elements matches the number of columns
-            %in cevents
-            val=reshape(val,numel(val),1);
-            if length(val) ~= length(obj.cevents.Properties.VariableNames)
-                error('icnna:data:core:condition:set_dataLabels:InvalidValue',...
-                       ['Number of dataLabels ought to match the number ' ...
-                       'of columns in property .cevents.']);
-            end
-            %Check the column names to ensure the mandatory ones (onset,
-            %duration, amplitude and info) are present.
-            if ~ismember('onset',val)
-                %Find the first non-mandatory column not yet used and rename
-                idx = find(~ismember(val,{'onset','duration','amplitude','info'}),1,'first');
-                warning('icnna:data:core:condition:set_dataLabels:MissingEventInformation',...
-                        ['Renaming column ' num2str(idx) ' to onset.'])
-                val{idx} = 'onset';
-            end
-            if ~ismember('duration',val)
-                idx = find(~ismember(val,{'onset','duration','amplitude','info'}),1,'first');
-                warning('icnna:data:core:condition:set_dataLabels:MissingEventInformation',...
-                        ['Renaming column ' num2str(idx) ' to duration.'])
-                val{idx} = 'duration';
-            end
-            if ~ismember('amplitude',val)
-                idx = find(~ismember(val,{'onset','duration','amplitude','info'}),1,'first');
-                warning('icnna:data:core:condition:set_dataLabels:MissingEventInformation',...
-                        ['Renaming column ' num2str(idx) ' to amplitude.'])
-                val{idx} = 'amplitude';
-            end
-            if ~ismember('info',val)
-                idx = find(~ismember(val,{'onset','duration','amplitude','info'}),1,'first');
-                warning('icnna:data:core:condition:set_dataLabels:MissingEventInformation',...
-                        ['Renaming column ' num2str(idx) ' to info.'])
-                val{idx} = 'info';
-            end
-            assert(ismember('onset',val) && ismember('duration',val) ...
-                && ismember('amplitude',val) && ismember('info',val), ...
-                ['icnna:data:core:condition:set_dataLabels:MissingEventInformation', ...
-                'Unable to find one or more mandatory columns (onset, '...
-                'duration, amplitude, info).']);
-            
-            obj.cevents.Properties.VariableNames = val;
+
+        function val = get.tag(obj)
+        %Retrieves the |tag| (|name|) of the condition
+        %
+        %The use of |tag| is now deprecated.
+            val = obj.name;
         end
+        function set.tag(obj,val)
+        %Sets the |tag| (|name|) of the condition
+        %
+        %The use of |tag| is now deprecated.
+            warning('icnna:data:core:condition:deprecatedProperty',...
+                    'The use of |tag| is now deprecated. See |name|.')
+            obj.name = val;
+        end
+
 
 
 

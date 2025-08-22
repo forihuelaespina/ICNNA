@@ -33,3 +33,9 @@ doc/ICNNA-MENA*.pdf
 src2/**
 rubbish/**
 
+## Support
+src/external/m2uml/**
+## M2UML - https://uk.mathworks.com/matlabcentral/fileexchange/59722-m2uml
+## A toolbox to generate PlantUML models from the code.
+## Now when I release a version, the UML class diagram is also generated with this toolbox.
+##

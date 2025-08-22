@@ -54,6 +54,9 @@ function [aSnirf] = writeTimelineToSnirf(aSnirf,t,options)
 % 12-Feb-2025: FOE
 %   + File created, but reused some code from @rawData_Snirf.convert
 %
+% 20-Jul-2025: FOE
+%   + Added support for icnna.data.core.timeline
+%
 
 
 
@@ -135,6 +138,78 @@ if isa(t,'timeline')
         aSnirf.nirs(opt.iNirs).stim(nStims+iCond) = tmpStim;
         
     end
+
+
+
+
+
+
+
+
+
+
+else %icnna.data.core.timeline
+
+
+    if opt.overwriteTimestamps
+        aSnirf.nirs(opt.iNirs).data.time = t.timestamps;
+    end
+
+
+
+    if opt.overwriteStims
+        aSnirf.nirs(opt.iNirs).stim(:) = [];
+    end
+
+    %Allocate memory
+    nStims = length(aSnirf.nirs(opt.iNirs).stim);
+    aSnirf.nirs(opt.iNirs).stim(nStims+1:nStims+t.nConditions) = ...
+            icnna.data.snirf.stim();
+
+
+    timeUnit = 0;
+    if isfield(aSnirf.nirs(opt.iNirs).metaDataTags,'TimeUnit');
+        switch (aSnirf.nirs(opt.iNirs).metaDataTags.TimeUnit)
+            case 's'
+                timeUnit = 0;
+            case 'ms'
+                timeUnit = -3;
+            case {'us','μs'}
+                timeUnit = -6;
+            case 'ns'
+                timeUnit = -9;
+            otherwise
+                error('icnna:op:writeTimelineToSnirf',...
+                    ['Unexpected time unit ' aSnirf.nirs(opt.iNirs).metaDataTags.TimeUnit])
+        end
+    end
+
+
+
+    conds = t.getConditions(); %Get all conditions
+    for iCond = 1:t.nConditions
+        theCond = copy(conds(iCond));
+        %Each condition is an iccna.data.core.condition
+        tmpStim = icnna.data.snirf.stim();
+        tmpStim.name = theCond.name;
+
+        if strcmp(theCond.unit,'samples')
+        %convert events in samples to events in time
+            theCond.unit = 'seconds';
+        end
+        theCond.timeUnitMultiplier = timeUnit;
+
+        cEvents = theCond.cevents;
+
+        tmpStim.data = [cEvents.onsets cEvents.durations cEvents.amplitudes];
+        tmpStim.dataLabels = {'starttime','duration','amplitude'};
+        aSnirf.nirs(opt.iNirs).stim(nStims+iCond) = tmpStim;
+        
+    end
+
+
+
+
 
 end
 

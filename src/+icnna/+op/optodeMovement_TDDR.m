@@ -108,6 +108,9 @@ function [nimg] = optodeMovement_TDDR(nimg,options)
 % 18-May-2025: FOE
 %   + Initial testing and debugging.
 %
+% 8-Jul-2025: FOE
+%   + Adapted to deal with timeline or icnna.data.core.timeline objects.
+%
 
 
 %% Deal with options
@@ -133,7 +136,11 @@ tmpData = reshape(nimg.data,nimg.nSamples,nMeasurements);
 lowComponent  = tmpData;
 highComponent = zeros(size(nimg.data));
 
-fs = nimg.timeline.samplingRate; % Sampling frequency (Hz)
+if isa(nimg.timeline,'icnna.data.core.timeline')
+    fs = nimg.timeline.averageSamplingRate; % Sampling frequency (Hz)
+else %Classical timeline
+    fs = nimg.timeline.samplingRate; % Sampling frequency (Hz)
+end
 if fs > 1
     % Design Butterworth filters
     fc = 0.5; % Cutoff frequency (Hz)

@@ -120,8 +120,9 @@ classdef nirs_neuroimage < neuroimage
                     end
                 end
 
+                obj.name        = ['NIRSImage' num2str(obj.id,'%04i')];
+                obj.description = ['NIRSImage' num2str(obj.id,'%04i')];
             end
-            obj.description = ['NIRSImage' num2str(obj.id,'%04i')];
             %assertInvariants(obj);
         end
 

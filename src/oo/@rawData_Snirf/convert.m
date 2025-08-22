@@ -143,7 +143,10 @@ function nimg=convert(obj,varargin)
 %   samples as fOSA -and ICNNA by inheritance- did), that can enhance
 %   stability of the signal. For this a new option I0ref is provided.
 %
-
+%
+% 7-Jul-2025: FOE (v1.3.1)
+%  + Adapted to support structuredData classVersion '1.1'
+%
 
 
 opt.nirsDatasetIndex = 1; %Index of the nirs dataset to be converted.
@@ -279,12 +282,24 @@ nimg.chLocationMap = clm;
 %% Deal with the timeline
 %One condition per stimulus
 
-t = timeline(nSamples);
+if isa(nimg.timeline,'icnna.data.core.timeline')
+     %From ICNNA v1.3.1 the structuredData timeline is the
+     %new icnna.data.core.timeline
+    t = icnna.data.core.timeline();
+
+else %Good old fashion timeline
+    t = timeline(nSamples);
+end
+
 t.timestamps = tmpNirs.data.time;
-t.nominalSamplingRate = t.samplingRate;
+if isa(nimg.timeline,'icnna.data.core.timeline')
+    t.nominalSamplingRate = t.averageSamplingRate;
+else
+    t.nominalSamplingRate = t.samplingRate;
                         %snirf does not stored a nominal sampling rate.
                         %Assume the nominal sampling rate to be equal to
                         %the average sampling rate.
+end
 nStims = length(tmpNirs.stim);
 for iStim = 1:nStims
     tmpStim = tmpNirs.stim(iStim);
@@ -355,19 +370,54 @@ for iStim = 1:nStims
     %       sample are truncated.
     tmpcevents(:,2) = max(0,min(tmpcevents(:,2), nSamples-tmpcevents(:,1)));
 
-    if isempty(t.getCondition(cTag))
-        % 8-May-2024: FOE
-        %   + Bug fixed. Up to timeline class version '1.0', ICNNA does NOT have
-        %   anything equivalent to snirf dataLabels, so the information on the
-        %   dataLabels was getting lost. I have now added some rudimentary 
-        %   support in the timeline class but this is likely not a good solution...
-        if isproperty(tmpStim,'dataLabels')
-            t = t.addCondition(cTag,tmpcevents,tmpStim.dataLabels,0);
+    if isa(nimg.timeline,'icnna.data.core.timeline')
+        if isempty(t.getConditions(cTag))
+            % 8-May-2024: FOE
+            %   + Bug fixed. Up to timeline class version '1.0', ICNNA does NOT have
+            %   anything equivalent to snirf dataLabels, so the information on the
+            %   dataLabels was getting lost. I have now added some rudimentary 
+            %   support in the timeline class but this is likely not a good solution...
+            if isproperty(tmpStim,'dataLabels')
+                %Ignore the dataLabels.
+                %snirf often uses "starttime" instead of "onset"
+                %While I can try to do some sophisticated "mapping" of
+                %dataLabels it is not worthy, given that ICNNA
+                %forces the onsets to be called onset.
+                tmpCond = icnna.data.core.condition();
+                [idList,~] = t.getConditionsList();
+                if isempty(idList)
+                    tmpCond.id   = 1;
+                else
+                    tmpCond.id   = max(idList) + 1;
+                end
+                tmpCond.name                = cTag;
+                tmpCond.unit                = t.unit;
+                tmpCond.timeUnitMultiplier  = t.timeUnitMultiplier;
+                tmpCond.nominalSamplingRate = t.nominalSamplingRate;
+                
+                tmpCond.addEvents(tmpcevents);
+                t.addConditions(tmpCond,0);
+            else
+                t.addConditions(cTag,tmpcevents,0);
+            end
         else
-            t = t.addCondition(cTag,tmpcevents,0);
+            t.addConditionEvents(cTag,tmpcevents);
         end
     else
-        t = t.addConditionEvents(cTag,tmpcevents);
+        if isempty(t.getCondition(cTag))
+            % 8-May-2024: FOE
+            %   + Bug fixed. Up to timeline class version '1.0', ICNNA does NOT have
+            %   anything equivalent to snirf dataLabels, so the information on the
+            %   dataLabels was getting lost. I have now added some rudimentary 
+            %   support in the timeline class but this is likely not a good solution...
+            if isproperty(tmpStim,'dataLabels')
+                t = t.addCondition(cTag,tmpcevents,tmpStim.dataLabels,0);
+            else
+                t = t.addCondition(cTag,tmpcevents,0);
+            end
+        else
+            t = t.addConditionEvents(cTag,tmpcevents);
+        end
     end
 end
 
@@ -464,7 +514,8 @@ switch (tmpDataType)
                           ['Unexpected data label ' tmpMeasurement.dataTypeLabel '. ' ...
                            'Either not a valid .snirf data label or not supported yet by ICNNA.']);
             end
-            tmpData(:,iCh,iSignal) = tmpNirs.data.dataTimeSeries(:,iMeas);
+            nimg.signalTags(iSignal) = tmpMeasurement.dataTypeLabel;
+            tmpData(:,iCh,iSignal)   = tmpNirs.data.dataTimeSeries(:,iMeas);
         end
         %nimg=set(nimg,'Data',tmpData);
         nimg.data = tmpData;
