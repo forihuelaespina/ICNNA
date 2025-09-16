@@ -7,6 +7,8 @@ function setBundle(obj,tmpE,tmpB,tmpp)
 %
 % @li In principle the projection does NOT have to be 1-to-1 ergo the
 %   number of rows of E and B do not have to comply.
+% @li If p is not provided a naive bijective projection is created. See
+%   parameters section below.
 %
 %   
 %% Parameters
@@ -22,6 +24,7 @@ function setBundle(obj,tmpE,tmpB,tmpp)
 %           + 'BaseSpacePoint' pointing to one row of B
 %       By default a bijective implicit projection p:E->B
 %           where the j-th row of E is associated to the j-th row of B.
+%           In this case, E and B ought to have the same number of rows.
 %
 %
 %
@@ -49,8 +52,12 @@ nFamilySpaces = size(tmpE,1);
 nBasePoints   = size(tmpB,1);
 
 if ~exist('tmpp','var')
-    %By default, a naive bijective projection between the total space
-    %and the base space.
+    %By default, attempt a naive bijective projection between the
+    % total space and the base space.
+    assert(nFamilySpaces == nBasePoints,...
+           ['Default bijective projection is not possible if ' ...
+            'the total space E and the base space B do not have ' ...
+            'the same cardinality.']);
     nCases = nFamilySpaces;
     tmpp = table('Size',[nCases 2],...
         'VariableTypes',{'uint32','uint32'},...

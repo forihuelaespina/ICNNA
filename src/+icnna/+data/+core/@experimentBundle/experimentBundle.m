@@ -233,10 +233,9 @@ classdef experimentBundle < icnna.data.core.identifiableObject
 %
 %% Dependent properties
 %
-%   .nCases - Number of points in the base space (for which there is
-%       an associated space in E even if an empty one -missing data-,
-%       i.e. not the "whole" cartesian product of the base space
-%       dimensions).
+%   .nBasePoints   - Number of points in the base space
+%   .nTotalPoints  - Number of points in the total space
+%   .nAssociations - Number of associations in the projection p
 %
 %% Methods
 %
@@ -267,6 +266,10 @@ classdef experimentBundle < icnna.data.core.identifiableObject
 % 26-Jul-2025: FOE
 %   + Made subclass of @icnna.data.core.identifiableObject
 %   + Improve some comments
+%
+% 29-Jul-2025: FOE
+%   + Renamed dependent property |nCases| as |nBasePoints|
+%   + Added dependent properties |nTotalPoints| and |nAssociations|
 %
 
 
@@ -309,7 +312,9 @@ classdef experimentBundle < icnna.data.core.identifiableObject
 
 
     properties (Dependent)
-        nCases %Read only
+        nBasePoints   %Read only
+        nTotalPoints  %Read only
+        nAssociations %Read only
     end
 
 
@@ -458,11 +463,25 @@ classdef experimentBundle < icnna.data.core.identifiableObject
 
 
         %Dependent properties gets/sets
-        function val = get.nCases(obj)
-            %(DEPENDENT) Gets the object |nCases|
+        function val = get.nBasePoints(obj)
+            %(DEPENDENT) Gets the object |nBasePoints|
             %
             % The number of cases declared in the base space.
             val = size(obj.B,1);
+        end
+
+        function val = get.nTotalPoints(obj)
+            %(DEPENDENT) Gets the object |nTotalPoints|
+            %
+            % The number of cases declared in the total space.
+            val = size(obj.E,1);
+        end
+
+        function val = get.nAssociations(obj)
+            %(DEPENDENT) Gets the object |nBasePoints|
+            %
+            % The number of associations in the projection.
+            val = size(obj.p,1);
         end
 
 

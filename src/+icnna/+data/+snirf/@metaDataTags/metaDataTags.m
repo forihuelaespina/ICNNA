@@ -55,6 +55,35 @@ classdef metaDataTags
 %   icnna.data.snirf.metaDataTags for consistency with snirf denomination.
 %
 %
+% 6-Sep-2025: FOE
+%   + Added support for time zone "Z" in the measurementTime
+% Some public .snirf datasets e.g. the FRESH motor dataset
+% (https://openneuro.org/datasets/ds005963/versions/1.0.0/download)
+% express the time in the metaDataTag for "measurementTime" in
+% the time zone "Z" (code for Zulu Time or Zebra Time and is the
+% military code name for UTC). Because the code "Z" is not a timezone
+% recognised by matlab (see MATLAB's "timezones"), then this CANNOT be
+% read by default in matlab as:
+%
+%   datetime(tmpTags.measurementTime)
+%
+% It can still be read using the corresponding options e.g.:
+%
+%   datetime(tmpTags.measurementTime,'InputFormat','HH:mm:ssZ','TimeZone','Z')
+%
+% ...but this imposes a problem for ICNNA, which do not have the
+% capacity to infer these uncommon formats and hence it wwas yielding
+% an error when attempting to read the file. Yet the file content is
+% perfectly ok. I have now added a naive support for this format.
+%
+%   THE SOLUTION IMPLEMENTED HERE DOES NOT SEEM TO BE WORKING BECAUSE
+%   MATLAB CHECKS THE STRING BEFORE CALLING THE SET METHOD AND
+%   SIMPLY REFUSES THE CALL THE METHOD IF THE STRING IS NOT DIRECTLY
+%   CONVERTIBLE.
+%
+%   While not ideal, but for the time being I'm also adding support
+% in the load method.
+%
 
     properties (Constant, Access=private)
         classVersion = '1.0'; %Read-only. Object's class version.
@@ -165,7 +194,12 @@ classdef metaDataTags
             %attribute should be a string, but I'm keeping it as a
             %datetime.
             try
-                obj.measurementTime = datetime(val);
+                if isstring(val) && endsWith(val, 'Z') %Support for Zulu Timezone
+                    obj.measurementTime = datetime(val,...
+                        'InputFormat','HH:mm:ssZ','TimeZone','Z');
+                else %General case
+                    obj.measurementTime = datetime(val);
+                end
             catch
                 error(['icnna.data.snirf.metaDataTags:set.measurementTime:InvalidPropertyValue',...
                     'String cannot be converted to date.'])

@@ -147,6 +147,16 @@ function nimg=convert(obj,varargin)
 % 7-Jul-2025: FOE (v1.3.1)
 %  + Adapted to support structuredData classVersion '1.1'
 %
+% 6-Sep-2025: FOE (v1.3.1)
+%  + Bug fixed; Recovery of the number of sources and detectors
+%   when the 2D location was not available was incorrectly set to 0.
+%   The number of sources and detectors is now directly recovered
+%   from the measurementList which is more robust.
+%  + Bug fixed; Adding a condition when the stim object did not have
+%   the dataLabels field was still calling the addConditions method
+%   using the old format for @timeline rather than the new one
+%   for @icnna.data.core.timeline.
+%
 
 
 opt.nirsDatasetIndex = 1; %Index of the nirs dataset to be converted.
@@ -244,8 +254,8 @@ clm = channelLocationMap;
 clm.nChannels = nChannels;
 
 %Bring together sources and detectors under optodes
-nSources   = size(tmpNirs.probe.sourcePos2D,1);
-nDetectors = size(tmpNirs.probe.detectorPos2D,1);
+nSources   = length(unique([tmpNirs.data.measurementList(:).sourceIndex]));
+nDetectors = length(unique([tmpNirs.data.measurementList(:).detectorIndex]));
 clm.nOptodes = nSources + nDetectors;
 clm.optodesLocations = [tmpNirs.probe.sourcePos3D; ...
                         tmpNirs.probe.detectorPos3D];
@@ -377,29 +387,31 @@ for iStim = 1:nStims
             %   anything equivalent to snirf dataLabels, so the information on the
             %   dataLabels was getting lost. I have now added some rudimentary 
             %   support in the timeline class but this is likely not a good solution...
+            tmpCond = icnna.data.core.condition();
+            [idList,~] = t.getConditionsList();
+            if isempty(idList)
+                tmpCond.id   = 1;
+            else
+                tmpCond.id   = max(idList) + 1;
+            end
+            tmpCond.name                = cTag;
+            tmpCond.unit                = t.unit;
+            tmpCond.timeUnitMultiplier  = t.timeUnitMultiplier;
+            tmpCond.nominalSamplingRate = t.nominalSamplingRate;
+
+            tmpCond.addEvents(tmpcevents);
+
             if isproperty(tmpStim,'dataLabels')
                 %Ignore the dataLabels.
                 %snirf often uses "starttime" instead of "onset"
                 %While I can try to do some sophisticated "mapping" of
                 %dataLabels it is not worthy, given that ICNNA
                 %forces the onsets to be called onset.
-                tmpCond = icnna.data.core.condition();
-                [idList,~] = t.getConditionsList();
-                if isempty(idList)
-                    tmpCond.id   = 1;
-                else
-                    tmpCond.id   = max(idList) + 1;
-                end
-                tmpCond.name                = cTag;
-                tmpCond.unit                = t.unit;
-                tmpCond.timeUnitMultiplier  = t.timeUnitMultiplier;
-                tmpCond.nominalSamplingRate = t.nominalSamplingRate;
-                
-                tmpCond.addEvents(tmpcevents);
-                t.addConditions(tmpCond,0);
-            else
-                t.addConditions(cTag,tmpcevents,0);
+
+                %DO NOTHING
             end
+            t.addConditions(tmpCond,0);
+
         else
             t.addConditionEvents(cTag,tmpcevents);
         end

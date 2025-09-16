@@ -41,7 +41,33 @@ function [res]=load(filename)
 %   + Bug fixed. Reading of '/data' group was "only" looking in '/nirs'
 %   group excluding the possibility of more than one neuroimage.
 %
-
+% 6-Sep-2025: FOE
+%   + Added support for time zone "Z" in the measurementTime
+% Some public .snirf datasets e.g. the FRESH motor dataset
+% (https://openneuro.org/datasets/ds005963/versions/1.0.0/download)
+% express the time in the metaDataTag for "measurementTime" in
+% the time zone "Z" (code for Zulu Time or Zebra Time and is the
+% military code name for UTC). Because the code "Z" is not a timezone
+% recognised by matlab (see MATLAB's "timezones"), then this CANNOT be
+% read by default in matlab as:
+%
+%   datetime(tmpTags.measurementTime)
+%
+% It can still be read using the corresponding options e.g.:
+%
+%   datetime(tmpTags.measurementTime,'InputFormat','HH:mm:ssZ','TimeZone','Z')
+%
+% ...but this imposes a problem for ICNNA, which do not have the
+% capacity to infer these uncommon formats and hence it wwas yielding
+% an error when attempting to read the file. Yet the file content is
+% perfectly ok. 
+% 
+% Further, attempting to solve this issue in the attribute setter
+% will not work becuase MATLAB checks the string BEFORE calling the
+% setter, and refuses to call the method if the string is not directly
+% convertible. Therefore, while not ideal, but for the time being
+% I'm also adding support here in the load method.
+%
 
 %Create the object
 res = icnna.data.snirf.snirf();
@@ -81,7 +107,12 @@ for iDataset = 1:length(theNirsFields)
             end
         end
         tmpTags.measurementDate = string(strip(tmpTags.measurementDate,'both',char(0)));
-        tmpTags.measurementTime = string(strip(tmpTags.measurementTime,'both',char(0)));
+        tmpTime = string(strip(tmpTags.measurementTime,'both',char(0)));
+        if endsWith(tmpTime,'Z')
+            tmpTime = extractBefore(tmpTime,strlength(tmpTime));
+        end
+        tmpTags.measurementTime = tmpTime;
+        %Support 
     tmp.metaDataTags = icnna.data.snirf.metaDataTags(tmpTags);
 
     %Read probe

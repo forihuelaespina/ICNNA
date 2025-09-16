@@ -1,5 +1,5 @@
 function A=normalize(A,varargin)
-%Normalizes data matrix
+%DEPRECATED. Normalizes data matrix
 %
 % A=normalize(A) the matrix is normalized to zero mean and unit variance
 %   across all dimensions at once.
@@ -14,7 +14,6 @@ function A=normalize(A,varargin)
 % A= normalize(...,'range',[min max]) the matrix is normalized to range
 %   between min and max. Common normalizations ranges are [0 1]
 %   and/or [-1 1].
-%
 %
 %
 %% Algortithm
@@ -49,7 +48,7 @@ function A=normalize(A,varargin)
 %
 %
 %
-% Copyright 2009
+% Copyright 2009-25
 % Date: 24-Apr-2009
 % Author: Felipe Orihuela-Espina
 %
@@ -57,75 +56,17 @@ function A=normalize(A,varargin)
 %
 
 
-%%Deal with options
-d=[]; %Dimension
-type='normal'; %or 'range'
-interval=[0 1]; %Either [mu var] for normal, or [min max] range
 
-if ~isempty(varargin) && ~ischar(varargin{1})
-    d=varargin{1};
-    varargin(1)=[];
-end
-if ~isempty(varargin)
-    type=varargin{1};
-    interval=varargin{2};
-end
+%% Log
+%
+% 31-Aug-2025: FOE
+%   + Added this log
+%   + Function deprecated since v1.3.1. This function now hides MATLAB's
+%   own normalize function, hence it should be renamed or replaced.
+%   
 
-assert(isempty(d) || (isscalar(d) && ~ischar(d) ...
-                        && floor(d)==d && numel(d)==1 ...
-                        && d>0),...
-        'Invalid input for parameter dimension.');
-assert(ischar(type),'Invalid input for parameter normalization type.');
+warning('ICNNA:util:normalized:Deprecated',...
+        'DEPRECATED. Please use icnna_normalize instead.'); 
 
-if isempty(d)
-    %Normalize the entire matrix at once
-    sizeA=size(A);
-    tmpA=reshape(A,1,numel(A));
-    switch(type)
-        case 'normal'
-            %Normalize to zero mean and unit variance (default)
-            assert(numel(interval)==2 && isreal(interval) ...
-                && ~ischar(interval) ...
-                && interval(2)>0,...
-                'Invalid input for parameter [mean variance].');
-            tmpA=(tmpA-mean(tmpA))/std(tmpA);
-                %Note that the division is by the std, not by the
-                %variance!!
-                %A small rounding error may remain!
-            %...and adjust to other mu and var if necessary
-            mu=interval(1);
-            v=interval(2);
-            tmpA=(tmpA*v)+mu;
-            
-        case 'range'
-            assert(numel(interval)==2 && isreal(interval) && ~ischar(interval) ...
-                && interval(1)<interval(2),...
-                'Invalid input for range parameter [min max].');
-            tmpMin=min(tmpA);
-            tmpMax=max(tmpA);
-            %First normalize to [0 1]
-            tmpA=(tmpA-tmpMin)/(tmpMax-tmpMin);
-            %and then stretch to any given interval
-            tmpMin=interval(1);
-            tmpMax=interval(2);
-            tmpA=(tmpA*(tmpMax-tmpMin))+tmpMin;
-                    %Note that the min must be added, not substracted!!
-        otherwise
-            error('Unexpected normalization type.');
-    end
-    A=reshape(tmpA,sizeA);
-else
-    %Simply repeat for each submatrix
-    S.type='()';
-    S.subs=cell(1,ndims(A));
-    nSubmatrices=size(A,d);
-    for ii=1:nSubmatrices
-        S.subs(1:end)={':'};
-        S.subs(d)={ii};
-        tmpA=squeeze(subsref(A, S));
-        tmpA=normalize(tmpA,type,interval);
-        A = subsasgn(A, S, tmpA);
-    end
+A=icnna_normalize(A,varargin{:});
 end
-    
-    

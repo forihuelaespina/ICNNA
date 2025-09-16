@@ -5,7 +5,11 @@
 ====================================
 
 ====================================
-= ICNNA v1.3.1
+= ICNNA v1.3.2
+====================================
+
+====================================
+= ICNNA v1.3.1 (released 15-Sep-2025)
 ====================================
 
 + New classes
@@ -54,13 +58,20 @@
 
 
 
+
 + New packages
 * icnna.plot - Functions related to data visualization.
+* icnna.util - Miscellanea utility functions.
 
 
 New functions
 + icnna.plot.plotTimeline - Intended to replace the old plotTimeline
-+ icnna.plot.plotStructuredData
++ icnna.plot.plotStructuredData 
++ icnna.plot.plotBundle_FamilyOfSpaces
++ icnna.plot.seriesBundle_AllSites_NonAveraged - Intended to replace
+    the old batchBasicVisualization series ACHNBA
++ icnna.plot.seriesBundle_SingleSite_NonAveraged - Intended to replace
+    the old batchBasicVisualization series SCHNBA
 + icnna_rootDirectory - Returns name of the directory where ICNNA
     is installed.
 + icnna_generateUML - NOT YET WORKING CORRECTLY.
@@ -71,6 +82,10 @@ New functions
 + icnna.op.getTrialData - Somewhat analogous to @structuredData.getBlock,
     but lighter. Instead of retrievnig a full structuredData object, this
     function concentrates on extracting the data subtensor only.
++ icnna.op.getSubbundle - Filters a bundle / Retrieves a subbundle.
++ icnna.util.padVectors - Pad the vectors in a cell array.
++ icnna_normalize - Replaces deprecated function normalize to avoid name
+        conflict with MATLAB's normalize.
 
 
 Bugs fixed:
@@ -80,6 +95,14 @@ Bugs fixed:
     the time that works because the figure to save is one used
     inmediately before. But gca and gcf do not work properly when a
     uifigure instead of a figure object.
++ @rawData_Snirf.convert; Recovery of the number of sources and detectors
+    when the 2D location was not available was incorrectly set to 0.
+    The number of sources and detectors is now directly recovered
+    from the measurementList which is more robust.
++ @rawData_Snirf.convert; Adding a condition when the stim object did not
+    have the dataLabels field was still calling the addConditions method
+    using the old format for @timeline rather than the new one
+    for @icnna.data.core.timeline.
 
 
 
@@ -126,6 +149,7 @@ Behaviour change:
 
 Misc
 + plotTimeline - Deprecated
++ normalize    - Deprecated
 + util/mySaveFig - Added support for uifigure
 + @icnna.data.core.condition - Improved some comments.
 + @icnna.data.core.timeline  - Improved some comments.

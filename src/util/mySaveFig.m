@@ -26,7 +26,8 @@ function mySaveFig(hfig,filename)
 %
 %% Parameters
 %
-% filename - Output filename without extension but including the directory
+% filename - String or Char[]. Output filename without extension
+%   but including the output directory.
 %
 %
 %
@@ -44,7 +45,7 @@ function mySaveFig(hfig,filename)
 %   '-v7' fails.
 %   - Removed tag @modified.
 %
-% 24-Mar-2021: FOE
+% 24-Mar-2025: FOE
 %   + Bug fixed: I was using gcf instead of hfig! Obviously most of the
 %   the time that works because the figure to save was the one used
 %   inmediately before. But gca and gcf do not work properly when a
@@ -53,19 +54,28 @@ function mySaveFig(hfig,filename)
 %   uifigure.
 %   + Added support for uifigure
 %
-
+% 3-Sep-2025: FOE
+%   + Bug fixed: In detecting the difference between figure and uifigure
+%   only the presence of the field props.Controller was being checked
+%   but not its value. Now the value (empty of regular figures) is
+%   correctly checked.
+%
+% 5-Sep-2025: FOE
+%   + Filenames can now be provided as string as well rather than
+%   char[] alone.
+%
 
 try
-    saveas(hfig,[filename '.fig'],'fig');
+    saveas(hfig,strcat(filename,'.fig'),'fig');
 catch ME
-    hgsave(hfig,[filename '.fig'],'-v7.3');
+    hgsave(hfig,strcat(filename,'.fig'),'-v7.3');
 end
 
 if verLessThan('matlab','8.6')
-    %print(['-f' num2str(hfig)],'-dtiff','-r300',[filename '_300dpi.tif']);
-    %print(['-f' num2str(hfig)],'-dtiff','-r300',[filename '_600dpi.tif']);
-    print(['-f' num2str(hfig)],'-dpng','-r600',[filename '_600dpi.png']);
-    %print(['-f' num2str(hfig)],'-djpeg','-r150',[filename '_150dpi.jpg']);
+    %print(['-f' num2str(hfig)],'-dtiff','-r300',strcat(filename,'_300dpi.tif'));
+    %print(['-f' num2str(hfig)],'-dtiff','-r300',strcat(filename,'_600dpi.tif'));
+    print(['-f' num2str(hfig)],'-dpng','-r600',strcat(filename,'_600dpi.png'));
+    %print(['-f' num2str(hfig)],'-djpeg','-r150',strcat(filename,'_150dpi.jpg'));
     
 else    
 
@@ -108,13 +118,13 @@ else
     warning('off')
     props = struct(hfig);
     warning('on')
-    isUI = isfield(props, 'Controller');
+    isUI = isfield(props, 'Controller') && ~isempty(props.Controller);
 
     if ~isUI
-        %print(hfig,'-dtiff','-r300',[filename '_300dpi.tif']);
-        %print(hfig,'-dtiff','-r300',[filename '_600dpi.tif']);
-        print(hfig,'-dpng','-r600',[filename '_600dpi.png']);
-        %print(hfig,'-djpeg','-r150',[filename '_150dpi.jpg']);
+        %print(hfig,'-dtiff','-r300',strcat(filename,'_300dpi.tif'));
+        %print(hfig,'-dtiff','-r300',strcat(filename,'_600dpi.tif'));
+        print(hfig,'-dpng','-r600',strcat(filename,'_600dpi.png'));
+        %print(hfig,'-djpeg','-r150',strcat(filename,'_150dpi.jpg'));
 
     else %uifigure?
         % Find all containers in the uifigure
@@ -122,7 +132,7 @@ else
         containers = findall(hfig, 'Type', 'uipanel', '-or', 'Type', 'uitab');
         for iChild = 1:numel(containers)
             exportgraphics(containers(iChild),...
-                  [filename '_subfig' num2str(iChild,'%04d') '_600dpi.png'],...
+                  strcat(filename,'_subfig',num2str(iChild,'%04d'),'_600dpi.png'),...
                     'BackgroundColor','white', 'Resolution', 600);
                 %For some reason, I can change the option 'Padding'
         end 

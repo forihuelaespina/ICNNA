@@ -127,6 +127,13 @@ function [S]=computeExperimentBundle(theExperiment,options)
 %   + Bug fixed: Data subtensors per case were not being split by sampling
 %   site and signal.
 %
+% 29-Aug-2025: FOE. 
+%   + Bug fixed: The indexing of the base cases was adding an extra entry
+%   per experimental unit.
+%
+% 30-Aug-2025: FOE. 
+%   + Added a nominal 3D location to the sampling sites.
+%
 
 
 %% TO DO
@@ -211,9 +218,10 @@ E = table(); %The total space
 %For the time being, make as many sampling sites as channels
 %but this needs changing to support ROIs
 flagSites = true;
-samplingSites = table('Size',[0 5],...
-    'VariableTypes',{'uint32','string','double','double','double'},...
-    'VariableNames',{'Site.id','Site.name','ChannelNumber','Source','Detector'});
+samplingSites = table('Size',[0 6],...
+    'VariableTypes',{'uint32','string','double','double','double','cell'},...
+    'VariableNames',{'Site.id','Site.name','ChannelNumber',...
+                     'Source','Detector','Nominal3DLocation'});
 
 
 
@@ -257,9 +265,11 @@ for euID=expUnitIDs
                     samplingSites(iCh,'Site.name') = {['ch' num2str(iCh,'%02d') ...
                                                ':Src' num2str(src,'%02d') ...
                                                '-Det' num2str(det,'%02d')]};
-                    samplingSites(iCh,'ChannelNumber')   = {iCh};
-                    samplingSites(iCh,'Source')          = {src};
-                    samplingSites(iCh,'Detector')        = {det};
+                    samplingSites(iCh,'ChannelNumber')     = {iCh};
+                    samplingSites(iCh,'Source')            = {src};
+                    samplingSites(iCh,'Detector')          = {det};
+                    samplingSites{iCh,'Nominal3DLocation'} = ...
+                                      {sd.chLocationMap.chLocations(iCh,:)};
                 end
                 warning('on')
                 flagSites = false;
@@ -320,17 +330,17 @@ for euID=expUnitIDs
             jEntry = 1;
             for iCase = 1:tmpNCases
                 warning('off')
-                tmpB(jEntry:jEntry+(nSites*nSignals),'ExperimentalUnit.id') ...
+                tmpB(jEntry:jEntry+(nSites*nSignals)-1,'ExperimentalUnit.id') ...
                         = {expUnit.id};
-                tmpB(jEntry:jEntry+(nSites*nSignals),'ExperimentalUnit.name') ...
+                tmpB(jEntry:jEntry+(nSites*nSignals)-1,'ExperimentalUnit.name') ...
                         = {expUnit.name};
-                tmpB(jEntry:jEntry+(nSites*nSignals),'Group.id') ...
+                tmpB(jEntry:jEntry+(nSites*nSignals)-1,'Group.id') ...
                         = {group.id};
-                tmpB(jEntry:jEntry+(nSites*nSignals),'Group.name') ...
+                tmpB(jEntry:jEntry+(nSites*nSignals)-1,'Group.name') ...
                         = {group.name};
-                tmpB(jEntry:jEntry+(nSites*nSignals),'Session.id') ...
+                tmpB(jEntry:jEntry+(nSites*nSignals)-1,'Session.id') ...
                         = {sess.definition.id};
-                tmpB(jEntry:jEntry+(nSites*nSignals),'Session.name') ...
+                tmpB(jEntry:jEntry+(nSites*nSignals)-1,'Session.name') ...
                         = {sess.definition.name};
                 warning('on')
 
@@ -439,7 +449,7 @@ end %for experimental unit
 %Finally, put everything in place...
 S = icnna.data.core.experimentBundle();
 S.setSites(samplingSites);
-S.setBundle(E,B); %Use the implicite bijective projection p
+S.setBundle(E,B); %Use the implicit bijective projection p
 
 
 end
