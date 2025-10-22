@@ -8,6 +8,20 @@
 = ICNNA v1.3.2
 ====================================
 
+
+Misc
++ mySaveFig - Updated detection of figure vs uifigure
+
+
+Bugs fixed:
++ miscellaneous/icnna_releaseVersion: Calling to MATLAB's zip function
+    was not including the root folder, making the resulting zip file
+    unusable. As a consequence, stable release v1.3.0 .zip file is
+    unusable. I've been able to recreate the .zip file for v1.3.1
+    though which is unzipping correctly now.
+
+
+
 ====================================
 = ICNNA v1.3.1 (released 15-Sep-2025)
 ====================================
@@ -159,6 +173,12 @@ Misc
 ====================================
 = ICNNA v1.3.0 (released 24-Jun-2025)
 ====================================
+
+NOTE (22-Oct-2025): Due to a bug in the icnna_releaseVersion function
+the packaged .zip file related to the inclusion of the root folder,
+for version 1.3.0 the .zip file is unusable. This bug was detected and
+fixed while working on version v1.3.2.
+
 
 @rawData:
     + Class is now deprecated. Use @icnna.data.core.rawData instead.

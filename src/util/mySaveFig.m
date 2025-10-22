@@ -64,6 +64,12 @@ function mySaveFig(hfig,filename)
 %   + Filenames can now be provided as string as well rather than
 %   char[] alone.
 %
+% 3-Oct-2025: FOE
+%   + In MATLAB R2025b the props.Controller information has been updated
+%   and the method I was using to differentite between figure and uifigure
+%   no longer work. However, it turns out there is a simpler way to do
+%   this. Since R2018b, MATLAB has isa(hfig, 'uifigure')!!
+%
 
 try
     saveas(hfig,strcat(filename,'.fig'),'fig');
@@ -79,48 +85,7 @@ if verLessThan('matlab','8.6')
     
 else    
 
-    %In matlab, both a variable created with
-    %
-    %   f1 = figure(...)
-    %
-    % ...and a variable created with
-    %
-    %   f2 = uifigure(...)
-    %
-    % ...BOTH have the same class; 
-    %
-    %   disp(class(f1));  % 'matlab.ui.Figure'
-    %   disp(class(f2));  % 'matlab.ui.Figure'
-    %
-    %So in order to distinguish between them I can;
-    %
-    % Opt 1) Relay on the undocumented function 
-    %
-    %       isUI = matlab.ui.internal.isUIFigure(h);
-    %
-    % ...with the risk that the behavious may change in future releases,
-    %
-    % OR
-    %
-    % Opt 2) Check for presence of App Designer–specific properties
-    % such as 'Controller' which is present in uifigure but absent
-    % in figure.
-    % 
-    % props = struct(hfig);
-    % isUI = isfield(props, 'Controller');
-    % 
-    % This methods is not perfect either; this method bypasses
-    % the encapsulation of hfig exposing internal fields and hence
-    % yields a warning.
-    %
-    % Opt 1 seems more elegant but more risky, so I'll go for 2.
-
-    warning('off')
-    props = struct(hfig);
-    warning('on')
-    isUI = isfield(props, 'Controller') && ~isempty(props.Controller);
-
-    if ~isUI
+    if ~isa(hfig, 'uifigure')
         %print(hfig,'-dtiff','-r300',strcat(filename,'_300dpi.tif'));
         %print(hfig,'-dtiff','-r300',strcat(filename,'_600dpi.tif'));
         print(hfig,'-dpng','-r600',strcat(filename,'_600dpi.png'));
