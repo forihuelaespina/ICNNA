@@ -1,7 +1,6 @@
 function [ver] = classVersion(obj)
 %Returns the current classVersion
 %
-% [ver] = obj.classVersion()
 % [ver] = classVersion(obj)
 %
 %% Remarks

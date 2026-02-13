@@ -1,12 +1,18 @@
 classdef rawData_NIRx < icnna.data.core.rawData
 %Class rawData_NIRx
 %
-% This class supersedes class |rawData_NIRScout|.
+% This class supersedes class @rawData_NIRScout.
 % 
 %
-%A rawData_NIRx represents data experimentally recorded with a NIRx device
-%e.g. NIRScout or NIRSport, during a fNIRS session, and stored in NIRx
-%propietary format defined with NIRStar software.
+%A @icnna.data.misc.rawData_NIRx represents data experimentally
+% recorded with a NIRx device e.g. NIRScout or NIRSport, during
+% an fNIRS session, and stored in NIRx propietary format, e.g. defined
+% with NIRStar software.
+%
+% Note that incontrast to @rawData_NIRScout, this class
+% @icnna.data.misc.rawData no longer stores
+% the raw information, but reads it on the fly upon
+% invoking |import|.
 %
 %% About NIRx propietary format
 %
@@ -301,11 +307,12 @@ classdef rawData_NIRx < icnna.data.core.rawData
 % importing your data, please do get in touch with ICNNA developers. 
 %
 % Moreover, rather than attempting to have hard-coded properties
-% as in the old class |rawData_NIRScout|, this new class aims to store
+% as in the old class @rawData_NIRScout, this new class aims to read
 % the information in a dynamic soft-format that should be able to adapt to
 % NIRx changes easier. This should simplify the implementation of the
-% import method. The price to pay is a more complicated conversion
-% later (but note that there is no convert method anymore).
+% |import| method. The price to pay is a more complicated reorganization
+% into a structuredData.
+% 
 %
 %% Superclass
 %
@@ -313,12 +320,53 @@ classdef rawData_NIRx < icnna.data.core.rawData
 %
 %
 %% Properties
-% 
-%   == Inherited
-%       See class icnna.data.core.rawData
-%       
 %
+%   -- Private properties
+%   .classVersion - char[]. (Read only. Constant)
+%       The class version of the object
+%       This is separate from the superclass' own |classVersion|.
 %
+%   -- Inherited properties from @icnna.data.core.identifiableObject
+%   .id - uint32. Default is 1.
+%       A numerical identifier.
+%   .name - char[]. By default is 'rawData_Nirx0001'.
+%       A name for the timeline. 
+%
+%   -- Inherited properties from @icnna.data.core.rawData
+%   .description - char[]. Default is 'Raw data'.
+%       A short description.
+%   .date - datetime. Default value is datetime('now').
+%       A datetime associated with the acquisition of the
+%       icnna.data.core.rawData. 
+%       The class ensure that the folder separator automatically adjusts
+%       depending on the operating system.
+%   .path - char[]. Default value is ['.' filesep]
+%       The file or folder from where the original data was read.
+%       It should not contain the filename (see property |dataFiles|).
+%       * Available since class version 1.0.
+%   .dataFiles - struct[]
+%       The files containing the raw data. Each struct refers to a single
+%       file, and has the following fields.
+%       .filename - char[]. Default is empty.
+%           The name of the file contaning the data.
+%           The filenames are relative to the |path| and contain the
+%           extension.
+%           The class ensure that if any filename further contains some
+%           additional path, the folder separator is automatically adjusted
+%           depending on the operating system.
+%
+%   +====================================================+
+%   | ICNNA does NOT act as a DBMS and does not put any  |
+%   | kind of lock of the original data files. Since the |
+%   | files (end even the paths) may be manipulated      |
+%   | externally, there is no guarantee that the |path|, |
+%   | nor the |dataFiles| remain consistent with the     |
+%   | values store in an instance object of this class.  |
+%   +====================================================+
+%
+%       .description - char[]. Default is empty.
+%           A short description of the content of the file.
+%  
 %% Methods
 %
 % Type methods('rawData_NIRx') for a list of methods
@@ -342,6 +390,16 @@ classdef rawData_NIRx < icnna.data.core.rawData
 %   whole code is virtually brand new.
 %
 %
+%
+% -- ICNNA v1.4.0
+%
+% 20-Dec-2025: FOE
+%   + Adaptation to the new behaviour of subperclass
+%  @icnna.data.core.rawData whereby the raw data is no
+%  longer stored but read on-the-fly upon invoking
+%  method |import|.
+%   + Improved some comments.
+%
 
 
 
@@ -356,32 +414,31 @@ classdef rawData_NIRx < icnna.data.core.rawData
 
 
  
+    % =====================================================================
+    % Constructor
+    % =====================================================================
     methods    
-        function obj=rawData_NIRScout(varargin)
-            %ICNNA.DATA.MISC.RAWDATA_NIRScout RawData_NIRScout class constructor
+        function obj=rawData_NIRx(varargin)
+            %Class constructor for icnna.data.misc.rawData_NIRx
             %
-            % obj=icnna.data.misc.rawData_NIRx() creates a default rawData_NIRx
-            %   with ID equals 1.
+            % obj=icnna.data.misc.rawData_NIRx() creates a default object
+            % obj=icnna.data.misc.rawData_NIRx(obj2) acts as a copy constructor 
             %
-            % obj=icnna.data.misc.rawData_NIRx(obj2) acts as a copy constructor of
-            %   rawData_NIRx
-            %
-            % obj=icnna.data.misc.rawData_NIRx(id) creates a new rawData_NIRx
-            %   with the given identifier (id). The name of the
-            %   rawData_NIRx is initialised
-            %   to 'RawDataXXXX' where is the id preceded with 0.
             %
                         
+            obj@icnna.data.core.rawData();
+            tmp = split(class(obj),'.');
+            obj.name = [tmp{end} num2str(obj.id,'%04d')];
             if (nargin==0)
                 %Keep all other default values
-            elseif isa(varargin{1},'rawData_NIRx')
+            elseif isa(varargin{1},'icnna.data.misc.rawData_NIRx')
                 obj=varargin{1};
                 return;
             else
-                obj.id=varargin{1};
-                obj.description=['RawData' num2str(obj.id,'%04i')];
+                error(['icnna.data.misc.rawData_NIRx:rawData_NIRx:InvalidNumberOfParameters' ...
+                       'Unexpected number of parameters.']);
+
             end
-            assertInvariants(obj);
 
         end
   

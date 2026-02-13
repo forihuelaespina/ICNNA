@@ -5,11 +5,64 @@
 ====================================
 
 ====================================
-= ICNNA v1.3.2
+= ICNNA v1.4.0
 ====================================
 
+    +====================================================================+
+    | The decision to make @icnna.data.core.identifiableObject a handle  |
+    | in version v1.3.1 (just the previous one), and hence exploiting    |
+    | pass-by-reference did certainly show some of the expected benefits |
+    | e.g. speeding up some operations substantially. However, the       |
+    | lack of MATLAB off-the-shelf support to get deep copies of handle  |
+    | objects is proving a more important restriction than anticipated.  |
+    | Hence, I'm cutting my losses while it is not too late and I'm going|
+    | back to the pass-by-value only design policy and stick to value    |
+    | (non-handle) class only. Pity!                                     |
+    +====================================================================+
+
++ New classes
+* @icnna.data.core.montage - An abstract class to model (spatial) sampling geometries
+* @icnna.data.core.lightDetector - A light detector
+* @icnna.data.core.lightSource  - A light source or emitter
+* @icnna.data.core.optode - Either a light source or a detector
+* @icnna.data.core.referenceLocation - A spatial reference location or landmark
+* @icnna.data.core.opticalCoefficient - An optical coefficient such as absorption,
+        scattering, extenction, etc, whether macroscopic, reduced or specific.
+
++ Deprecated classes
+* @timeline - See icnna.data.core.timeline instead.
+
++ Deprecated functions
+* version_IsHigherOrEqual - See icnna.util.compareVersions instead.
+* table_abscoeff - See class @icnna.data.core.opticalCoefficient instead.
+        (FINALLY! ;) Possibly the last remaining piece of code inherited
+        from fOSA. Note that the coefficients' data is still in use,
+        but they have been refactored into JSON files).
+
++ New methods
+* icnna.data.core.timeline:addCondition - A short-cut to add conditions
+        without explicitly creating the @icnna.data.core.condition object.
+* rawData_ETG4000:get.nProbesets - Retrieves the number of probesets.
+* icnna.data.core.experimentalGroup:classVersion - Retrieves the class version
+* icnna.data.core.experimentalUnit:classVersion - Retrieves the class version
+* icnna.data.core.rawData:classVersion - Retrieves the class version
+* icnna.data.core.subject:classVersion - Retrieves the class version
+
++ New functions
+* icnna.util.compareVersions - Replaces version_IsHigherOrEqual.
+* icnna.util.pdist2 - Pairwise distance between two sets of observations
+* icnna.util.snirf.channelList - Retrieves the channel list for the
+        i-th nirs dataset and j-th data block
+* icnna.op.intensity2DeltaOD - Calculates the (delta) optical density
+        (and/or absorbance) from intensities.
+
+
++ New packages
+* icnna.data.coeffs - Optical coefficients data.
 
 Misc
++ icnna_startup and startup - They now check for required
+    toolboxes.
 + mySaveFig - Updated detection of figure vs uifigure
 
 
@@ -19,6 +72,167 @@ Bugs fixed:
     unusable. As a consequence, stable release v1.3.0 .zip file is
     unusable. I've been able to recreate the .zip file for v1.3.1
     though which is unzipping correctly now.
++ icnna.data.snirf.metaDataTags.setMetadata: Method for setting a new
+    user-defined metaData entry was only taking the key but not the
+    value as input parameter.
++ icnna.data.core.timeline.timeline: Typecasting constructor
+    from @timeline was not correctly handling the case where the
+    timeline had no conditions.
++ icnna.data.core.condition: Derived property eventTime should be eventTimes.
++ icnna.plot.plotStructuredData: When translating conditions tags/names to ids,
+    and the option .whichConditions was passed as a cell array,
+    an inexistent method of class timeline, getConditionId, was
+    being called. Also, this case was not considering the class
+    @icnna.data.core.timeline
+
+
+
+Behaviour change:
++ Method @icnna.data.core.timeline:findConditions - The length
+    of the output now matches the length and order of the input
+    tags (whether ids or names).
+    Legacy behaviour is still provided using option 'legacy'.
+    The method is now public.
++ Method miscellaneous/mbll - Several changes;
+    * Now uses optical density (instead of absorbance) as default behaviour.
+    * Now uses the pseudo-inverse as default behaviour.
+    * Now uses the Tikhonov's regularization as default behaviour.
+    * Option .I0ref deprecated in favour of Iref
+    Legacy behaviour is still provided via the different options.
+
+
++ See note above - ICNNA is going back to pass-by-value ONLY design
+    policy. This affects all the new classes, methods and functions
+    created in v1.3.1.
+
+    Revisited so far;
+        * Classes:
+            @icnna.data.core.identifiableObject
+            @icnna.data.core.condition
+            @icnna.data.core.timeline
+            @icnna.data.core.experimentalGroup
+            @icnna.data.core.experimentalUnit
+            @icnna.data.core.experimentBundle - In progress. PENDING CHECK METHODS
+            @icnna.data.core.referenceLocation
+            @icnna.data.core.optode
+            @icnna.data.core.lightSource
+            @icnna.data.core.lightDetector
+            @icnna.data.core.rawData
+            @icnna.data.misc.rawData_NIRx - In progress. PENDING method import
+            @icnna.data.core.subject
+        * Functions:
+            icnna.plot.plotTimeline
+            icnna.plot.plotStructuredData
+            icnna.op.getTimelineFromSnirf
+            icnna.op.writeTimelineToSnirf
+
+
+
+@icnna.data.core.subject
+    * Revert back to regular value (non-handle) class.
+    * Class version - Updated to 1.1
+    * Improved comments
+
+@icnna.data.misc.rawData_NIRx
+    * Revert back to regular value (non-handle) class.
+    * No need to update classVersion.
+    * Improved comments
+
+
+@icnna.data.core.rawData
+    * Class is now identifiable
+    * Class version - Updated to 1.1
+    * Improved comments
+    * Added (separate) method classVersion
+    * Class constructor accepting |id| as parameter has been eliminated.
+    * |path| and |dataFiles| now automatically updates the file separator.
+    * Class no longer stores the content, and instead file content
+    reading requires calling method |import|. Signature of methiod
+    |import| has change and now returns a structuredData.
+
+@icnna.data.core.lightDetector
+    * Revert back to regular value (non-handle) class.
+    * No need to update classVersion as this classVersion
+        of ICNNA has not yet been released and this is the first
+        version including this class.params, ergo, no harm done.
+    * Improved comments
+    * Improved verification of |params| setting.
+
+@icnna.data.core.lightSource
+    * Revert back to regular value (non-handle) class.
+    * No need to update classVersion as this classVersion
+        of ICNNA has not yet been released and this is the first
+        version including this class.params, ergo, no harm done.
+    * Improved comments
+    * Improved verification of |params| setting.
+
+@icnna.data.core.optode
+    * Revert back to regular value (non-handle) class.
+    * No need to update classVersion as this classVersion
+        of ICNNA has not yet been released and this is the first
+        version including this class.params, ergo, no harm done.
+    * Improved comments
+    * Added support for direction 2D and 3D
+
+@icnna.data.core.referenceLocation
+    * Revert back to regular value (non-handle) class.
+    * No need to update classVersion as this classVersion
+        of ICNNA has not yet been released and this is the first
+        version including this class.params, ergo, no harm done.
+    * Improved comments
+
+@icnna.data.core.experimentalUnit
+    * Class is now identifiable
+    * Class version - Updated to 1.1
+    * Improved comments
+    * Added (separate) method classVersion
+
+@icnna.data.core.experimentalGroup
+    * Class is now identifiable
+    * Class version - Updated to 1.1
+    * Improved comments
+    * Added (separate) method classVersion
+
+@icnna.data.core.timeline
+    * Revert back to regular value (non-handle) class.
+    * Class version - Updated to 1.2
+    * Change .conds to .conditions, and updated from a table to a
+        struct array of conditions.
+    * Revert .cevents to a derived property (extracted on the fly from
+        .conditions) |condEvents| and further it is now return as a
+        struct array instead of a table.
+    * Improved some comments
+    * Method findConditions is now public.
+
+
+@icnna.data.core.condition
+    * Class version - Updated to 1.2
+    * Reengineered as value (non-handle) class.
+    * Method .copy removed
+    * Refactored code for property cevents from a table to a struct array
+        for improved performance.
+    * Deprecated property |tag| is now hidden as per best practices.
+    
+
+@icnna.data.core.identifiableObject
+    * Class version - Updated to 1.1
+    * Reengineered as value (non-handle) class.
+    * Method .copy removed
+
+@icnna.data.core.metaDataTags -
+    * Class version - Updated to 1.1
+    * Updated implementation of the additional user-defined metadata
+    entries. The previous one based on a dictionary;
+        * Required that all fields has the same type (or can be typecasted
+           to it).
+        * The syntax for the additional properties wasn't dot.style 
+            with the consequent break of the symmetry is assigning
+            or reading values.
+    The new implementation allow for new dynamic properties to be
+    defined seamslessly offering:
+        * dynamic type alike fields in a struct
+        * dot.style syntax.
+        * ...and more importantly, better compliance with snirf.
 
 
 
@@ -66,7 +280,7 @@ Bugs fixed:
 * icnna.data.core.timeline:clearConditions - Removes all conditions from the timeline
 * icnna.data.core.timeline:removeConditions - Removes conditions from the timeline
 * icnna.data.core.timeline:setExclusory - Sets the exclusory behaviour among conditions
-* icnna.data.core.timeline:getEvents - Retrieve events from a timeline
+* icnna.data.core.timeline:addEvents - Add events from a timeline
 * icnna.data.core.timeline:addEvents - Add events from a timeline
 
 
@@ -177,7 +391,7 @@ Misc
 NOTE (22-Oct-2025): Due to a bug in the icnna_releaseVersion function
 the packaged .zip file related to the inclusion of the root folder,
 for version 1.3.0 the .zip file is unusable. This bug was detected and
-fixed while working on version v1.3.2.
+fixed while working on version v1.4.0.
 
 
 @rawData:

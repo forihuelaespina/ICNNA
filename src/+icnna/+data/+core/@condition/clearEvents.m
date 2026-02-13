@@ -1,13 +1,7 @@
-function clearEvents(obj)
-%Delete all events from the condition
+function obj = clearEvents(obj)
+%Delete all events from the condition.
 %
-% obj.clearEvents()
-% clearEvents(obj)
-%
-%% Remarks
-%
-% icnna.data.core.condition is a handle object. Therefore,
-% calling this method does modify this object.
+% obj = clearEvents(obj)
 %
 %
 % Copyright 2025
@@ -29,9 +23,14 @@ function clearEvents(obj)
 % 9-Jul-2025: FOE. 
 %   + Adapted to reflect the new handle status e.g. no object return.
 %
+% 5-Dec-2025: FOE. 
+%   + Revert back to value class status, i.e. object return
+%
 
-obj.cevents = table('Size',[0 4],...
-                    'VariableTypes',{'double','double','double','cell'},...
-                    'VariableNames',{'onsets','durations','amplitudes','info'});
+obj.cevents = struct( ...
+            'onsets', [], ...
+            'durations', [], ...
+            'amplitudes', [], ...
+            'info', {} );
 
 end

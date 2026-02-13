@@ -1,11 +1,20 @@
-function cropOrRemoveEvents(obj)
+function obj = cropOrRemoveEvents(obj)
 %Crops or remove events exceeding the timeline length.
 %
-% obj.cropOrRemoveEvents()
-% cropOrRemoveEvents(obj)
+% obj = cropOrRemoveEvents(obj)
 %
 % Crops or remove events exceeding the timeline length (if in samples)
 % or the last timestamp (if in seconds).
+%
+%% Parameters
+%
+% obj - @icnna.data.core.timeline
+%   The timeline to which the condition events are to be crop or removed.
+%  
+%% Output
+%
+% obj - @icnna.data.core.timeline
+%   The timeline with conditions updated.
 %
 %
 %
@@ -30,53 +39,61 @@ function cropOrRemoveEvents(obj)
 %   + Adapted to reflect the new handle status e.g. no object return.
 %
 %
+% -- ICNNA v1.4.0 (Class version 1.2)
+%
+% 9-Dec-2025: FOE
+%   + Refactored to value (non-handle) class.
+%   + Adapted to re-implementation using array of
+%   @icnna.data.core.condition objects.
+%
 
 flagCrop   = false;
 flagRemove = false;
 
 
-%Events may be expressed in samples or seconds (scaled by a unit
-%multiplier).
-if strcmpi(obj.unit,'samples')
-    %Remove even|ts that initiate "after" the end of the timeline.
-    idx = find(obj.cevents.onsets > obj.length);
-    obj.cevents(idx,:) = [];
-    if ~isempty(idx)
-        flagRemove = true;
-    end
+for iCond = 1:obj.nConditions
+    %Events may be expressed in samples or seconds (scaled by a unit
+    %multiplier).
+    if strcmpi(obj.unit,'samples')
+        %Remove events that initiate "after" the end of the timeline.
+        idx = find(obj.conditions(iCond).onsets > obj.length);
+        if ~isempty(idx)
+            obj.conditions(iCond).cevents(idx) = [];
+            flagRemove = true;
+        end
 
-    %Crop events lasting "beyond" the end of the timeline.
-    tmpEnds = obj.cevents.onsets + obj.cevents.durations;
-    idx = find(tmpEnds > obj.length);
-    obj.cevents.durations(idx) = obj.length - obj.cevents.onsets(idx);
-    if ~isempty(idx)
-        flagCropped = true;
-    end
+        %Crop events lasting "beyond" the end of the timeline.
+        idx = find(obj.conditions(iCond).ends > obj.length);
+        if ~isempty(idx)
+            obj.conditions(iCond).cevents(idx).durations = ...
+                            obj.length - obj.conditions(iCond).onsets(idx);
+            flagCrop = true;
+        end
 
 
-else %Expressed in seconds (scaled by a unit multiplier).
+    else %Expressed in seconds (scaled by a unit multiplier).
 
-    %Note that the conditions share the same timeUnitMultiplier
-    %than the timeline itself.
+        %Note that the conditions share the same timeUnitMultiplier
+        %than the timeline itself.
 
-    %Remove events that initiate "after" the end of the timeline.
-    idx = find(obj.cevents.onsets > obj.timestamps(end));
-    obj.cevents(idx,:) = [];
-    if ~isempty(idx)
-        flagRemove = true;
-    end
+        %Remove events that initiate "after" the end of the timeline.
+        idx = find(obj.conditions(iCond).onsets > obj.timestamps(end));
+        if ~isempty(idx)
+            obj.conditions(iCond).cevents(idx) = [];
+            flagRemove = true;
+        end
 
-    %Crop events lasting "beyond" the end of the timeline.
-    tmpEnds = obj.cevents.onsets + obj.cevents.durations;
-    idx = find(tmpEnds > obj.timestamps(end));
-    obj.cevents.durations(idx) = obj.timestamps(end) - obj.cevents.onsets(idx);
-    if ~isempty(idx)
-        flagCropped = true;
+        %Crop events lasting "beyond" the end of the timeline.
+        idx = find(obj.conditions(iCond).ends > obj.timestamps(end));
+        if ~isempty(idx)
+            obj.conditions(iCond).durations(idx) = ...
+                        obj.timestamps(end) - obj.conditions(iCond).onsets(idx);
+            flagCrop = true;
+        end
+
     end
 
 end
-
-
 
 
 if (flagCrop || flagRemove)

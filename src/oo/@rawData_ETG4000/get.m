@@ -18,9 +18,13 @@ function val = get(obj, propName)
 %       Use 'FileVersion' instead.
 % 'FileVersion' - Version of data structure of the ETG-4000 file
 % 'SubjectName' - The subject's name
+%       Deprecated. See property .userName
 % 'SubjectSex' - The subject's sex
+%       Deprecated. See property .userSex
 % 'SubjectBirthDate' - The subject's birth date as a datenum
+%       Deprecated. See property .userBirthDate
 % 'SubjectAge' - The subject's age in years
+%       Deprecated. See property .userAge
 % 'AnalyzeMode' -  Analyze mode
 % 'PreTime' - Pre time
 % 'PostTime' - Post time

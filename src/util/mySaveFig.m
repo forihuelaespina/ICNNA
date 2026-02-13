@@ -70,6 +70,22 @@ function mySaveFig(hfig,filename)
 %   no longer work. However, it turns out there is a simpler way to do
 %   this. Since R2018b, MATLAB has isa(hfig, 'uifigure')!!
 %
+% 26-Oct-2025: FOE
+%  + Bug fixed: While the pacth I made on 3-Oct-25 was in the right
+%  direction, but unfortunately it happens that isa(hfig, 'uifigure') had
+%  also been altered in MATLAB R2025b and now a code suche as;
+%     f=uifigure(...);
+%     isa(hfig, 'uifigure')
+%
+%  ...would return 0 (false)!!
+%  Consulting Copilot it tells me that this has to do with MATLAB's
+%  function-class naming mismatch with the new class name being
+%  'matlab.ui.Figure' yet the class creator still being uifigure.
+%  Anyhow, bottom line is that the condition should be:
+%     isa(hfig, 'matlab.ui.Figure')
+%
+
+
 
 try
     saveas(hfig,strcat(filename,'.fig'),'fig');
@@ -85,7 +101,7 @@ if verLessThan('matlab','8.6')
     
 else    
 
-    if ~isa(hfig, 'uifigure')
+    if ~isa(hfig, 'matlab.ui.Figure')
         %print(hfig,'-dtiff','-r300',strcat(filename,'_300dpi.tif'));
         %print(hfig,'-dtiff','-r300',strcat(filename,'_600dpi.tif'));
         print(hfig,'-dpng','-r600',strcat(filename,'_600dpi.png'));

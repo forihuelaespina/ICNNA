@@ -23,9 +23,24 @@
 %	one-folder-at-a-time approach.
 %   + Removed the @modified tag
 %
+% 23-Dec-2025: FOE.
+%   + Added test for required toolboxes
+%
+
+%% Check tfor required toolboxes
+requiredToolboxes = {'statistics_toolbox'};
+    %See toolbox feature names here:
+    % https://uk.mathworks.com/matlabcentral/answers/377731-how-do-features-from-license-correspond-to-names-from-ver#answer_300675
+for iTB = 1:numel(requiredToolboxes)
+    tbName = requiredToolboxes{iTB};
+    if ~ license('test',tbName)
+        warning('icnna:icnna_startup:MissingToolbox',...
+            ['Matlab toolbox ' tbName ' not found. Some ICNNA functions may be unavailable or not work as expected.'])
+    end
+end
 
 
-%%Setup path
+%% Setup path
 mypath=[pwd filesep];
 addpath(genpath(mypath));
 cd(mypath);

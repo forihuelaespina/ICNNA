@@ -51,9 +51,15 @@ function [f]=plotTimeline(t,options)
 %
 % 12-Jul-2025: FOE
 %   + File created from code in plotTimeline
-%   + The exclusory behaviour is now presented at a separate tab.
+%   + The exclusory behaviour is now presented as a separate tab.
 %
-
+%
+% -- ICNNA v1.4.0
+%
+% 14-Dec-2025: FOE
+%   + Adjustments to icnna.data.core.timeline class version '1.2'.
+%   + Added support for option .visibleConditionsList
+%
 
 
 if ~(isa(t,'timeline') || isa(t,'icnna.data.core.timeline'))
@@ -88,10 +94,7 @@ if(exist('options','var'))
         opt.lineWidth=options.lineWidth;
     end
     if(isfield(options,'visibleConditionsList'))
-        opt.visibleConditionsList=options.visibleConditionsList;
-        %Translate visible condition tags to ids if needed.
-        opt.visibleConditionsList = findCondition(t,opt.visibleConditionsList);
-
+        opt.visibleConditionsList = options.visibleConditionsList;
     end
     if(isfield(options,'showOnsets'))
         opt.showOnsets=options.showOnsets;
@@ -232,18 +235,28 @@ else
     set(currentAxes,'YTick',1:nVisibleConditions);
     set(currentAxes,'YTickLabel',namesList);
     
-    cevents = t.getEvents();
+    if icnna.util.compareVersions(classVersion(t),'1.1','<=')
+        cevents = t.getEvents();
+    elseif icnna.util.compareVersions(classVersion(t),'1.1','==')
+        cevents = table2struct(t.getEvents());
+    elseif icnna.util.compareVersions(classVersion(t),'1.2','>=')
+        cevents = t.condEvents;
+    end
 
+
+    %Filter the visible conditions
+    cevents(~ismember([cevents.id],idList)) = [];
 
     %Draw the events
-    for ee=1:size(cevents,1)
-        pos = double(cevents.id(ee));
+    nVisibleEvents = numel(cevents);
+    for ee=1:nVisibleEvents
+        pos = double(cevents(ee).id);
         tmpColor = colors(mod(pos,size(colors,1))+1,:); %For picking the color
 
-        pX=[cevents.onsets(ee) ...
-            cevents.onsets(ee) ...
-            cevents.onsets(ee)+cevents.durations(ee) ...
-            cevents.onsets(ee)+cevents.durations(ee)];
+        pX=[cevents(ee).onsets ...
+            cevents(ee).onsets ...
+            cevents(ee).onsets+cevents(ee).durations ...
+            cevents(ee).onsets+cevents(ee).durations];
         pY=[pos-0.48 ...
             pos+0.48 ...
             pos+0.48 ...
@@ -263,14 +276,14 @@ else
 
 
         if opt.showOnsets
-            text(cevents.onsets(ee)+1,pos+0.04,...
-                ['o: ' num2str(events.onsets(ee))],...
+            text(cevents(ee).onsets+1,pos+0.04,...
+                ['o: ' num2str(events(ee).onsets)],...
                 'Parent', currentAxes, ...
                 'FontSize',opt.fontSize);
         end
         if opt.showDurations
-            text(cevents.onsets(ee)+1,pos-0.44,...
-                ['d: ' num2str(events.durations(ee))],...
+            text(cevents(ee).onsets+1,pos-0.44,...
+                ['d: ' num2str(events(ee).durations)],...
                 'Parent', currentAxes, ...
                 'FontSize',opt.fontSize);
         end

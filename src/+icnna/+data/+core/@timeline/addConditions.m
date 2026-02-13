@@ -1,15 +1,15 @@
-function addConditions(obj,conds,exclusoryState)
+function obj = addConditions(obj,conds,exclusoryState)
 %Add @icnna.data.core.condition(s) to the @icnna.data.core.timeline
 %
-% obj.addConditions(conds) 
-% addConditions(obj,conds) 
-% addConditions(...,exclusoryState)
+% obj = obj.addConditions(conds)
+% obj = addConditions(obj,conds) 
+% obj = addConditions(...,exclusoryState)
 %
 % Add experimental conditions to the timeline. By default the
 % new conditions are exclusory with every other existent condition
 % including themselves.
 %
-% This methos is an ALL or NONE; either all new conditions can
+% This method is an ALL or NONE; either all new conditions can
 %be added or none will be added.
 % 
 %
@@ -29,14 +29,18 @@ function addConditions(obj,conds,exclusoryState)
 %   are exclusory with every other existent condition. If exclusoryState
 %   is equal to false (or 0) then the conditions are non exclusory with
 %   every other existent condition.
-%   
+%  
+%% Output
+%
+% obj - @icnna.data.core.timeline
+%   The timeline with conditions updated.
 %
 %
 %
 % Copyright 2025
 % @author Felipe Orihuela-Espina
 %
-% See also icnna.data.core.timeline
+% See also icnna.data.core.conditions
 %
 
 
@@ -74,6 +78,12 @@ function addConditions(obj,conds,exclusoryState)
 %   + Adapted to the new internal structure for the storing
 % of conditions |id| and |name| (from dictionary to table).
 %
+% -- ICNNA v1.4.0 (Class version 1.2)
+%
+% 9-Dec-2025: FOE
+%   + Refactored to value (non-handle) class.
+%   + Adapted to re-implementation using array of
+%   @icnna.data.core.condition objects.
 %
 
 
@@ -87,12 +97,12 @@ if isempty(conds)
     return
 end
 
-tmpIDs = [obj.conds.id; [conds.id]'];
+tmpIDs = [[obj.conditions.id]'; [conds.id]'];
 assert(numel(tmpIDs) == numel(unique(tmpIDs)),...
         ['icnna:data:core:timeline:addConditions:InvalidEvent ', ...
         'Repeated condition |id|.']);
 
-tmpNames = [obj.conds.name; {conds.name}'];
+tmpNames = [{obj.conditions.name}'; {conds.name}'];
 assert(numel(tmpNames) == numel(unique(tmpNames)),...
         ['icnna:data:core:timeline:addConditions:InvalidEvent ', ...
         'Repeated condition |name|.']);
@@ -101,28 +111,23 @@ assert(numel(tmpNames) == numel(unique(tmpNames)),...
 nConds    = obj.nConditions;
 nNewConds = numel(conds);
 
-%Check that no new event last beyond the timeline length
-tmpCevents = table('Size',[0 5],...
-                   'VariableTypes',{'uint16','double','double','double','cell'},...
-                   'VariableNames',{'id','onsets','durations','amplitudes','info'});
+
+% Ensure all conditions are expressed in the same time units
+%than the timeline.
 for iCond = 1:nNewConds
-
-    tmpCond = copy(conds(iCond)); %Deep copy
-
-    tmpCond.unit                = obj.unit;
-    tmpCond.timeUnitMultiplier  = obj.timeUnitMultiplier;
-    tmpCond.nominalSamplingRate = obj.nominalSamplingRate;
-    tmpCond.cevents.id(:)       = tmpCond.id;
-    tmpCevents = [tmpCevents; tmpCond.cevents];
+    conds(iCond).unit = obj.unit;
+    conds(iCond).timeUnitMultiplier  = obj.timeUnitMultiplier;
+    conds(iCond).nominalSamplingRate = obj.nominalSamplingRate;
 end
+
 
 %Check that no new event last beyond the timeline length
 if strcmpi(obj.unit,'samples')
-    assert(all(tmpCevents.onsets + tmpCevents.durations <= obj.length),...
+    assert(all([conds.ends] <= obj.length),...
         ['icnna:data:core:timeline:addConditions:InvalidEvent ', ...
         'Events cannot last beyond the length of the timeline.']);
 else %|unit| == 'seconds'
-    assert(all(tmpCevents.onsets + tmpCevents.durations <= obj.timestamps(end)),...
+    assert(all([conds.ends] <= obj.timestamps(end)),...
         ['icnna:data:core:timeline:addConditions:InvalidEvent ', ...
         'Events cannot last beyond the length of the timeline.']);
 end
@@ -151,7 +156,7 @@ end
 %   occurs. You would need to handle this explicitly.
 %
 % -- How to Prevent Unintended Modifications
-% To avoid unintended modifications to your object, you can use one
+% To avoid unintended modifications to our object, we can use one
 % of the following strategies:
 %
 % * Backup and Restore: Create a backup of the object before making
@@ -169,18 +174,15 @@ end
 %NOW, in the following, if the error is in the exclusory behaviour, by
 %that time, the timeline has already been changed... So I need to back up
 %and restore.
-tmp.conds        = obj.conds;
-tmp.cevents      = obj.cevents;
+tmp.conditions   = obj.conditions;
 tmp.exclusory    = obj.exclusory;
 
 try
     %Add the conditions
     [~,idx] = sort(tmpIDs);
 
-    obj.conds = table(uint32(tmpIDs),tmpNames,...
-                      'VariableNames',{'id','name'});
-    
-    obj.cevents = [obj.cevents; tmpCevents];
+    obj.conditions = [obj.conditions; conds];
+    obj.conditions = obj.conditions(idx); %Sort by condition ID
     
     %Update the exclusory behaviuour
     tmpExclusory  = [obj.exclusory exclusoryState*true(nConds,nNewConds); ...
@@ -188,14 +190,13 @@ try
     %...but note that when adding the condition above, that will sort the
     % conditions, i.e. the indexing of the new conditions is NOT necessarily
     % at the end.
-    obj.exclusory = tmpExclusory(idx,idx); %Sort according to conds.id
+    obj.exclusory = tmpExclusory(idx,idx); %Sort according to conditions.id
 
 
 catch ME
     %Restore
-    obj.conds     = tmp.conds;
-    obj.cevents   = tmp.cevents;
-    obj.exclusory = tmp.exclusory;
+    obj.conditions = tmp.conditions;
+    obj.exclusory  = tmp.exclusory;
 
     rethrow(ME)
 end

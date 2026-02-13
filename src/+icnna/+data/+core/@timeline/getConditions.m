@@ -15,7 +15,7 @@ function [conds] = getConditions(obj,id)
 % 
 % ...is different from:
 %
-%   [conds] = obj.getConditions(obj,id)
+%   [conds] = getConditions(obj,id)
 %
 % The first retrieves the conditions by their positions in the array
 %of conditions (regardless of their |id|) and further, cannot be used
@@ -23,6 +23,11 @@ function [conds] = getConditions(obj,id)
 %
 % The second retrieves the conditions by their |id| or |name| (if they
 % exist), regardles of their positions in the array of conditions.
+%
+% However, these two calls shpuld be the same;
+%
+% [conds] = obj.conditions
+% [conds] = getConditions(obj)
 %
 %
 %% Parameters
@@ -37,6 +42,9 @@ function [conds] = getConditions(obj,id)
 %
 % [conds] - icnna.data.core.conditions[]
 %   The array of found conditions. Empty if no conditions are found.
+%   The conditions are sorted by |id|. Note that the length
+%   of the output may not match the lengths of the input even
+%   if conditions are found, e.g. repeated id/names.
 %
 %
 % Copyright 2025
@@ -75,6 +83,17 @@ function [conds] = getConditions(obj,id)
 %   + Bug fixed: when the conditions output is empty, it now correctly
 %   return an empty array of objects.
 %
+%
+% -- ICNNA v1.4.0
+%
+% 10-Dec-2025: FOE
+%   + Revert back to regular value (non-handle) class.
+%	+ Change .conds to .conditions, and updated from a table to a
+%   struct array of conditions.
+%	+ Revert .cevents to a derived property (extracted on the fly from
+%       .conditions) |condEvents|.
+%   + Improved some comments.
+%
 
 
 if ~exist('id','var')
@@ -84,26 +103,14 @@ end
 idx = obj.findConditions(id);
     %Note that this takes care of whether id is truly an |id| or a |name|
     %as well as whether the search is for one or multiple.
+%Ignore repeated ids and NaNs
+idx = unique(idx);
+idx(isnan(idx)) = [];
 
 if isempty(idx)
     conds = icnna.data.core.condition.empty;
 else
-    %Generate the condition objects on the fly.
-    theConds = obj.conds;
-    tmp = theConds(idx,:);
-    %Note that I store the conds dictionary already
-    %sorted by keys, so no need to sort here.
-    conds(size(tmp,1)) = icnna.data.core.condition;
-    conds = arrayfun(@(obj2,val) setfield(obj2,'id',val),   conds, tmp.id');
-    for iCond = 1:size(tmp,1)
-        conds(iCond).name                = tmp.name(iCond);
-        conds(iCond).nominalSamplingRate = obj.nominalSamplingRate;
-        conds(iCond).unit                = obj.unit;
-        conds(iCond).timeUnitMultiplier  = obj.timeUnitMultiplier;
-        conds(iCond).cevents             = sortrows(obj.cevents(obj.cevents.id == conds(iCond).id,:), ...
-                                                 'onsets');
-    end
-
+    conds = obj.conditions(idx);
 end
 
 end

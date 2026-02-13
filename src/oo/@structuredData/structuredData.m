@@ -137,6 +137,10 @@ classdef structuredData
 %   + Property timeline is now of type icnna.data.core.timeline
 %
 %
+% 9-Feb-2026: FOE
+%   + Updated from deprecated function version_IsHigherOrEqual
+%   to new icnna.util.compareVersions
+%
 
 
 
@@ -264,7 +268,7 @@ classdef structuredData
          %Gets the object |timeline|
          %
          % An timeline object
-         if version_IsHigherOrEqual(obj.classVersion,'1.1')
+         if icnna.util.compareVersions(obj.classVersion,'1.1','>=')
              res = obj.timeline;
          else % version '1.0' or no classVersion at all
              res = timeline(tmpT); %Typecast to old timeline
@@ -436,7 +440,7 @@ classdef structuredData
                    obj.data = val;
                end
                t = obj.timeline;
-               if version_IsHigherOrEqual(obj.classVersion,'1.1')
+               if icnna.util.compareVersions(obj.classVersion,'1.1','>=')
                    %Length of the timeline now depends
                    %on the timestampts, so crop or extends the
                    %timestamps accordingly

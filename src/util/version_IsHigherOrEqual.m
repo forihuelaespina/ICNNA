@@ -1,17 +1,33 @@
 function res=version_IsHigherOrEqual(verStr1,verStr2)
-%Compares 2 version strings and decides whether ver1>=ver2
+%DEPRECATED. Compares 2 version strings and decides whether ver1>=ver2
 %
 % res=version_IsHigherOrEqual(verStr1,verStr2) Compares 2 version
 %       strings and decides whether ver1>=ver2
 %
+% This function is deprecated since ICNNA version 1.4.0.
+% Please use icnna.util.compareVersion instead.
 % 
-% Copyright 2008-12
-% @date: 25-Apr-2008
+% Copyright 2008-25
 % @author: Felipe Orihuela-Espina
-% @modified: 22-Dec-2012
 %
-% See also
+% See also icnna.util.compareVersion
 %
+
+
+%% Log
+%
+% File created: 25-Apr-2008
+% File last modified (before creation of this log): 22-Dec-2008
+%
+% 14-Dec-2025: FOE
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Deprecated function.
+%
+
+
+warning('icnna:util:version_isHigherOrEqual:Deprecated',...
+         ['This function is now deprecated (since v1.4.0). ' ...
+          'Please use icnna.util.compareVersion instead.']);
 
 
 res=false;

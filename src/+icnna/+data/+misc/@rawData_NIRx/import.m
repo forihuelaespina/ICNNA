@@ -1,12 +1,11 @@
-function obj=import(obj,varargin)
-%ICNNA.DATA.MISC.RAWDATA_NIRX/IMPORT Reads data files recorded by NIRx NIRStar software in a session.
+function sd=import(obj,varargin)
+%Reads data files recorded by NIRx NIRStar software in a session.
 %
-% obj=import(obj,path) Reads the data files recorded produced by
-%       the NIRx NIRStar software located in path. The property obj.path
-%       will be updated.
+% sd=import(obj,path) Reads the data files recorded produced by
+%       the NIRx NIRStar software located in |path|. The properties
+%       |path| and |dataFiles| will be updated.
 %
-% obj=import(obj) Reads the data files recorded produced by
-%       the NIRx NIRStar software located in obj.path
+% sd=import(obj) Reads the data files pointed in |dataFiles|
 %
 %
 %% Input file(s) structure
@@ -294,12 +293,22 @@ function obj=import(obj,varargin)
 %
 % 2-Feb-2025: FOE
 %   + Method created.
-%   Although this class supersedes class |rawData_NIRScout|, the internal
+%   Although this class supersedes class @rawData_NIRScout, the internal
 %   rationale is completely different (see Remarks above). Hence, the
 %   whole code for this method is completely different from its analagous
-%   method import in old class |rawData_NIRScout|.
+%   method import in old class @rawData_NIRScout.
 %
-
+%
+%
+% -- ICNNA v1.4.0
+%
+% 20-Dec-2025: FOE
+%   + Adaptation to the new behaviour of subperclass
+%  @icnna.data.core.rawData whereby the raw data is no
+%  longer stored but read on-the-fly upon invoking
+%  method |import|. UNFINISHED.
+%   + Improved some comments.
+%
 
 %% Deal with options
 %Check if path has been provided

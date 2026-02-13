@@ -91,7 +91,7 @@ classdef channelLocationMap
 %
 %   S - Light Source        S---1---D---2---S---3---D---4---S
 %   D - Light Detector      |       |       |       |       |
-%   1,..,24 - Channel       5       6       7       8       9
+%   1,..,22 - Channel       5       6       7       8       9
 %                           |       |       |       |       |
 %                           D--10---S--11---D--12---S--13---D
 %                           |       |       |       |       |

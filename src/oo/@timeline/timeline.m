@@ -1,6 +1,9 @@
 classdef timeline
-% timeline  A timeline for recording of events.
-% 
+% DEPRECATED. timeline  A timeline for recording of events.
+%
+% This class is deprecated since ICNNA version 1.4.0.
+% Please use class @icnna.data.core.timeline instead.
+%
 % A timeline holds marks corresponding with the occurrence
 %of an event at a certain time of the experiment. An example
 %of a typical event might be the starting or finishing of a
@@ -196,6 +199,10 @@ classdef timeline
 %   + Added copy constructor to provide typecasting capacity from
 %   icnna.data.core.timeline.
 %
+% 4-Dec-2025: FOE
+%   + This class is now formally deprecated (since ICNNA version 1.4.0)
+%   in favour of icnna.data.core.timeline.
+%
 
     properties (Constant, Access=private)
         %classVersion = '1.0'; %Read-only. Object's class version.
@@ -245,6 +252,11 @@ classdef timeline
             %                obj=timeline(90,'A',[])
             %            No events. Note that the [] in the third parameter is still
             %            compulsory.
+
+
+            warning('ICNNA:timeline:Deprecated',...
+                    ['Class @timeline is now deprecated (since v1.4.0) ' ...
+                     'in favour of @icnna.data.core.timeline.']);
 
             if (nargin==0)
                 %Keep default values

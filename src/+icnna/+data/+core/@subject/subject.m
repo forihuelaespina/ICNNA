@@ -18,10 +18,15 @@ classdef subject < icnna.data.core.experimentalUnit
 %
 %% Properties
 %
-%   -- Inherited 
+%   -- Private properties
+%   .classVersion - Char array. (Read only. Constant)
+%       The class version of the object
+%       This is separate from the superclass' own |classVersion|.
+%
+%   -- Inherited properties
 %   .id - uint32. Default is 1.
 %       A numerical identifier.
-%   .name - Char array. Default is 'Subject0001'
+%   .name - Char array. Default is 'subject0001'
 %       The experimental unit name. Often this will be the
 %       alphanumerical identifier given to the experimental unit in order
 %       to blind its origin and not the person's name.
@@ -33,14 +38,15 @@ classdef subject < icnna.data.core.experimentalUnit
 %       first level properties)
 %   .dob  - datetime. Default is today.
 %       Date of birth.
-%   .sex  - Char. Default is 'U'
+%   .sex  - Char. (Enum) Default is 'U'
 %       The subject sex; 'M'ale/'F'emale/'U'nknown
-%   .hand - Char. Default is 'U'
+%   .hand - Char. (Enum) Default is 'U'
 %       Handedness 'L'eft/'R'ight/'A'mbidextrous/'U'nknown
 %
 %% Dependent properties
 %
-%   .age - Int. Read only. The subject age in years.
+%   .age - Int. Read only.
+%       The subject age in years.
 %
 %% Methods
 %
@@ -63,10 +69,17 @@ classdef subject < icnna.data.core.experimentalUnit
 %   + File and class created. Reused some code from predecessor class
 %   @subject
 %
-
+%
+% -- ICNNA v1.4.0
+%
+% 13-Dec-2025: FOE
+%   + Revert back to regular value (non-handle) class.
+%	+ Class version - Updated to 1.1
+%   + Improved comments
+%
 
     properties (Constant, Access=private)
-        classVersion = '1.0'; %Read-only. Object's class version.
+        classVersion = '1.1'; %Read-only. Object's class version.
     end
 
     % properties %(SetAccess=private, GetAccess=private)
@@ -81,16 +94,19 @@ classdef subject < icnna.data.core.experimentalUnit
       hand
       age % Read only
     end
+    
+    
+    
 
+    % =====================================================================
+    % Constructor
+    % =====================================================================
     methods
         function obj=subject(varargin)
-            %ICNNA.DATA.CORE.SUBJECT icnna.data.core.subject class constructor
+            %Constructor for class @icnna.data.core.subject
             %
             % obj=icnna.data.core.subject() creates a default subject
-            %   with ID equals 1.
-            %
             % obj=icnna.data.core.subject(obj2) acts as a copy constructor  
-            %   of subject
             %
             % @Copyright 2025
             % Author: Felipe Orihuela-Espina
@@ -99,7 +115,9 @@ classdef subject < icnna.data.core.experimentalUnit
             %
 
             obj = obj@icnna.data.core.experimentalUnit(varargin{:});
-            obj.name = 'Subject0001';
+            tmp = split(class(obj),'.');
+            obj.name = [tmp{end} num2str(obj.id,'%04d')];
+
             obj.dob  = datetime('today');
             obj.sex  = 'U';
             obj.hand = 'U';
@@ -119,45 +137,134 @@ classdef subject < icnna.data.core.experimentalUnit
     
 
 
+    % =====================================================================
+    % Getters & setters
+    % =====================================================================
     methods
-
-      %Getters/Setters
-
+         %Retrieves the object |dob|
       function res = get.dob(obj)
-         %Gets the object |dob|
-         %
-         % The subject's date of birth
+            % Getter for |dob|:
+            %   Returns the metadata |dob|.
+            %
+            % The subject's date of birth (dob).
+            %
+            % Usage:
+            %   res = obj.dob;  % Retrieve the subject's date of birth (dob)
+            %
+            %% Output
+            % res - datetime.
+            %   The subject's date of birth (dob).
+            %
          res = obj.metadata.dob;
       end
-      function obj = set.dob(obj,val)
          %Sets the object |dob|
-         %
-         %  The subject's date of birth.
+      function obj = set.dob(obj,val)
+            % Setter for |dob|:
+            %   Sets the subject's date of birth |dob|.
+            %
+            %
+            % Usage:
+            %   obj.dob = datetime('11-Mar-1985');  % Set subject's date of birth
+            %
+            %% Input parameters
+            %
+            %  val - datetime
+            %  The subject's date of birth.
+            %
+            %% Output
+            %
+            % obj - @icnna.data.core.subject
+            %   The updated object
+            %
          obj.metadata.dob = datetime(val);
       end
 
 
-    function res = get.sex(obj)
-         %Gets the object |sex|
+         %Retrieves the object |sex|
+      function res = get.sex(obj)
+            % Getter for |sex|:
+            %   Returns the metadata |sex|.
+            %
+            % The subject's sex.
+            %
+            % Usage:
+            %   res = obj.sex;  % Retrieve the subject's sex
+            %
+            %% Output
+            % res - char.
+            %   The subject's sex.
+            %
          res = obj.metadata.sex;
       end
-      function obj = set.sex(obj,val)
          %Sets the object |sex|
+      function obj = set.sex(obj,val)
+            % Setter for |sex|:
+            %   Sets the subject's |sex|.
+            %
+            %
+            % Usage:
+            %   obj.sex = 'F';  % Set subject's sex to female.
+            %
+            %% Input parameters
+            %
+            %  val - char
+            %  The subject's sex; 'M'ale/'F'emale/'U'nknown
+            %
+            %% Output
+            %
+            % obj - @icnna.data.core.subject
+            %   The updated object
+            %
+         assert(ischar(val),...
+                'icnna:data:core:subject:set_sex:InvalidParameterValue',...
+                'Invalid parameter value. Sex must be of type char.')
          assert(ismember(val,{'M','F','U'}),...
                 'icnna:data:core:subject:set_sex:InvalidParameterValue',...
                 'Invalid parameter value. Sex must be ''M'', ''F'' or ''U''.')
          obj.metadata.sex =  val;
       end
 
-    function res = get.hand(obj)
-         %Gets the object |hand|
+         %Retrieves the object |hand|
+      function res = get.hand(obj)
+            % Getter for |hand|:
+            %   Returns the metadata |hand|.
+            %
+            % The subject's handedness.
+            %
+            % Usage:
+            %   res = obj.hand;  % Retrieve the subject's handedness
+            %
+            %% Output
+            % res - char.
+            %   The subject's handedness.
+            %
          res = obj.metadata.hand;
       end
-      function obj = set.hand(obj,val)
          %Sets the object |hand|
+      function obj = set.hand(obj,val)
+            % Setter for |hand|:
+            %   Sets the subject's |hand|.
+            %
+            %
+            % Usage:
+            %   obj.hand = 'R';  % Set subject's handedness to right-handed.
+            %
+            %% Input parameters
+            %
+            %  val - char
+            %  The subject's handedness; 'L'eft/'R'ight/'A'mbidextrous/'U'nknown
+            %
+            %% Output
+            %
+            % obj - @icnna.data.core.subject
+            %   The updated object
+            %
+         assert(ischar(val),...
+                'icnna:data:core:subject:set_hand:InvalidParameterValue',...
+                'Invalid parameter value. Hand must be of type char.')
          assert(ismember(val,{'L','R','A','U'}),...
-                'icnna:data:core:subject:set_sex:InvalidParameterValue',...
-                'Invalid parameter value. Sex must be ''L'', ''R'', ''A'' or ''U''.')
+                'icnna:data:core:subject:set_hand:InvalidParameterValue',...
+                'Invalid parameter value. Hand must be ''L'', ''R'', ''A'' or ''U''.')
          obj.metadata.hand =  val;
       end
 
@@ -170,8 +277,20 @@ classdef subject < icnna.data.core.experimentalUnit
 
 
 
-    function res = get.age(obj)
-         %Gets the object |age|
+         %Retrieves the object |age|
+      function res = get.age(obj)
+            % Getter for |age|:
+            %   Returns the metadata |age|.
+            %
+            % The subject's age in years.
+            %
+            % Usage:
+            %   res = obj.age;  % Retrieve the subject's age in years.
+            %
+            %% Output
+            % res - int
+            %   The subject's age.
+            %
          today = datetime('today'); % Current date
          tmpDelta = between(obj.dob, today,'years');
          res = floor(calyears(tmpDelta));

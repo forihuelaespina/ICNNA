@@ -1,4 +1,4 @@
-function clearConditions(obj)
+function obj = clearConditions(obj)
 %Delete all @icnna.data.core.conditions from the @icnna.data.core.timeline
 %
 % obj.clearConditions()
@@ -33,13 +33,17 @@ function clearConditions(obj)
 %   + Adapted to the new internal structure for the storing
 % of conditions |id| and |name| (from dictionary to table).
 %
+% -- ICNNA v1.4.0
+%
+% 10-Dec-2025: FOE
+%   + Revert back to regular value (non-handle) class.
+%	+ Change .conds to .conditions, and updated from a table to a
+%   struct array of conditions.
+%	+ Revert .cevents to a derived property (extracted on the fly from
+%       .conditions) |condEvents|.
+%
  
-obj.conds      = table('Size',[0 2],...
-                    'VariableTypes',{'uint32','string'},...
-                    'VariableNames',{'id','name'});
-obj.cevents    = table('Size',[0 5],...
-                    'VariableTypes',{'uint32','double','double','double','cell'},...
-                    'VariableNames',{'id','onsets','durations','amplitudes','info'});
+obj.conditions = icnna.data.core.condition.empty;
 obj.exclusory  = false(0,0);
 
 

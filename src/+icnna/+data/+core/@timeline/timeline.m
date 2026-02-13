@@ -9,12 +9,6 @@ classdef timeline < icnna.data.core.identifiableObject
 % block when some experimental condition is being administered.
 %
 %
-%% Remarks
-%
-% @icnna.data.core.timeline are @icnna.data.core.identifiableObject,
-% and therefore they are handles. Beware of collateral effects.
-%
-%
 %% Samples vs Timestamps
 %
 % @icnna.data.core.timeline supports operation either in samples or
@@ -27,7 +21,6 @@ classdef timeline < icnna.data.core.identifiableObject
 % Similarly, when operating in 'seconds', a timeline supports operation
 %at different scales (see |timeUnitMultiplier|), but again, all
 %conditions within the timeline will have the same |timeUnitMultiplier|.
-%
 % 
 % ICNNA versions earlier than v1.2.2 only operate in samples.
 %
@@ -71,7 +64,7 @@ classdef timeline < icnna.data.core.identifiableObject
 %   -- Inherited properties
 %   .id - uint32. Default is 1.
 %       A numerical identifier.
-%   .name - (Since v1.3.1) Char array. By default is empty 'timeline0001'.
+%   .name - (Since v1.3.1) Char array. By default is 'timeline0001'.
 %       A name for the timeline. 
 %
 %   -- Public properties
@@ -79,7 +72,7 @@ classdef timeline < icnna.data.core.identifiableObject
 %         The default start time is the object creation time.
 %           Up to ICNNA version 1.3.0, the type was datenum.
 %   .timestamps - A vector of .lengthx1 timestamps in seconds
-%         relative to the .startTime. Note that the initial timestamp
+%         relative to the |startTime|. Note that the initial timestamp
 %         does not have to be 0. When not available, timestamps will
 %         automatically generated at 1Hz. If not provided, the nominal
 %         sampling rate to automatically generate timestamps.
@@ -134,44 +127,11 @@ classdef timeline < icnna.data.core.identifiableObject
 %
 %
 %
-%  -- Private properties
+%  -- Set access private properties
 %
-%   .conds - (Since v1.3.1) Table
-%       Conditions (|id|,|name|) pairs. 
+%   .conditions - (Since v1.3.1) icnna.data.core.condition[kx1]
+%       List of conditions in the timeline.
 %       Both id and names ought to be unique.
-%
-%       +=====================================================+
-%       | NOTE; In dictionary, retrieving the value knowing   |
-%       | the key is trivial, but the other way around not so |
-%       | much. Matlab dictionaries offer method .entries to  |
-%       | get a tabular view of the dictionay, but in the end |
-%       | the additional conversion was not convenient. Hence,|
-%       | A table implementation was favoured over a          |
-%       | dictionary so that retrival of the id given the name|
-%       | was as easy as the other way around.                |
-%       +=====================================================+
-%
-%   .cevents - Table. Default is empty.
-%         List of condition events.
-%         Each row is an event.
-%         The list of events has AT LEAST the following columns;
-%          + id - The condition id,
-%          + onsets - The rows of the table is ALWAYS sort by onsets,
-%          + durations,
-%          + amplitudes i.e. magnitude or strength.
-%          + info - Event information. Whatever the user wants to
-%                   store associated to the condition event.
-%
-%       Onsets and durations are store in the timeline |unit|. Therefore,
-%       updating the property |unit| affects the representation of
-%       |cevents|.
-%
-%       Additional columns may be added, but the 4 columns above
-%       ought to be present and be named 'onset', 'duration', 'amplitude'
-%       and 'info' respectively. Although, the order does not matter in
-%       principle, if any of these four columns are missing when setting
-%       up the value, a default order will be assumed and the column will
-%       be renamed accordingly.
 %
 %   .exclusory - Array of logical. A matrix of pairwise exclusory states.
 %	  exclusory(condA,condB)= icnna.data.core.timeline.CONDITIONS_NON_EXCLUSORY => Non exclusory behaviour
@@ -202,8 +162,10 @@ classdef timeline < icnna.data.core.identifiableObject
 %   .nTotalEvents - Int. Read-only. Number of total events in the timeline across
 %       conditions.
 %       Available since v1.3.1 
-%   .condEvents - Table. Read-only. A list of all the events across the conditions
-%       in the timeline.
+%   .condEvents - struct[]. Read-only. A list of all the events across
+%       the conditions in the timeline.
+%       Somewhat akin to property |cevents| for each condition, but this
+%       is enriched with the condition's id and name.
 %       Available since v1.3.1 
 %
 %% Invariants
@@ -305,15 +267,33 @@ classdef timeline < icnna.data.core.identifiableObject
 %   + Replace internal representation of conds from a dictionary to
 %   a table holding the condition id and names.
 %
+% 4-Dec-2025: FOE 
+%   + Bug fixed: Typecasting constructor from @timeline was not
+%   correctly handling the case where the timeline had no conditions.
 %
-
+% -- ICNNA v1.4.0
+%
+% 5/6-Dec-2025: FOE
+%   + Revert back to regular value (non-handle) class.
+%	+ Class version - Updated to 1.2
+%	+ Change .conds to .conditions, and updated from a table to a
+%   struct array of conditions.
+%	+ Revert .cevents to a derived property (extracted on the fly from
+%       .conditions) |condEvents| and further it is now return as a
+%       struct array instead of a table.
+%	+ Improved some comments
+%
+% 15-Dec-2025: FOE
+%   + Property |conditions| is now column array instead of row array.
+%   + Method findConditions is now public.
+%
     properties (Constant, Access=private)
-        classVersion = '1.1'; %Read-only. Object's class version.
+        classVersion = '1.2'; %Read-only. Object's class version.
     end
 
     properties %(SetAccess=private, GetAccess=private)
         startTime(1,1) datetime = datetime('now'); % Absolute start time
-        timestamps(:,1) double = zeros(0,1); %List of timestamps in seconds relative to .startTime
+        timestamps(:,1) double = zeros(0,1); %List of timestamps in [|timeUnitMultiplier|*secs] relative to .startTime
         nominalSamplingRate(1,1) double {mustBeNonnegative} = 1; %Nominal sampling rate in Hz
         unit(1,:) char {mustBeMember(unit,{'samples','seconds'})} = 'samples';
         timeUnitMultiplier(1,1) int16 = 0;
@@ -321,38 +301,32 @@ classdef timeline < icnna.data.core.identifiableObject
 
     properties (SetAccess=private)
         exclusory(:,:) logical = false(0,0); %Pairwise exclusory states
+        conditions(:,1) icnna.data.core.condition = ...
+                    icnna.data.core.condition.empty; % List of conditions 
     end
 
-    properties (SetAccess=private, GetAccess=private)
-        conds table = table('Size',[0 2],...
-                        'VariableTypes',{'uint32','string'},...
-                        'VariableNames',{'id','name'}); %Collection of conditions (id,name) pairs
-        cevents table = table('Size',[0 5],...
-                        'VariableTypes',{'uint32','double','double','double','cell'},...
-                        'VariableNames',{'id','onsets','durations','amplitudes','info'});
-                                            %Collection of events
-    end
-
-   
     properties (Dependent)
         length %Read-only
         nConditions %Read-only
         averageSamplingRate %Read-only
-        conditions %Read-only
+        %conditions %Read-only
         nTotalEvents %Read-only
         condEvents %Read-only
             %note that events is a function in matlab. So avoid that name.
     end
     
+    
+    
+
+    % =====================================================================
+    % Constructor
+    % =====================================================================
     methods
         function obj=timeline(varargin)
-            %Timeline class constructor
+            %Constructor for class @icnna.data.core.timeline
             %
-            % obj=icnna.data.core.timeline() creates a default empty timeline with no
-            %   conditions defined nor samples (empty timestamps).
-            %
+            % obj=icnna.data.core.timeline() creates a default empty timeline.
             % obj=icnna.data.core.timeline(obj2) acts as a copy constructor
-            %   of @icnna.data.core.timeline
             %
             % obj=icnna.data.core.timeline(obj2) Typecasts a @timeline into
             %   an @icnna.data.core.timeline
@@ -361,6 +335,9 @@ classdef timeline < icnna.data.core.identifiableObject
             %   creates a new @icnna.data.core.timeline of a given
             %   |length| and |nominalSamplingRate| with no conditions
             %   defined.
+            % 
+            % Copyright 2024-25
+            % @author: Felipe Orihuela-Espina
             %
 
             obj@icnna.data.core.identifiableObject();
@@ -380,26 +357,28 @@ classdef timeline < icnna.data.core.identifiableObject
                 obj.timestamps = t.timestamps;
                 warning('on')
                 obj.nominalSamplingRate = t.nominalSamplingRate;
-                tmpConditions(t.nConditions) = icnna.data.core.condition();
-                for iCond = 1:numel(t.conditions)
-                    tmpCond        = tmpConditions(iCond);
-                        %icnna.data.core.conditions are handles.
-                        %and ergo passed by reference, ergo all the
-                        %lines below, automatically reflect the
-                        %changes in tmpConditions
-                    tmpCond.id     = iCond;
-                    tmpCond.name   = t.conditions{iCond}.tag;
-                    tmpCond.unit   = 'samples';
-                    tmpCond.timeUnitMultiplier  = 0;
-                    tmpCond.nominalSamplingRate = t.nominalSamplingRate;
-                    tmpCond.addEvents(t.conditions{iCond}.events,...
-                                      t.conditions{iCond}.eventsInfo);
-                    
+                if (t.nConditions > 0)
+                    tmpConditions(t.nConditions) = icnna.data.core.condition();
+                    for iCond = 1:numel(t.conditions)
+                        tmpCond        = tmpConditions(iCond);
+                            %icnna.data.core.conditions are handles.
+                            %and ergo passed by reference, ergo all the
+                            %lines below, automatically reflect the
+                            %changes in tmpConditions
+                        tmpCond.id     = iCond;
+                        tmpCond.name   = t.conditions{iCond}.tag;
+                        tmpCond.unit   = 'samples';
+                        tmpCond.timeUnitMultiplier  = 0;
+                        tmpCond.nominalSamplingRate = t.nominalSamplingRate;
+                        tmpCond.addEvents(t.conditions{iCond}.events,...
+                                          t.conditions{iCond}.eventsInfo);
+                        
+                    end
+                    obj.conditions = tmpConditions;
+                    obj.exclusory  = logical(t.exclusory);
                 end
-                obj.addConditions(tmpConditions,0);
-                obj.exclusory    = logical(t.exclusory);
                 return;
-            else
+            elseif (nargin==2)
                 %val=varargin{1};
                 tmpLength = varargin{1};
                 obj.nominalSamplingRate = varargin{2};
@@ -409,33 +388,67 @@ classdef timeline < icnna.data.core.identifiableObject
                     %Note that at this moment, there is no need to
                     %account for the |timeUnitMultiplier| as it this point
                     %it will be set to 0 i.e. 10^0 = 1.
+            else
+                error(['icnna.data.core.timeline:timeline:InvalidNumberOfParameters' ...
+                            'Unexpected number of parameters.']);
             end
             %assertInvariants(obj);
         end
+    end
 
 
-      %Getters/Setters
 
-
-      function res = get.nominalSamplingRate(obj)
+    % =====================================================================
+    % Getters & setters
+    % =====================================================================
+    methods
          %Gets the object |nominalSamplingRate|
-         %
-         % Declared sampling rate. It may differ from the
-         %real sampling rate (see 'SamplingRate'). This is used for
-         %automatically generating timesamples when these latter are
-         %unknown.
+      function res = get.nominalSamplingRate(obj)
+            % Getter for |nominalSamplingRate|:
+            %   Returns the value of the |nominalSamplingRate| property.
+            %
+            % Declared sampling rate. It may differ from the average
+            %sampling rate (see 'averageSamplingRate'). This is used for
+            %automatically generating timesamples when these latter are
+            %unknown.
+            %
+            % Usage:
+            %   res = obj.nominalSamplingRate;  % Retrieve nominal sampling rate
+            %
+            %% Output
+            % res - double
+            %   The nominal sampling rate in [Hz]
+            %
          res = obj.nominalSamplingRate;
       end
-      function set.nominalSamplingRate(obj,val)
          %Sets the object |nominalSamplingRate|
-         %
-         % Declared sampling rate in Hz. It may
-         % differ from the real sampling rate (see obj.averageSamplingRate).
-         % This is used for automatically generating timesamples
-         % when these latter are unknown.
-         %
-         % Altering the nominal sampling rate also alters the |cevents|,
-         %but won't affect the timestamps.
+      function obj = set.nominalSamplingRate(obj,val)
+            % Setter for |nominalSamplingRate|:
+            %   Sets the |nominalSamplingRate| property in Hz.
+            %
+            % Declared sampling rate in Hz. It may differ from 
+            % the average sampling rate (see obj.averageSamplingRate).
+            % This is used for automatically generating timesamples
+            % when these latter are unknown.
+            %
+            % If the |unit| is 'samples' altering the nominal sampling
+            % rate also alters the |condEvents| accordingly, but won't
+            % affect the timestamps.
+            %
+            % Usage:
+            %   obj.nominalSamplingRate = 3;  % Set the nominal sampling rate to 3 Hz
+            %
+            %% Input parameters
+            %
+            % val - double
+            %   The new nominal sampling rate in Hz.
+            %
+            %% Output
+            %
+            % obj - @icnna.data.core.timeline
+            %   The updated object
+            %
+            %
             if (val == 0)
                 warning('icnna:data:core:timeline:set_nominalSamplingRate:ParameterValue',...
                     ['A nominal sampling rate equal to 0 can lead to ' ...
@@ -444,10 +457,14 @@ classdef timeline < icnna.data.core.identifiableObject
             currentSR = obj.nominalSamplingRate;
             obj.nominalSamplingRate = val;
             if strcmp(obj.unit,'samples')
-                obj.cevents.onsets = round(obj.cevents.onsets * ...
-                    (obj.nominalSamplingRate / currentSR));
-                obj.cevents.durations = round(obj.cevents.durations * ...
-                    (obj.nominalSamplingRate / currentSR));
+                for iCond = 1:obj.nConditions
+                    obj.conditions(iCond).onsets = round(...
+                        obj.conditions(iCond).onsets * ...
+                        (obj.nominalSamplingRate / currentSR));
+                    obj.conditions(iCond).durations = round(...
+                        obj.conditions(iCond).durations * ...
+                        (obj.nominalSamplingRate / currentSR));
+                end
             end
       end
 
@@ -455,146 +472,304 @@ classdef timeline < icnna.data.core.identifiableObject
 
 
 
+         %Retrieves the object |startTime|
       function res = get.startTime(obj)
-         %Gets the object |startTime|
-         %
-         % An absolute start date (as a datenum)
+            % Getter for |startTime|:
+            %   Returns the value of the |startTime| property.
+            %
+            % Timestamps are relative to this |startTime|.
+            %
+            % Usage:
+            %   res = obj.startTime;  % Retrieve absolute start time.
+            %
+            %% Output
+            % res - datetime
+            %   An absolute start time.
+            %
          res = obj.startTime;
       end
-      function set.startTime(obj,val)
          %Sets the object |startTime|
-         %
-         %  An absolute start date.
+      function obj = set.startTime(obj,val)
+            % Setter for |startTime|:
+            %   Sets the absolute start time.
+            %
+            % Timestamps are relative to this |startTime|.
+            %
+            % Usage:
+            %   obj.startTime = datetime('10am','InputFormat','hha');  % Set the start time at today's 10am.
+            %
+            %% Input parameters
+            %
+            % val - datetime
+            %   The new absolute start time.
+            %
+            %% Output
+            %
+            % obj - @icnna.data.core.timeline
+            %   The updated object
+            %
+            %
          obj.startTime = datetime(val);
       end
 
 
 
 
+         %Retrieves the object |timestamps|
       function res = get.timestamps(obj)
-         %Gets the object |timestamps|
-         %
-         % A vector (of 'Length'x1) of timestamps in seconds
-         % expressed relative to the startTime.
+            % Getter for |timestamps|:
+            %   Returns the list of |timestamps|.
+            %
+            % Timestamps are relative to |startTime|. From these, the
+            % average sampling rate (different from the nominal sampling
+            % rate) is calculated.
+            %
+            %       +==============================================+
+            %       | Timestamps is ALWAYS in 'seconds' units (or  |
+            %       | the fractional time in |timeUnitMultiplier|) |
+            %       | even if the timeline |unit| is samples.      |
+            %       +==============================================+
+            %
+            % Usage:
+            %   res = obj.timestamps;  % Retrieve the list of |timestamps|.
+            %
+            %% Output
+            % res - double[length]
+            %   List of timestamps in [|timeUnitMultiplier|*sec] relative
+            %   to |startTime|.
+            %
          res = obj.timestamps;
       end
-      function set.timestamps(obj,val,varargin)
          %Sets the object |timestamps|
-         %
-         %  A vector (of |length|x1) of timestamps in seconds
-         % expressed relative to the startTime. From these, the real
-         % average sampling rate (different from the nominal sampling
-         % rate) is calculated.
-         %
-         % Changing the timestamps also changes the length, and hence
-         % events on conditions may need to be cropped or removed.
+      function obj = set.timestamps(obj,val)
+            % Setter for |timestamps|:
+            %   Sets the list of |timestamps| for the samples.
+            %
+            % Timestamps are relative to this |startTime|. From these, the
+            % average sampling rate (different from the nominal sampling
+            % rate) is calculated.
+            %
+            %       +==============================================+
+            %       | Timestamps is ALWAYS in 'seconds' units (or  |
+            %       | the fractional time in |timeUnitMultiplier|) |
+            %       | even if the timeline |unit| is samples.      |
+            %       +==============================================+
+            %
+            %  The timeline |length| is a derived property which
+            % reflects the number of timestamps. Ergo, changing the
+            % timestamps will also affect the |length|. Hence, some
+            % events on conditions may need to be cropped or removed.
+            %
+            %  The timeline |averageSamplingRate| is a derived property
+            % which reflects the average time between the timestamps.
+            % Ergo, changing the |timestamps| will also affect the
+            % |averageSamplingRate|.
+            %
+            % Changing the |timestamps| does not alter the
+            % |nominalSamplingRate|.
+            %
+            % Usage:
+            %   obj.timestamps = datetime('10am','InputFormat','hha');  % Set the start time at today's 10am.
+            %
+            %% Input parameters
+            %
+            % val - double[]
+            %   The new list of |timestamps|.
+            %
+            %% Output
+            %
+            % obj - @icnna.data.core.timeline
+            %   The updated object
+            %
+            %
          if (isvector(val) && ~ischar(val) ...
                  && all(val(1:end-1)<val(2:end)) )
              %ensure it is a column vector
              val = reshape(val,numel(val),1);
              obj.timestamps = val;
-             obj.cropOrRemoveEvents();
+             obj = cropOrRemoveEvents(obj);
          else
              error('icnna:data:core:timeline:set_timestamps:InvalidParameterValue',...
                  'Value must be a vector of length obj.length.');
          end
-
-         %See note in the log
-         %assertInvariants(obj);
       end
 
 
 
 
 
-      function res = get.conds(obj)
-         %Gets the object |conds|
-         res = obj.conds;
+         %Retrieves the object |conditions|
+      function res = get.conditions(obj)
+            % Getter for |conditions|:
+            %   Returns the list of |conditions|.
+            %
+            % Usage:
+            %   res = obj.conditions;  % Retrieve the list of experimental condtions.
+            %
+            %% Output
+            % res - icnna.data.core.condition[]
+            %   The list of |conditions|.
+            %
+         res = obj.conditions;
       end
-      function set.conds(obj,val)
-         %Sets the object |conds|
-
-         %Assert that there aren't conditions sharing the same id
-         ids = uint32(val.id);
-         assert(numel(ids) == numel(unique(ids)),...
-                'icnna:data:core:timeline:set_conditions:RepeatedConditionNames',...
-                'Repeated conditions names.');
-         %Assert that there aren't conditions sharing the same name
-         names = val.name;
-         assert(numel(names) == numel(unique(names)),...
-                'icnna:data:core:timeline:set_conditions:RepeatedConditionNames',...
-                'Repeated conditions names.');
-         tmp = cellfun(@(val) isempty(val), names);
-         assert(~any(tmp),...
-                'icnna:data:core:timeline:set_conditions:EmptyConditionNames',...
-                'Empty condition name');
-         obj.conds = sortrows(table(ids,names,...
-                                    'VariableNames',{'id','name'}), ...
-                              'id');
-                    % For convenience sort the conds by id
+        %NOTE that condition set permission is private.
+        %See method setConditions
 
 
-
-      end
-
-
+         %Retrieves the object |exclusory|
       function res = get.exclusory(obj)
-         %Gets the object |exclusory|
+            % Getter for |exclusory|:
+            %   Returns the exclusory behaviour between the |conditions|.
+            %
+            % Usage:
+            %   res = obj.exclusory;  % Retrieve the exclusory behaviour between the |conditions|.
+            %
+            %% Output
+            % res - logical[|nConditions|x|nConditions|]
+            %   The exclusory behaviour between the |conditions|.
+            %
          res = obj.exclusory;
       end
-      function set.exclusory(obj,val)
          %Sets the object |exclusory|
+      function obj = set.exclusory(obj,val)
+            % Setter for |exclusory|:
+            %   Sets the |exclusory| property.
+            % 
+            % If the multiplier is changed, the event onsets and durations
+            % are adjusted according to the difference in precision.
+            %   
+            % Usage:
+            %   obj.exclusory = eye(ob.nConditions); 
+            %           % Allow overlap for all conditions (but 
+            %           %not within conditions).
+            %
+            % Error handling:
+            %   - val is a logical array
+            %   - val is a square matrix sized |nConditions|x|nConditions|.
+            %   - val is symmetric.
+            %   - The exclusory behaviour must be consistent with the
+            %   current overlapping request among the condition events
+            %   (see assertExclusory). If this is not the case, the
+            %   potential conflicts ought to be resolved in advance.
+            %
+            %% Input parameters
+            %
+            % val - logical[|nConditions|x|nConditions|]
+            %   The new exclusory behaviour between the |conditions|.
+            %
+            %% Output
+            %
+            % obj - @icnna.data.core.timeline
+            %   The updated object
+            %
+
          [nRows,nCols] = size(val);
+         assert( islogical(val), ...
+             ['icnna:data:core:timeline:set.exclusory: Exclusory matrix ' ...
+              'ought to be logical.']);
          assert( ndims(val) <= 2 && ...
                 nRows == obj.nConditions && nCols == obj.nConditions, ...
              'icnna:data:core:timeline:set.exclusory: Unexpected matrix size.');
          assert( issymmetric(val), ...
-             'icnna:data:core:timeline:set.exclusory: Exclusory matrix ought to be symmetric.');
+             ['icnna:data:core:timeline:set.exclusory: Exclusory matrix ' ...
+              'ought to be symmetric.']);
          obj.exclusory = val;
 
          assert(obj.assertExclusory(), ...
-            ['icnna:data:core:timeline:addCondition:ViolatedInvariant: ' ...
+            ['icnna:data:core:timeline:set.exclusory:ViolatedInvariant: ' ...
              'Inconsistent exclusory behaviour.']);
 
       end
 
 
 
-        function val = get.unit(obj)
         %Retrieves the temporal unit, whether 'samples' or 'seconds'
+        function val = get.unit(obj)
+            % Getter for |unit|:
+            %   Returns the temporal |unit|, whether 'samples' or 'seconds'.
+            %
+            % Usage:
+            %   res = obj.unit;  % Retrieve the temporal |unit|
+            %
+            %% Output
+            % res - char[]
+            %   The temporal |unit|, whether 'samples' or 'seconds'.
+            %
             val = obj.unit;
         end
-        function set.unit(obj,val)
         %Sets the temporal unit, whether 'samples' or 'seconds'
+        function obj = set.unit(obj,val)
+            % Setter for |unit|:
+            %   Sets the |unit| property.
+            % 
+            % Updating the |unit| also updates the events of the
+            %   conditions accordingly.
+            %
+            % Timestamps are not affected as these are always in
+            %   [|timeUnitMultiplier|*sec].
+            %
+            % Usage:
+            %   obj.unit = 'samples';  % Use samples as the temporal unit.
+            %
+            %% Input parameters
+            %
+            % val - char[] (enum)
+            %   The new temporal unit, whether 'samples' or 'seconds'.
+            %
+            %% Output
+            %
+            % obj - @icnna.data.core.timeline
+            %   The updated object
+            %
             currentUnit = obj.unit;
             obj.unit = val;
             if ~strcmpi(currentUnit,obj.unit)
                 %Conversion needed.
-                tmpMultiplier = double(obj.timeUnitMultiplier); %typecasting is
-                                                      %explicitly needed
-                if strcmp(obj.unit,'samples')
-                     %Convert from seconds to samples
-                    obj.cevents.onsets = round(obj.cevents.onsets * ...
-                        obj.nominalSamplingRate * 10^tmpMultiplier);
-                    obj.cevents.durations = round(obj.cevents.durations * ...
-                        obj.nominalSamplingRate * 10^tmpMultiplier);
-                     
-                else %Convert from samples to seconds
-                    obj.cevents.onsets = obj.cevents.onsets ./ ...
-                        (obj.nominalSamplingRate * 10^tmpMultiplier);
-                    obj.cevents.durations = obj.cevents.durations ./ ...
-                        (obj.nominalSamplingRate * 10^tmpMultiplier);
-                     
+                for iCond = 1:obj.nConditions
+                    obj.conditions(iCond).unit = obj.unit;
                 end
             end
         end
 
-        function val = get.timeUnitMultiplier(obj)
+
         %Retrieves the temporal unit multiplier
+        function val = get.timeUnitMultiplier(obj)
+            % Getter for |timeUnitMultiplier|:
+            %   Returns the temporal unit multiplier |timeUnitMultiplier|.
+            %
+            % Usage:
+            %   res = obj.timeUnitMultiplier;  % Retrieve the temporal unit multiplier
+            %
+            %% Output
+            % res - int16
+            %   The temporal temporal unit multiplier.
+            %
             val = obj.timeUnitMultiplier;
         end
-        function set.timeUnitMultiplier(obj,val)
         %Sets the temporal unit multiplier
+        function obj = set.timeUnitMultiplier(obj,val)
+            % Setter for |timeUnitMultiplier|:
+            %   Sets the |timeUnitMultiplier| property.
+            % 
+            % Updating the |timeUnitMultiplier| also updates the events
+            %   of the conditions accordingly.
+            %
+            % Timestamps are also updated to reflect the new units
+            %   [|timeUnitMultiplier|*sec].
+            %
+            % Usage:
+            %   obj.timeUnitMultiplier = -3;  % Set temporal unit to milliseconds
+            %
+            %% Input parameters
+            %
+            % val - int16
+            %   The new temporal unit multiplier.
+            %
+            %% Output
+            %
+            % obj - @icnna.data.core.timeline
+            %   The updated object
+            %
             currentMultiplier = obj.timeUnitMultiplier;
             obj.timeUnitMultiplier = val;
             %...and update the timestamps accordingly
@@ -605,10 +780,9 @@ classdef timeline < icnna.data.core.identifiableObject
             end
             %Ensure all conditions have this unit.
             if strcmp(obj.unit,'seconds')
-                obj.cevents.onsets = obj.cevents.onsets * ...
-                    10^double(currentMultiplier - obj.timeUnitMultiplier);
-                obj.cevents.durations = obj.cevents.durations * ...
-                    10^double(currentMultiplier - obj.timeUnitMultiplier);
+                for iCond = 1:obj.nConditions
+                    obj.conditions(iCond).timeUnitMultiplier = obj.timeUnitMultiplier;
+                end
             end
             
         end
@@ -623,29 +797,56 @@ classdef timeline < icnna.data.core.identifiableObject
 
 
 
+         %(DEPENDENT) Retrieves the timeline |length|
       function res = get.length(obj)
-         %(DEPENDENT) Gets the object |length|
-         %
-         % The length of the timeline in samples.
+            % Getter for |length|:
+            %   (DEPENDENT) Gets the timeline |length| (number of samples).
+            %
+            % Usage:
+            %   res = obj.length;  % Retrieve the length
+            %
+            %% Output
+            % res - double
+            %   The timeline |length| in samples.
+            %
          res = size(obj.timestamps,1);
       end
 
 
+         %(DEPENDENT) Retrieves the timeline |nConditions|
       function res = get.nConditions(obj)
-         %(DEPENDENT) Gets the object |nConditions|
-         %
-         % The number of conditions declared in the timeline.
-         res = size(obj.conds,1);
+            % Getter for |length|:
+            %   (DEPENDENT) Gets the number of conditions (|nConditions|).
+            %
+            % Usage:
+            %   res = obj.nConditions;  % Retrieve the timeline number of conditions
+            %
+            %% Output
+            % res - double
+            %   The number of conditions declared in the timeline.
+            %
+         res = numel(obj.conditions);
       end
 
 
+         %(DEPENDENT) Retrieves the timeline |averageSamplingRate|
       function res = get.averageSamplingRate(obj)
-         %(DEPENDENT) Gets the object |averageSamplingRate|
+            % Getter for |averageSamplingRate|:
+            %   (DEPENDENT) Gets the |averageSamplingRate|.
+            %
+            % This is the average sampling rate in Hz. This is calculated 
+            % on the fly from the timestamps and use in many operations
+            % e.g. getAvgTaskTime. This is different from the nominal
+            % sampling rate |nominalSamplingRate|.
+            %
+            % Usage:
+            %   res = obj.averageSamplingRate;  % Retrieve the average sampling rate.
+            %
+            %% Output
+            % res - double
+            %   The average sampling rate in Hz.
+            %
          %
-         % This is the average sampling rate. This is calculated on the
-         % fly from the timestamps and use in many operations
-         % e.g. getAvgTaskTime. This is different from the nominal
-         % sampling rate.
          res = 0;
          if obj.length == 0
              %Do nothing 
@@ -659,42 +860,71 @@ classdef timeline < icnna.data.core.identifiableObject
       end
 
 
+         %(DEPENDENT) Retrieves the object |nTotalEvents|
+      function res = get.nTotalEvents(obj)
+            % Getter for |nTotalEvents|:
+            %   (DEPENDENT) Gets the total number of events across conditions (|nTotalEvents|).
+            %
+            % Usage:
+            %   res = obj.nTotalEvents;  % Retrieve the total number of events across conditions
+            %
+            %% Output
+            % res - double
+            %   The total number of events across conditions declared
+            %   in the timeline.
+            %
+         res = sum([obj.conditions(:).nEvents]);
+      end
 
-      function res = get.conditions(obj)
-         %Gets the object |conditions|
-         res = icnna.data.core.condition.empty;
-         if (obj.nConditions > 0)
-             %Generate the condition objects on the fly.
-             tmp = obj.conds;
-                %Note that I store the conds dictionary already
-                %sorted by keys, so no need to sort here.
-             res(obj.nConditions) = icnna.data.core.condition;
-             res = arrayfun(@(obj2,val) setfield(obj2,'id',val), res, tmp.id');
-             for iCond = 1:obj.nConditions
-                 res(iCond).name = tmp.name(iCond);
-                 res(iCond).nominalSamplingRate = obj.nominalSamplingRate;
-                 res(iCond).unit = obj.unit;
-                 res(iCond).timeUnitMultiplier = obj.timeUnitMultiplier;
-                 res(iCond).cevents = sortrows(obj.cevents(obj.cevents.id == tmp.id(iCond), ...
-                                               {'onsets','durations','amplitudes','info'}),...
-                                                'onsets');
-    
+         %(DEPENDENT) Retrieves the object |condEvents|
+      function res = get.condEvents(obj)
+            % Getter for |condEvents|:
+            %   (DEPENDENT) Gets the list of all the events across the conditions in the timeline (|condEvents|).
+            %
+            %   Events are sorted by onset.
+            %   Events are enriched with the condition id and name to which
+            %   they belong.
+            %
+            % Usage:
+            %   res = obj.condEvents;  % Retrieve the list of all the events
+            %                          %across the conditions in the timeline
+            %
+            %% Output
+            % res - struct[]
+            %   The list of all the events across the conditions in the
+            %   timeline sorted by onset. Each struct in the array
+            %   correspond to a single event and has the following
+            %   fields;
+            %     + id - double The condition |id|
+            %     + name - char[] The condition |name|
+            %     + onsets - double An event onsets
+            %     + durations - double An event durations,
+            %     + amplitudes  - double An event amplitudes or magnitudes,
+            %     + info - cell. An event information. Whatever the user
+            %       
+            %
+         %res = [tmp(:).cevents]; %This works fine but does not include
+                                  %the condition id and name.
+         res = struct( ...
+            'id', [], ...
+            'name', [], ...
+            'onsets', [], ...
+            'durations', [], ...
+            'amplitudes', [], ...
+            'info', {} );
+         for iCond = 1:obj.nConditions
+            for iEv = 1:obj.conditions(iCond).nEvents
+                tmp.id         = obj.conditions(iCond).id;
+                tmp.name       = obj.conditions(iCond).name;
+                tmp.onsets     = obj.conditions(iCond).cevents(iEv).onsets;
+                tmp.durations  = obj.conditions(iCond).cevents(iEv).durations;
+                tmp.amplitudes = obj.conditions(iCond).cevents(iEv).amplitudes;
+                tmp.info       = obj.conditions(iCond).cevents(iEv).info;
+                res = [res tmp];
              end
          end
-      end
-
-      function res = get.nTotalEvents(obj)
-         %(DEPENDENT) Gets the object |nTotalEvents|
-         %
-         % Number of total events in the timeline across conditions.
-         res = size(obj.cevents,1);
-      end
-
-      function res = get.condEvents(obj)
-         %(DEPENDENT) Gets the object |condEvents|
-         %
-         % A list of all the events across the conditions in the timeline.
-         res = obj.cevents;
+         [~, idx] = sort([res.onsets]);
+         res = res(idx);
       end
 
 
@@ -702,9 +932,9 @@ classdef timeline < icnna.data.core.identifiableObject
     end
 
     methods (Access=private)
-        idx = findConditions(obj,tags); %Retrieves the indexes of the
-                            %conditions with the given |id|(s) or |name|(s)
-        cropOrRemoveEvents(obj); %Crops or remove events exceeding
+        % idx = findConditions(obj,tags); %Retrieves the indexes of the
+        %                     %conditions with the given |id|(s) or |name|(s)
+        obj = cropOrRemoveEvents(obj); %Crops or remove events exceeding
                                  %the timeline length.
         flag = assertExclusory(obj);  %Asserts that the exclusory
                                       %behaviour is respected.

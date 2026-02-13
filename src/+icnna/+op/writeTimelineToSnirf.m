@@ -57,6 +57,12 @@ function [aSnirf] = writeTimelineToSnirf(aSnirf,t,options)
 % 20-Jul-2025: FOE
 %   + Added support for icnna.data.core.timeline
 %
+% -- ICNNA v1.4.0
+%
+% 14-Dec-2025: FOE
+%   + Revert back to regular value (non-handle) class of both
+%   icnna.data.core.timeline and icnna.data.core.condition
+%
 
 
 
@@ -168,7 +174,7 @@ else %icnna.data.core.timeline
 
 
     timeUnit = 0;
-    if isfield(aSnirf.nirs(opt.iNirs).metaDataTags,'TimeUnit');
+    if isfield(aSnirf.nirs(opt.iNirs).metaDataTags,'TimeUnit')
         switch (aSnirf.nirs(opt.iNirs).metaDataTags.TimeUnit)
             case 's'
                 timeUnit = 0;
@@ -186,9 +192,14 @@ else %icnna.data.core.timeline
 
 
 
-    conds = t.getConditions(); %Get all conditions
+    conds = getConditions(t); %Get all conditions
     for iCond = 1:t.nConditions
-        theCond = copy(conds(iCond));
+        if icnna.util.compareVersions(classVersion(conds(iCond)),'1.1','<=')
+            theCond = copy(conds(iCond));
+        elseif icnna.util.compareVersions(classVersion(conds(iCond)),'1.2','>=')
+            theCond = conds(iCond);
+        end
+        
         %Each condition is an iccna.data.core.condition
         tmpStim = icnna.data.snirf.stim();
         tmpStim.name = theCond.name;

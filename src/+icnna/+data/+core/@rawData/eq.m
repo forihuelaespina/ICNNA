@@ -30,11 +30,16 @@ function res=eq(obj,obj2)
 %
 % 2-Feb-2025: FOE
 %   + Method created. Part of the code is inherited from
-%   old class |rawData| (dating back to 2008 - See above).
-%   + Property .date is now of type datetime.
-%   + Added support for new property .path
-%   + Added support for new property .dataFiles
+%   old class @rawData (dating back to 2008 - See above).
+%   + Property |date| is now of type datetime.
+%   + Added support for new property |path|
+%   + Added support for new property |dataFiles|
 %
+%
+% -- ICNNA v1.4.0
+%
+% 13-Dec-2025: FOE
+%   + Added support for new (inherited) property |name|
 %
 
 res=true;
@@ -43,11 +48,12 @@ if ~isa(obj2,'rawData')
     return
 end
 
-res = res && (obj.classVersion==obj2.classVersion);
+res = res && (strcmp(obj.classVersion,obj2.classVersion));
 res = res && (obj.id==obj2.id);
+res = res && (strcmp(obj.name,obj2.name));
 res = res && (strcmp(obj.description,obj2.description));
-res = res && (strcmp(obj.path,obj2.path));
 res = res && (obj.date==obj2.date);
-res = res && (testCase.verifyThat(obj.dataFiles,IsEqualTo(obj2.dataFiles)));
-    %See https://uk.mathworks.com/help/matlab/ref/matlab.unittest.constraints.dictionarycomparator-class.html
+res = res && (strcmp(obj.path,obj2.path));
+res = res && (isequal(obj.dataFiles,obj2.dataFiles));
+    %Note that fields order matter!
 end

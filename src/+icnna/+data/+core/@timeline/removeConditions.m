@@ -1,10 +1,8 @@
-function removeConditions(obj,tags)
-%Removes the selected @icnna.data.core.conditions from the @icnna.data.core.timeline
+function obj = removeConditions(obj,tags)
+%Removes selected @icnna.data.core.conditions from the @icnna.data.core.timeline
 %
-% addConditions(obj,id) - Remove the conditions identified by |id|
-% addConditions(obj,name) - Remove the conditions identified by |name|
-% obj.addConditions(...)
-%
+% obj = removeConditions(obj,id) - Remove the conditions identified by |id|
+% obj = removeConditions(obj,name) - Remove the conditions identified by |name|
 %
 %
 %% Parameters
@@ -48,19 +46,30 @@ function removeConditions(obj,tags)
 %   + Adapted to the new internal structure for the storing
 % of conditions |id| and |name| (from dictionary to table).
 %
+% -- ICNNA v1.4.0
+%
+% 10-Dec-2025: FOE
+%   + Revert back to regular value (non-handle) class.
+%	+ Change .conds to .conditions, and updated from a table to a
+%   struct array of conditions.
+%	+ Revert .cevents to a derived property (extracted on the fly from
+%       .conditions) |condEvents|.
+%   + Updated to adapt to new behaviour of findConditions.
+%   + Improved some comments.
+%
 
 
 idx = obj.findConditions(tags);
-    %Note that this takes care of whether is is truly and |id| or a |name|
+    %Note that this takes care of whether it is truly an |id| or a |name|
     %as well as whether there is more than 1 condition.
-ids = obj.conds.id(idx);
+idx = unique(idx);
+idx(isnan(idx)) = [];
 
 
 if ~isempty(idx)
     tmp = obj.exclusory;
     
-    obj.conds(idx,:) = [];
-    obj.cevents(ismember(obj.cevents.id,ids),:) = [];
+    obj.conditions(idx) = [];
     
     tmp(idx,:) = [];
     tmp(:,idx) = [];

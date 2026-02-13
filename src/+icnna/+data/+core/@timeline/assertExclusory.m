@@ -47,30 +47,40 @@ function [flag] = assertExclusory(obj)
 % of conditions |id| and |name| (from dictionary to table).
 %
 %
+% -- ICNNA v1.4.0 (Class version 1.2)
+%
+% 9-Dec-2025: FOE
+%   + Refactored to value (non-handle) class.
+%   + Adapted to re-implementation using array of
+%   @icnna.data.core.condition objects.
+%
 
-ids = obj.conds.id;
+ids = [obj.conditions.id];
 
 flag = true;
 for iCond1 = 1:obj.nConditions
-    id1 = ids(iCond1);
     for iCond2 = iCond1:obj.nConditions
-        id2 = ids(iCond2);
         tmpExc = obj.exclusory(iCond1,iCond2);
             %Note that the matrix is symmetric, so no need to check
             %both directions
         if tmpExc == true %Only check exclusory cases
             if iCond2 == iCond1
-                evCond = [obj.cevents(obj.cevents.id == id1,{'onsets','durations'})];
+                evCond = obj.conditions(iCond1).eventTimes;
+                                %[onsets durations ends]
             else
-                evCond = [obj.cevents(obj.cevents.id == id1,{'onsets','durations'}); ...
-                          obj.cevents(obj.cevents.id == id2,{'onsets','durations'})];
+                evCond = [obj.conditions(iCond1).eventTimes; ...
+                          obj.conditions(iCond2).eventTimes];
+                                %[onsets durations ends]
             end
-            evCond.ends = evCond.onsets + evCond.durations;   
             evCond = sortrows(evCond);
 
-            flag = all(evCond.ends(1:end-1) < evCond.onsets(2:end));
-            if ~flag
-                return
+            nEvents = size(evCond,1); %There cannot be overlap with only
+                                        %one event.
+            if nEvents > 1
+                flag = all(evCond(1:end-1,3) < evCond(2:end,1));
+                if ~flag
+                    return
+                end
             end
             clear evCond
         end

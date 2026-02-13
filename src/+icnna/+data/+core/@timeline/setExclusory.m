@@ -1,10 +1,9 @@
-function setExclusory(obj,tag,exclusoryState,reflexiveState)
+function obj = setExclusory(obj,tags,exclusoryState,reflexiveState)
 %Sets the exclusory behaviour among conditions
 %
-% setExclusory(obj,ids,exclusoryState)
-% setExclusory(obj,names,exclusoryState)
-% setExclusory(...,reflexiveState)
-% obj.setExclusory(...)
+% obj = setExclusory(obj,ids,exclusoryState)
+% obj = setExclusory(obj,names,exclusoryState)
+% obj = setExclusory(...,reflexiveState)
 %
 % @li Conditions must exist. If one or both tags correspond to a non
 %   defined condition nothing is done.
@@ -53,8 +52,21 @@ function setExclusory(obj,tag,exclusoryState,reflexiveState)
 %   + Adapted to reflect the new handle status e.g. no object return.
 %
 %
+% -- ICNNA v1.4.0
+%
+% 10-Dec-2025: FOE
+%   + Revert back to regular value (non-handle) class.
+%	+ Change .conds to .conditions, and updated from a table to a
+%   struct array of conditions.
+%	+ Revert .cevents to a derived property (extracted on the fly from
+%       .conditions) |condEvents|.
+%   + Updated to adapt to new behaviour of findConditions.
+%   + Improved some comments.
+%
 
-idx=findConditions(obj,tag);
+idx = findConditions(obj,tags);
+idx = unique(idx);
+idx(isnan(idx)) = [];
 
 tmp = obj.exclusory;
 tmp(idx,idx)=exclusoryState;

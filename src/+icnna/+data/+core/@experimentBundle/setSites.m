@@ -1,8 +1,7 @@
-function setSites(obj,theSites)
+function obj = setSites(obj,theSites)
 %Sets the sampling sites
 %
-% setSites(obj,theSites)
-% obj.setSites(...)
+% obj = setSites(obj,theSites)
 %
 %   
 %% Parameters
@@ -39,6 +38,13 @@ function setSites(obj,theSites)
 %   + File created. 
 %
 %
+% -- ICNNA v1.4.0
+%
+% 11-Dec-2025: FOE
+%   + Revert back to regular value (non-handle) class.
+%	+ Improved some comments
+%
+
 
 
 obj.sites = theSites;

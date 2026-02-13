@@ -22,14 +22,14 @@ function [t] = getTimelineFromSnirf(aSnirf,options)
 %   The snirf object from where the stims and timestamps are to be
 %   extracted.
 %
-% options - struct. A Struct of options
+% options - struct. A struct of options
 %   .iNirs - Int. Default is 1. Index to the nirs dataset from where
 %       to retrieve the timeline.
-%   .outputFormat - Char array. Choose between old (@timeline) or new
+%   .outputFormat - Char[]. Choose between old (@timeline) or new
 %       (@icnna.data.core.timeline) class output. Possible values are;
 %       'icnna.data.core.timeline' - Default
 %       'timeline' - "Old" ICNNA timeline for backward compatibility.
-%   .outputUnit - Char array. 'seconds' (default) or 'samples'
+%   .outputUnit - Char[]. 'seconds' (default) or 'samples'
 %   
 %
 %
@@ -59,6 +59,12 @@ function [t] = getTimelineFromSnirf(aSnirf,options)
 %
 % 9-Jul-2025: FOE. 
 %   + Adapted to reflect the new handle status of both
+%   icnna.data.core.timeline and icnna.data.core.condition
+%
+% -- ICNNA v1.4.0
+%
+% 14-Dec-2025: FOE
+%   + Revert back to regular value (non-handle) class of both
 %   icnna.data.core.timeline and icnna.data.core.condition
 %
 
@@ -273,22 +279,35 @@ for iStim = 1:nStims
     tmpCondition.nominalSamplingRate = t.nominalSamplingRate;
     tmpCondition.timeUnitMultiplier  = t.timeUnitMultiplier;
 
-    tmpCondition.addEvents(tmpcevents);
         %Ignore the data labels;
         %snirf favours "starttime" whereas ICNNA enforces "onset"
         %Note, notwithstanding, that the dataLabels are accounted above
         %to identify the most likely columns for onsets, durations
         %and amplitudes.
+    if icnna.util.compareVersions(classVersion(tmpCondition),'1.1','<=')
+        tmpCondition.addEvents(tmpcevents);
+    elseif icnna.util.compareVersions(classVersion(tmpCondition),'1.2','>=')
+        tmpCondition = addEvents(tmpCondition,tmpcevents);
+    end
 
-    [idList,namesList] = t.getConditionsList();
-    cIdx = find(cTag == namesList);
+    [idList,namesList] = getConditionsList(t);
+    cIdx = find(ismember(cTag,namesList));
     if isempty(cIdx)
-        t.addConditions(tmpCondition,0);
+        if icnna.util.compareVersions(classVersion(t),'1.1','<=')
+            t.addConditions(tmpCondition,0);
+        elseif icnna.util.compareVersions(classVersion(t),'1.2','>=')
+            t = addConditions(t,tmpCondition,0);
+        end
     else
         %try to add the events
         theId = idList(cIdx);
-        t.addEvents([double(theId)*ones(size(tmpcevents,1),1) ...
+        if icnna.util.compareVersions(classVersion(t),'1.1','<=')
+            t.addEvents([double(theId)*ones(size(tmpcevents,1),1) ...
                      tmpcevents]);
+        elseif icnna.util.compareVersions(classVersion(t),'1.2','>=')
+            t = addEvents(t,[double(theId)*ones(size(tmpcevents,1),1) ...
+                     tmpcevents]);
+        end
     end
     clear tmpCondition
 end

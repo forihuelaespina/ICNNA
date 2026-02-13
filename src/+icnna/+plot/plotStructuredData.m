@@ -74,6 +74,17 @@ function [f]=plotStructuredData(sd,options)
 %   + File created. Reused some code from plotStructuredData.
 %
 %
+% -- ICNNA v1.4.0
+%
+% 14-Dec-2025: FOE
+%   + Adjustments to icnna.data.core.timeline class version '1.2'.
+%   + Bug fixed: When translating conditions tags/names to ids,
+%       and the option .whichConditions was passed as a cell array,
+%       an inexistent method of class timeline, getConditionId, was
+%       being called. Also, this case was not considering the class
+%       icnna.data.core.timeline
+%
+
 
 
 if ~isa(sd,'structuredData')
@@ -158,16 +169,25 @@ if isempty(opt.whichConditions)
     if isa(t,'timeline')
         opt.whichConditions = 1:t.nConditions;
     else %icnna.data.core.timeline
-        for iCond = 1:t.nConditions
-            opt.whichConditions(iCond) = t.conditions(iCond).id;
+        if icnna.util.compareVersions(classVersion(t),'1.1','<=')
+            for iCond = 1:t.nConditions
+                opt.whichConditions(iCond) = t.conditions(iCond).id;
+            end
+        if icnna.util.compareVersions(classVersion(t),'1.2','>=')
+            opt.whichConditions = [t.conditions.id];
         end
     end
 elseif iscell(opt.whichConditions)
     tmpWhichConditions  = opt.whichConditions;
-    opt.whichConditions = [];
-    for iCond = 1:t.nConditions
-        opt.whichConditions(iCond) = t.getConditionId(...
-                                            tmpWhichConditions{iCond});
+    if isa(t,'timeline')
+        opt.whichConditions = [];
+        for iCond = 1:t.nConditions
+            tmpCond = t.getCondition(tmpWhichConditions{iCond});
+            opt.whichConditions(iCond) = tmpCond.id;
+        end
+    else %icnna.data.core.timeline
+        tmpConds = getConditions(t,tmpWhichConditions);
+        opt.whichConditions = [tmpConds.id];
     end
     clear tmpWhichConditions
 end

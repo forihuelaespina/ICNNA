@@ -1,22 +1,30 @@
-function addEvents(obj,varargin)
+function obj = addEvents(obj,varargin)
 %Add new events to the timeline
 %
-% obj.addEvents(...)
-% addEvents(obj,...)
+% obj = addEvents(obj,...)
 %
-% obj.addEvents(cEvents)
-% obj.addEvents(theEvents)
-% obj.addEvents(theEvents,eventsInfo)
-% obj.addEvents(id,onsets,durations)
-% obj.addEvents(id,onsets,durations,amplitudes)
-% obj.addEvents(id,onsets,durations,eventsInfo)
-% obj.addEvents(id,onsets,durations,amplitudes,eventsInfo)
+% -- Safe methods (provide condition's |id| as well as the condition's |name|)
+% obj = addEvents(obj,cEvents)
+% obj = addEvents(obj,cEventsTable)
+%
+% -- Unsafe methods (provide only condition's |id|)
+% obj = addEvents(obj,theEvents)
+% obj = addEvents(obj,theEvents,eventsInfo)
+% obj = addEvents(obj,id,onsets,durations)
+% obj = addEvents(obj,id,onsets,durations,amplitudes)
+% obj = addEvents(obj,id,onsets,durations,eventsInfo)
+% obj = addEvents(obj,id,onsets,durations,amplitudes,eventsInfo)
 %
 %
+%
+%% Remarks
+%
+% The conditions to which the events are added ought to exist in advance.
+%That is, you cannot use this method to add conditions on-the-fly.
 %
 % Regardless of the input format, the onsets and durations will be assumed
-%to be in the current timeline's |unit| and, if in seconds, also in the
-%same|timeUnitMultiplier|.
+% to be in the current timeline's |unit| and, if in seconds, also in the
+% same |timeUnitMultiplier|.
 %
 %
 % IMPORTANT: The IDs (whether in parameter cevents, theEvents or id)
@@ -26,20 +34,27 @@ function addEvents(obj,varargin)
 %
 %
 %
-%% Remarks
-%
-% icnna.data.core.timeline is a handle object. Therefore,
-% calling this method does modify this object.
-%
-%
-%
 %
 %% Input parameters
 %
-% cEvents - Table. A 5 column table including a list of condition events.
+% cEvents - struct[1xk]. List of new condition events.
+%         Each struct is an event with the following fields;
+%          + id - uint32. The |id| of the condition to which the event belongs.
+%          + name - char[]. The |name| of the condition to which the event belongs.
+%          + onsets - double. The event onset
+%          + durations - double. An event duration,
+%          + amplitudes  - double. An event amplitude or magnitude,
+%          + info - cell. An event information. Whatever the user
+%                   wants to store associated to the condition event.
+%           k is the number of new events to be added (across conditions)
+%         to the timeline),
+%
+% cEventsTable - Table. A 6 column table including a list of new condition
+%           events.
 %         Each row is an event.
 %         The list of events has AT LEAST the following columns;
-%          + id (uint32) - 
+%          + id (double/uint32)
+%          + name (char[]/string)
 %          + onsets (double)
 %          + durations (double)
 %          + amplitudes (double)
@@ -88,39 +103,61 @@ function addEvents(obj,varargin)
 % of conditions |id| and |name| (from dictionary to table).
 %
 %
+% -- ICNNA v1.4.0
+%
+% 10-Dec-2025: FOE
+%   + Revert back to regular value (non-handle) class.
+%	+ Class version - Updated to 1.2
+%	+ Change .conds to .conditions, and updated from a table to a
+%   struct array of conditions.
+%	+ Revert .cevents to a derived property (extracted on the fly from
+%       .conditions) |condEvents|.
+%	+ Improved some comments
+%
 
 
 %Figure out which call stand
-% obj.addEvents(cEvents)
-% obj.addEvents(theEvents)
-% obj.addEvents(theEvents,eventsInfo)
-% obj.addEvents(id,onsets,durations)
-% obj.addEvents(id,onsets,durations,amplitudes)
-% obj.addEvents(id,onsets,durations,eventsInfo)
-% obj.addEvents(id,onsets,durations,amplitudes,eventsInfo)
+% obj = addEvents(obj,cEvents)
+% obj = addEvents(obj,cEventsTable)
+% obj = addEvents(obj,theEvents)
+% obj = addEvents(obj,theEvents,eventsInfo)
+% obj = addEvents(obj,id,onsets,durations)
+% obj = addEvents(obj,id,onsets,durations,amplitudes)
+% obj = addEvents(obj,id,onsets,durations,eventsInfo)
+% obj = addEvents(obj,id,onsets,durations,amplitudes,eventsInfo)
 
 
 
 %First arg is obj, and length(varargin) == nargin-1
-% tmpEvents = table('Size',[0 5],...
-%                   'VariableTypes',{'uint32','double','double','double','cell'},...
-%                   'VariableNames',{'id','onset','duration','amplitude','info'}) ;
+% tmpEvents = struct( ...
+%            'id', [], ...
+%            'name', {}, ...
+%            'onsets', [], ...
+%            'durations', [], ...
+%            'amplitudes', [], ...
+%            'info', {} );
+flagConvertToStruct = false;
+theEvents = nan(0,4); %[ids, onsets, durations, amplitudes]
+
 switch (nargin)
     case 2
-        if iscell(varargin{1}) % obj.addEvents(cEvents)
+        if isstruct(varargin{1}) % [cond] = cond.addEvents(cEvents)
             tmpEvents = varargin{1};
+            flagConvertToStruct = false;
+    
+        elseif iscell(varargin{1}) % obj.addEvents(cEventsTable)
+            tmpEvents = table2struct(varargin{1});
+            flagConvertToStruct = false;
     
         elseif ismatrix(varargin{1}) % obj.addEvents(theEvents)
             theEvents = varargin{1};
             if size(theEvents,2) < 4 %amplitudes missing
                 theEvents(:,4) = 1;
             end
-            tmpInfo   = cell(size(theEvents,1),1); %Events info missing
-            tmpEvents = table(theEvents(:,1),theEvents(:,2), ...
-                        theEvents(:,3),theEvents(:,4), ...
-                        tmpInfo, ...
-                        'VariableNames',{'id','onsets','durations',...
-                                        'amplitudes','info'});
+            nNewEvents = size(theEvents,1);
+            tmpInfo    = cell(nNewEvents,1); %Events info missing
+            flagConvertToStruct = true;
+
         else
             error('icnna:data:core:timeline:addEvents:InvalidInputParameter',...
                   ['Invalid input parameter of class ' class(varargin{1})]);
@@ -134,43 +171,27 @@ switch (nargin)
                 theEvents(:,4) = 1;
             end
             tmpInfo   = varargin{2};
-            tmpEvents = table(theEvents(:,1),theEvents(:,2), ...
-                        theEvents(:,3),theEvents(:,4), ...
-                        tmpInfo, ...
-                        'VariableNames',{'id','onsets','durations',...
-                                        'amplitudes','info'});
-    
+            flagConvertToStruct = true;
+   
 
     case 4
             % obj.addEvents(id,onsets,durations)
             theEvents = [varargin{1} varargin{2} varargin{3}];
             theEvents(:,4) = 1; %amplitudes missing
             tmpInfo   = cell(size(theEvents,1),1); %Events info missing
-            tmpEvents = table(theEvents(:,1),theEvents(:,2), ...
-                        theEvents(:,3),theEvents(:,4), ...
-                        tmpInfo, ...
-                        'VariableNames',{'id','onsets','durations',...
-                                        'amplitudes','info'});
+            flagConvertToStruct = true;
 
     case 5 
         if iscell(varargin{4}) % obj.addEvents(id,onsets,durations,eventsInfo)
             theEvents = [varargin{1} varargin{2} varargin{3}];
             theEvents(:,3) = 1; %amplitudes missing
             tmpInfo   = varargin{4};
-            tmpEvents = table(theEvents(:,1),theEvents(:,2), ...
-                        theEvents(:,3),theEvents(:,4), ...
-                        tmpInfo, ...
-                        'VariableNames',{'id','onsets','durations',...
-                                        'amplitudes','info'});
+            flagConvertToStruct = true;
     
         elseif ismatrix(varargin{4}) % obj.addEvents(id,onsets,durations,amplitudes)
             theEvents = [varargin{1} varargin{2} varargin{3} varargin{4}];
             tmpInfo   = cell(size(theEvents,1),1); %Events info missing
-            tmpEvents = table(theEvents(:,1),theEvents(:,2), ...
-                        theEvents(:,3),theEvents(:,4), ...
-                        tmpInfo, ...
-                        'VariableNames',{'id','onsets','durations',...
-                                        'amplitudes','info'});
+            flagConvertToStruct = true;
         else
             error('icnna:data:core:timeline:addEvents:InvalidInputParameter',...
                   ['Invalid input parameter of class ' class(varargin{1})]);
@@ -179,36 +200,130 @@ switch (nargin)
     case 6 % obj.addEvents(id,onsets,durations,amplitudes,eventsInfo)
         theEvents = [varargin{1} varargin{2} varargin{3} varargin{4}];
         tmpInfo   = varargin{5}; %Events info missing
-        tmpEvents = table(theEvents(:,1),theEvents(:,2), ...
-                        theEvents(:,3),theEvents(:,4), ...
-                        tmpInfo, ...
-                        'VariableNames',{'id','onsets','durations',...
-                                        'amplitudes','info'});
+        flagConvertToStruct = true;
     otherwise %nargin > 6
         error('icnna:data:core:timeline:addEvents:InvalidInputParameter',...
               'Unexpected number of parameters.');
 
 end
 
+
+
+%Reformat and verify the input
+if (flagConvertToStruct)
+    %Find the conditions names
+    tmpNames = findConditionNames(obj,theEvents(:,1));
+
+    tmpEvents = struct( ...
+        'id', num2cell(uint32(theEvents(:,1)).'), ...
+        'name', tmpNames', ...
+        'onsets', num2cell(theEvents(:,2).'), ...
+        'durations', num2cell(theEvents(:,3).'), ...
+        'amplitudes', num2cell(theEvents(:,4).'), ...
+        'info', tmpInfo');
+
+else
+    % Ensure that each struct in the array has the necessary fields
+    requiredFields = {'id','name','onsets','durations','amplitudes','info'};
+    for i = 1:numel(tmpEvents)
+        if ~all(isfield(tmpEvents(i), requiredFields))
+            error('icnna:data:core:condition:addEvents:MissingFields', ...
+                'Each event struct must contain the fields: onsets, durations, amplitudes, info.');
+        end
+
+        % Check that the fields contain valid data
+        if ~isscalar(tmpEvents(i).id)
+            error('icnna:data:core:condition:addEvents:InvalidOnsets', ...
+                'The "id" field must be a scalar value.');
+        end
+        if ~iscell(tmpEvents(i).name)
+            error('icnna:data:core:condition:addEvents:InvalidInfo', ...
+                'The "name" field must be a cell array of char[].');
+        end
+        if ~isscalar(tmpEvents(i).onsets)
+            error('icnna:data:core:condition:addEvents:InvalidOnsets', ...
+                'The "onsets" field must be a scalar value.');
+        end
+        if ~isscalar(tmpEvents(i).durations)
+            error('icnna:data:core:condition:addEvents:InvalidDurations', ...
+                'The "durations" field must be a scalar value.');
+        end
+        if ~isscalar(tmpEvents(i).amplitudes)
+            error('icnna:data:core:condition:addEvents:InvalidAmplitudes', ...
+                'The "amplitudes" field must be a scalar value.');
+        end
+    end
+end
+
 %Ensure the ids are uint32
-if ~isa(tmpEvents.id,'uint32')
-    tmpEvents.id = uint32(tmpEvents.id);
+if ~isa([tmpEvents.id],'uint32')
+    [tmpEvents.id] = deal(uint32(tmpEvents.id));
 end
 
 %Check that the id of the conditions for the new events do exist.
-
-idx = obj.findConditions(unique(tmpEvents.id));
-if (isempty(idx))
+uniqueIds = unique([tmpEvents.id]);
+idx = obj.findConditions(uniqueIds);
+if (any(isnan(idx)))
     warning('icnna:data:core:timeline:addEvents:UndefinedCondition',...
-        ['Some conditions |id| have not ' ...
-         ' been defined. Ignoring event addition attempt.']);
+        ['Some conditions |id| have not been defined. ' ...
+         'Ignoring attempt to add events.']);
 else
 
-    obj.cevents = [obj.cevents; tmpEvents];
+     for iCond = 1:numel(uniqueIds)
+        tmpIdx = idx(iCond);
+        %Filter the events for this condition
+        tmpEvents2 = tmpEvents([tmpEvents.id] == uniqueIds(iCond));
+        %Ignore the columns for id and name
+        keepFields = {'onsets','durations','amplitudes','info'};
+        tmpEvents2 = rmfield(tmpEvents2, ...
+                             setdiff(fieldnames(tmpEvents2), keepFields));
+        %Add the events
+        obj.conditions(tmpIdx) = addEvents(obj.conditions(tmpIdx),...
+                                           tmpEvents2);
+    end
+
     assert(obj.assertExclusory(), ...
         ['icnna:data:core:timeline:addCondition:ViolatedInvariant: ' ...
         'Inconsistent exclusory behaviour.']);
 end
 
+
+end
+
+
+
+
+%% AUXILIARY FUNCTIONS
+function [tmpNames] = findConditionNames(obj,ids)
+%Retrieve the condition names for a list of condition |ids|
+%
+% [tmpNames] = findConditionNames(obj,ids)
+%
+%
+%% Error handling
+%
+% - All conditions for which the |id| is being queried ought to exist
+%
+%% Input parameter
+%
+% obj - @icnna.data.core.timeline
+%   The timeline in which the conditions are searched.
+% ids - uint32[kx1].
+%   The list of condition |id|. These can be repeated retrieving
+%   the same name more than once.
+%
+%% Output
+%
+% tmpNames - Cell[kx1]
+%   The list of condition |names| for each of the ids.
+%   The names are given in the same order as the queried ids.
+%
+
+idx = obj.findConditions(ids);
+if any(isnan(idx))
+    error('icnna:data:core:timeline:addEvents:InvalidInputParameter',...
+          'Some condition ids not found.');
+end
+tmpNames = {obj.conditions(idx).name}';
 
 end

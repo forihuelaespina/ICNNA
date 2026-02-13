@@ -191,18 +191,18 @@ classdef experimentBundle < icnna.data.core.identifiableObject
 %       
 %% Properties
 %
+%   -- Private properties
+%   .classVersion - Char array. (Read only. Constant)
+%       The class version of the object
+%       This is separate from the superclass' own |classVersion|.
+%
 %   -- Inherited
 %   .id - Int. Default is 1.
 %       A numerical descriptor
 %   .name - Char array. Default is 'experimenBundle0001'
 %       A name.
 %
-%   -- Public
-%   .description - Char array. Default is '' (empty)
-%       A brief description.
-%
-%
-%   -- Private
+%   -- Other private properties
 %   .E - Table. Default is empty.
 %       The total space. Each row is a family of (vector) spaces. Each
 %       column will be a vector space on its own.
@@ -230,6 +230,11 @@ classdef experimentBundle < icnna.data.core.identifiableObject
 %       considered by default (akin to the value in a dictionary), but
 %       this can be customized.
 %  
+%   -- Public
+%   .description - Char array. Default is '' (empty)
+%       A brief description.
+%
+%
 %
 %% Dependent properties
 %
@@ -271,10 +276,19 @@ classdef experimentBundle < icnna.data.core.identifiableObject
 %   + Renamed dependent property |nCases| as |nBasePoints|
 %   + Added dependent properties |nTotalPoints| and |nAssociations|
 %
+%
+% -- ICNNA v1.4.0
+%
+% 11-Dec-2025: FOE
+%   + Revert back to regular value (non-handle) class.
+%	+ Class version - Updated to 1.1
+%   + Removed method .copy
+%	+ Improved some comments
+%
 
 
     properties (Constant, Access=private)
-        classVersion = '1.0'; %Read-only. Object's class version.
+        classVersion = '1.1'; %Read-only. Object's class version.
     end
 
     properties %(SetAccess=private, GetAccess=private)
@@ -319,9 +333,12 @@ classdef experimentBundle < icnna.data.core.identifiableObject
 
 
 
+    % =====================================================================
+    % Constructor
+    % =====================================================================
     methods
         function obj=experimentBundle(varargin)
-            %A icnna.data.core.experimentBundle class constructor
+            %onstructor for class @icnna.data.core.experimentBundle
             %
             % obj=icnna.data.core.experimentBundle() creates a default object.
             %
@@ -346,12 +363,14 @@ classdef experimentBundle < icnna.data.core.identifiableObject
 
             end
         end
+    end
 
 
 
-
-
-        %Gets/Sets
+    % =====================================================================
+    % Getters & setters
+    % =====================================================================
+    methods
         function val = get.description(obj)
         %Retrieves the |description| of the condition
             val = obj.description;

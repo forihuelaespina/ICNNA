@@ -24,6 +24,13 @@ function coe=table_abscoeff
 % Comments to recent changes: Nil
 
 
+
+warning('icnna:util:table_abscoeff:Deprecated',...
+         ['This function is now deprecated (since v1.4.0). ' ...
+          'Please use icnna.data.core.opticalCoefficient instead.']);
+
+
+
 % ============================================================================================
 % Specific	extinction	coeffs	measured by	Mark Cope based on NIRO300.tbl
 % ICG measured by Roger

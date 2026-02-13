@@ -17,7 +17,7 @@ function [idList,namesList] = getConditionsList(obj)
 %
 % idList - Int[]
 %   List of |id| of defined conditions.
-% namesList - String{}
+% namesList - cell array of char[]
 %   List of |name| of defined conditions.
 %
 %
@@ -47,13 +47,20 @@ function [idList,namesList] = getConditionsList(obj)
 %   or 2 lists.
 %
 %
+% -- ICNNA v1.4.0
+%
+% 10-Dec-2025: FOE
+%   + Revert back to regular value (non-handle) class.
+%	+ Change .conds to .conditions, and updated from a table to a
+%   struct array of conditions.
+%	+ Revert .cevents to a derived property (extracted on the fly from
+%       .conditions) |condEvents|.
+%   + Improved some comments.
+%
 
-
-if nargout < 1
-    idList = obj.conds;
-else
-    idList    = obj.conds.id;
-    namesList = obj.conds.name;
+idList = [obj.conditions.id]';
+if nargout > 1
+    namesList = {obj.conditions.name}';
 end
 
 end

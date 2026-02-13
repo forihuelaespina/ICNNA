@@ -1,4 +1,4 @@
-classdef experimentalGroup
+classdef experimentalGroup < icnna.data.core.identifiableObject
 % icnna.data.core.experimentalGroup - An group of experimental units in
 %   an experiment.
 %
@@ -21,11 +21,26 @@ classdef experimentalGroup
 %
 %% Properties
 %
+%   -- Private properties
+%   .classVersion - Char array. (Read only. Constant)
+%       The class version of the object
+%       This is separate from the superclass' own |classVersion|.
+%
+%   -- Inherited properties
 %   .id - uint32. Default is 1.
 %       A numerical identifier.
-%   .name - Char array. Default is 'ExperimentalGroup0001'
-%       The experimental group name e.g. 'Control'|'Intervention', etc
-%   .metadata - Struct. Default is empty.
+%   .name - (Since v1.3.1) Char array. By default is 'experimentalGroup0001'.
+%       A name for the experimental group. 
+%
+%   -- Other private properties
+%   .sessionDefinitions - double[]. Default is empty.
+%       PLACEHOLDER - INCOMPLETE
+%       List of sessions definitions |id| associated to this
+%       experimentalGroup
+%       
+%
+%   -- Public properties
+%   .metadata - struct. Default is empty.
 %       User defined metadata as a struct.
 %
 %% Methods
@@ -50,30 +65,41 @@ classdef experimentalGroup
 %   + File and class created.
 %
 %
+% -- ICNNA v1.3.1
+%
+% 25-Jun-2025: FOE 
+%   + Class is now identifiable.
+%   + Class version - Updated to 1.1
+%   + Improved comments.
+%   + Added (separate) method classVersion
+%   + Reformulated placeholder for sessionDefinitions.
+%
 
     properties (Constant, Access=private)
-        classVersion = '1.0'; %Read-only. Object's class version.
+        classVersion = '1.1'; %Read-only. Object's class version.
     end
 
     properties %(SetAccess=private, GetAccess=private)
-        id(1,1) uint32 {mustBeInteger, mustBeNonnegative} = 1; %Numerical identifier to make the object identifiable.
-        name(1,:) char = 'ExperimentalGroup0001'; %The unit's name
         metadata(1,1) struct = struct(); %User defined metadata
     end
 
     properties (SetAccess=private, GetAccess=private)
-        sessions=cell(1,0); %Collection of sessions recorded for the subject
+        sessionDefinitions(:,1) uint32 = []; %Ids of sessions definitions
+                            %associated with this group recorded
+                            %from the @icnna.data.core.experimentalUnit.
     end
 
+    % =====================================================================
+    % Constructor
+    % =====================================================================
     methods
-        function obj=experimentalUnit(varargin)
-            %ICNNA.DATA.CORE.EXPERIMENTALUNIT Experimental unit class constructor
+        function obj=experimentalGroup(varargin)
+            %Constructor for class @icnna.data.core.experimentalGroup.
             %
             % obj=icnna.data.core.experimentalUnit() creates a default
-            %   experimentalUnit with ID equals 1.
-            %
+            %   experimentalUnit.
             % obj=icnna.data.core.experimentalUnit(obj2) acts as a copy
-            %   constructor of icnna.data.core.experimentalUnit
+            %   constructor.
             %
             % @Copyright 2025
             % Author: Felipe Orihuela-Espina
@@ -81,9 +107,12 @@ classdef experimentalGroup
             % See also
             %
 
+            obj@icnna.data.core.identifiableObject();
+            tmp = split(class(obj),'.');
+            obj.name = [tmp{end} num2str(obj.id,'%04d')];
             if (nargin==0)
                 %Keep default values
-            elseif isa(varargin{1},'icnna.data.core.experimentalUnit')
+            elseif isa(varargin{1},'icnna.data.core.experimentalGroup')
                 obj=varargin{1};
                 return;
             else
@@ -94,36 +123,44 @@ classdef experimentalGroup
     end
     
 
+    % =====================================================================
+    % Getters & setters
+    % =====================================================================
     methods
-
-      %Getters/Setters
-
-      function res = get.id(obj)
-         %Gets the object |id|
-         res = obj.id;
-      end
-      function obj = set.id(obj,val)
-         %Sets the object |id|
-         obj.id =  val;
-      end
-
-
-    function res = get.name(obj)
-         %Gets the object |name|
-         res = obj.name;
-      end
-      function obj = set.name(obj,val)
-         %Sets the object |name|
-         obj.name =  val;
-      end
-
-
-     function res = get.metadata(obj)
          %Gets the object |metadata|
+     function res = get.metadata(obj)
+            % Getter for |metadata|:
+            %   Returns the list of |metadata| property.
+            %
+            % Usage:
+            %   res = obj.metadata;  % Retrieve the metadata
+            %
+            %% Output
+            % res - struct
+            %   User defined metadata as a struct.
+            %
          res = obj.metadata;
       end
-      function obj = set.metadata(obj,val)
          %Sets the object |metadata|
+      function obj = set.metadata(obj,val)
+            % Setter for |metadata|:
+            %   Sets the |metadata| property.
+            %
+            % Usage:
+            %   tmp = struct(...)
+            %   obj.metadata = tmp;  % Set the metadata tmp
+            %
+            %% Input parameters
+            %
+            % val - struct
+            %   User defined metadata as a struct.
+            %
+            %% Output
+            %
+            % obj - @icnna.data.core.timeline
+            %   The updated object
+            %
+            %
          obj.metadata =  val;
       end
 

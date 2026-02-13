@@ -208,7 +208,11 @@ classdef rawData_ETG4000 < rawData
 %   + For those attributes above also started to simplify the set
 %   code replacing it with validation rules on the declaration.
 %
-
+% 14-Nov-2025 (FOE):
+%   + Change visibility of get/set methods of the non-dependent properties
+%   from private to public to avoid going through deprecated method get
+%   + Added getter for dependent property |nProbsets|
+%
 
 
 
@@ -217,32 +221,32 @@ classdef rawData_ETG4000 < rawData
     end
 
 
-    properties (SetAccess=private, GetAccess=private)
+    properties
         fileVersion(1,:) char ='1.06';
         %Patient information
         userName(1,:) char ='';
-        userSex(1,1) char {mustBeMember(userSex,{'M','F','U'})}='U';
-        userAge(1,1) double {mustBeInteger, mustBeNonnegative}=0;
+        userSex(1,1) char {mustBeMember(userSex,{'M','F','U'})} = 'U';
+        userAge(1,1) double {mustBeInteger, mustBeNonnegative} = 0;
         userBirthDate(1,1) datetime = datetime('now'); % A datenum
         %Analysis information (for presentation only)
         analyzeMode(1,:) char ='continuous';
-        preTime(1,1) double {mustBeNonnegative}=1; %in [s]
-        postTime(1,1) double {mustBeNonnegative}=1; %in [s]
-        recoveryTime(1,1) double {mustBeNonnegative}=1; %in [s]
-        baseTime(1,1) double {mustBeNonnegative}=1; %in [s]
-        fittingDegree(1,1) double {mustBeInteger, mustBeNonnegative}=1;
-        hpf(1,:) char ='No Filter'; %High pass cutoff frequency in [Hz] or 'No Filter'
-        lpf(1,:) char ='No Filter'; %Low pass cutoff frequency in [Hz] or 'No Filter'
-        movingAvg=1; %Moving average smoothing for presentation only
+        preTime(1,1) double {mustBeNonnegative} = 1; %in [s]
+        postTime(1,1) double {mustBeNonnegative} = 1; %in [s]
+        recoveryTime(1,1) double {mustBeNonnegative} = 1; %in [s]
+        baseTime(1,1) double {mustBeNonnegative} = 1; %in [s]
+        fittingDegree(1,1) double {mustBeInteger, mustBeNonnegative} = 1;
+        hpf(1,:) char = 'No Filter'; %High pass cutoff frequency in [Hz] or 'No Filter'
+        lpf(1,:) char = 'No Filter'; %Low pass cutoff frequency in [Hz] or 'No Filter'
+        movingAvg = 1; %Moving average smoothing for presentation only
         %Measure information
         %nProbes=0;%DEPRECATED. Total number of probes imported.
         %probeMode='3x3';%DEPRECATED. A strings containing the probe mode.
         %nChannels=0;%DEPRECATED. The number of Channels derived
                     %from the probeMode.
         probesetInfo = struct('read',{},'type',{},'mode',{});
-        wLengths(1,:) double {mustBeNonnegative}=[695 830];%The nominal wavelengths at which the light
+        wLengths(1,:) double {mustBeNonnegative} = [695 830];%The nominal wavelengths at which the light
             %intensities were acquired in [nm].
-        samplingPeriod(1,1) double {mustBeNonnegative}=0.1%Sampling rate i.e. time between two
+        samplingPeriod(1,1) double {mustBeNonnegative} = 0.1%Sampling rate i.e. time between two
                         %measurements in [s]
         %nBlocks=0; %DEPRECATED
         repeatCount(1,1) double {mustBeInteger, mustBeNonnegative}=0; %Repeat Count
@@ -256,19 +260,20 @@ classdef rawData_ETG4000 < rawData
         %   + a=nan(0,0) leads to an empty array [] with ndims 2
         %   + a=nan(0,0,1) leads to an empty array [] with ndims 2
         
-        lightRawData=nan(0,0,0);%The raw light intensity data.
+        lightRawData = nan(0,0,0);%The raw light intensity data.
             %note that intializing to nan(0,0) is equal to
             %initializing to []. See above
-        marks=nan(0,0);%The stimulus marks.
-        timestamps=nan(0,0);%Timestamps.
-        bodyMovement=nan(0,0);%Body movement artifacts as determined by the ETG-4000
-        removalMarks=nan(0,0);%Removal marks
-        preScan=nan(0,0);%preScan stamps
+        marks = nan(0,0);%The stimulus marks.
+        timestamps = nan(0,0);%Timestamps.
+        bodyMovement = nan(0,0);%Body movement artifacts as determined by the ETG-4000
+        removalMarks = nan(0,0);%Removal marks
+        preScan = nan(0,0);%preScan stamps
     end
 
 
     properties (Dependent)
         nChannels
+        nProbesets
         nominalWavelengthSet
         samplingRate
     end
@@ -505,6 +510,13 @@ classdef rawData_ETG4000 < rawData
              end
          end
          res=nCh;
+      end
+      function res = get.nProbesets(obj)
+         %(DEPENDENT) Gets the object |nProbesets|
+         %
+         % The number of probesets in the data.
+         % This is equivalent to length(obj.probesetInfo)
+         res=length(obj.probesetInfo);
       end
 
 

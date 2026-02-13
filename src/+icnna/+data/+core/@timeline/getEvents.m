@@ -13,6 +13,8 @@ function [cevents] = getEvents(obj,id)
 %
 % Somewhat analogous to @timeline.getConditionEvents
 %
+% Note that [cevents] = obj.getEvents() is equal to obj.condEvents
+%
 %
 %% Parameters
 %
@@ -24,10 +26,11 @@ function [cevents] = getEvents(obj,id)
 %
 %% Output
 %
-% [cevents] - Table. List of events.
-%         Each row is an event.
+% [cevents] - struct[]. List of events.
+%         Each struct is an event.
 %         The list of events has AT LEAST the following columns;
 %          + id - The condition id,
+%          + name - The condition name,
 %          + onsets - The rows of the table is ALWAYS sort by onsets,
 %          + durations,
 %          + amplitudes i.e. magnitude or strength.
@@ -54,11 +57,22 @@ function [cevents] = getEvents(obj,id)
 %   + File created. Reused some comments from previous code on
 %       timeline.addCondition
 %
+% -- ICNNA v1.4.0
+%
+% 10-Dec-2025: FOE
+%   + Revert back to regular value (non-handle) class.
+%	+ Change .conds to .conditions, and updated from a table to a
+%   struct array of conditions.
+%	+ Revert .cevents to a derived property (extracted on the fly from
+%       .conditions) |condEvents|.
+%   + Improved some comments.
+%
 
 if ~exist('id','var')
     [id,~] = obj.getConditionsList();
 end
 
-cevents = obj.cevents(ismember(obj.cevents.id,id),:);
+cevents = obj.condEvents;
+cevents(~ismember(cevents.id,id)) = [];
 
 end
