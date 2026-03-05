@@ -1,11 +1,11 @@
 ====================================
 = ICNA/ICNNA Version Log File
-= Copyright 2008-2025
+= Copyright 2008-2026
 = Author: Felipe Orihuela-Espina
 ====================================
 
 ====================================
-= ICNNA v1.4.0
+= ICNNA v1.4.0  (released 5-Mar-2026)
 ====================================
 
     +====================================================================+
@@ -28,6 +28,15 @@
 * @icnna.data.core.referenceLocation - A spatial reference location or landmark
 * @icnna.data.core.opticalCoefficient - An optical coefficient such as absorption,
         scattering, extenction, etc, whether macroscopic, reduced or specific.
+* @icnna.data.core.metaEntry - Annotated metadata
+* @icnna.data.core.signalDescriptor - Meta data associated to a signal or
+        measurement.
+* @icnna.data.core.signalSet - Collection of signal descriptors
+* @icnna.data.core.qcCriterion - A single quality control criterion for
+        structuredData
+* @icnna.data.core.qc - Collection of quality control criteria for
+        structuredData.
+
 
 + Deprecated classes
 * @timeline - See icnna.data.core.timeline instead.
@@ -38,6 +47,8 @@
         (FINALLY! ;) Possibly the last remaining piece of code inherited
         from fOSA. Note that the coefficients' data is still in use,
         but they have been refactored into JSON files).
+* miscellaneous/mbll - Use icnna.op.intensity2deltaOD
+        and icnna.op.deltaOD2deltaConcentrations instead
 
 + New methods
 * icnna.data.core.timeline:addCondition - A short-cut to add conditions
@@ -53,8 +64,13 @@
 * icnna.util.pdist2 - Pairwise distance between two sets of observations
 * icnna.util.snirf.channelList - Retrieves the channel list for the
         i-th nirs dataset and j-th data block
-* icnna.op.intensity2DeltaOD - Calculates the (delta) optical density
+* icnna.op.intensity2deltaOD - Calculates the (delta) optical density
         (and/or absorbance) from intensities.
+* icnna.op.deltaOD2deltaConcentrations - Calculates the (delta)
+        concentrations from the (delta) optical densities.
+* icnna.util.autoscaleIOD2mm - Makes an educated guess at whether
+        interoptode distances are expressed in [mm]. This is because
+        class @channelLocationMap does not store spatial units.
 
 
 + New packages
@@ -84,6 +100,10 @@ Bugs fixed:
     an inexistent method of class timeline, getConditionId, was
     being called. Also, this case was not considering the class
     @icnna.data.core.timeline
++ channelLocationMap:getIOD: Retrieval of locations for
+    sources and detectors was only using 1D coordinate rather
+    than all 3D; first for sources and second for detectors.
+
 
 
 
@@ -99,6 +119,17 @@ Behaviour change:
     * Now uses the Tikhonov's regularization as default behaviour.
     * Option .I0ref deprecated in favour of Iref
     Legacy behaviour is still provided via the different options.
++ Method @icnna.data.core.rawData_Snirf:convert:
+    Updated from using deprecated miscellaneous/mbll to
+    using icnna.op.intensity2deltaOD and
+    icnna.op.deltaOD2deltaConcentrations instead.
+    * Now uses optical density (instead of absorbance) as default behaviour.
+    * Now uses the pseudo-inverse as default behaviour.
+    * Now uses the Tikhonov's regularization as default behaviour.
+    * Now accounts for some assumed water, lipids and background
+    absorption.
+    * Option .I0ref deprecated in favour of Iref
+
 
 
 + See note above - ICNNA is going back to pass-by-value ONLY design

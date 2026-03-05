@@ -3,7 +3,7 @@
 	 "classVersion": "1.0",
 	 "id": 7,
 	 "name": "headAdult",
-	 "coefficientType": "kDPF",
+	 "coefficientType": "kdpf",
 	 "scaleType": "macroscopic",
 	 "unit": "dimensionless",
 	 "unitMultiplier": 0,

@@ -38,7 +38,7 @@ function obj = setConditions(obj,conds)
 %
 %% Input parameters
 %
-% val - icnna.data.core.condition[]
+% conds - icnna.data.core.condition[]
 %   The list of @icnna.data.core.conditions to be updated.
 %
 %

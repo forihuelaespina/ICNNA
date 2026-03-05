@@ -1,5 +1,9 @@
 function [M] = mbll(T,options)
-%Reconstruction using the Modified Beer-Lambert law (MBLL).
+%DEPRECATED. Reconstruction using the Modified Beer-Lambert law (MBLL).
+%
+%   This function is now deprecated. Use icnna.op.intensity2deltaOD
+% and icnna.op.deltaOD2deltaConcentrations instead.
+%
 %
 % M=mbll(T) - Reconstructs 3D tensor of raw light intensities to a 3D 
 %   neuroimage tensor, using the modified Beer-Lambert law (MBLL).
@@ -300,8 +304,8 @@ function [M] = mbll(T,options)
 %       since v1.4.0.
 %       Use option 'direct' for legacy behaviour.
 %       
-%   .iod - Int (scalar or vector). By default is set to 3cm.
-%       Interoptode distance in [cm]. If scalar, the same IOD will be
+%   .iod - Int (scalar or vector). By default is set to 30mm.
+%       Interoptode distance in [mm]. If scalar, the same IOD will be
 %       used for all channels. If vector, there will be
 %       one IOD per channel. It can either be a column or row vector.
 %
@@ -340,7 +344,14 @@ function [M] = mbll(T,options)
 %       Only used if option .inverse is NOT 'direct'.
 %       Type of matrix inversion. Options are:
 %           * 'none' - Do not use regularization.
-%           * 'tikhonov' - Use Tikhonov's regularization.
+%           * 'ridge' - Use Ridge regularization.
+%               Ridge regularization is the special case of Tikhonov 
+%               regularization where Tikhonov \Gamma matrix is
+%               the identity matrix, i.e, \Gamma = I.
+%               Ridge corresponds to the simplest Tikhonov's penalty:
+%               \norm{Gamma \cdot x}_2^2 = \norm{x}_2^2
+%           * 'tikhonov' - Use full Tikhonov's regularization (i.e.
+%               permits controlling \Gamma).
 %
 %       NOTE: The use of the Tikhonov's regularization is the default
 %       behaviour since v1.4.0.
@@ -350,9 +361,23 @@ function [M] = mbll(T,options)
 %       v1.4.0 or above
 %       Regularization parameters.
 %       * .regularization == 'none' => Not used.
-%       * .regularization == 'tikhonov'
+%       * .regularization == 'ridge'
 %           .regularizationParams - double. Default is 0.01.
-%               Value of Tikhonov's lambda or L.
+%               Value of Ridge's lambda or L.
+%       * .regularization == 'tikhonov' (Default)
+%           .regularizationParams - struct with the following
+%               fields;
+%               .lambda - double. Default is 0.01.
+%                   Value of Tikhonov's lambda or L.
+%               .Gamma - double[]. Default is I (i.e. coincides with Ridge).
+%                   Value of Tikhonov's \Gamma.
+%                   Tikhonov's \Gamma can encode a lot of stuff, e.g.;
+%                       + identity smoothing,
+%                       + derivative penalties,
+%                       + spatial smootings e.g. Laplacians, differentials, etc
+%                       + depth weighting,
+%                       + structural constraints,
+%                       + any other linear constraint.
 %
 %   .wavelengths - A row vector of nominal wavelengths set in [nm]. By 
 %       default is set to [695 830] nm (corresponding to those of the
@@ -399,7 +424,8 @@ function [M] = mbll(T,options)
 % 
 %
 % See also import, neuroimage, NIRS_neuroimage, rawData_ETG4000,
-%   rawData_NIRScout, icnna.op.intensity2OD,
+%   rawData_NIRScout, icnna.op.intensity2deltaOD,
+%   icnna.op.deltaOD2deltaConcentrations, 
 %   icnna.data.core.opticalCoefficients
 %
 
@@ -444,7 +470,7 @@ function [M] = mbll(T,options)
 %
 % 12-Feb-2026: FOE
 %   + Calculation of optical density / absorbance now relies
-%   on function icnna.op.intensity2OD hence simplifying the code here.
+%   on function icnna.op.intensity2deltaOD hence simplifying the code here.
 %   + Added option attenuationType to choose between optical density and
 %   absorbance.
 %   + Added option .invert to invert using pseudo-inverse. 
@@ -465,6 +491,25 @@ function [M] = mbll(T,options)
 %       * Matrix 'A' rebranded dA for (\Delta A)
 %       * Matrix 'conc' rebranded dC for (\Delta C)
 %
+%
+% 16-Feb-2026: FOE
+%   + Calculation of concentrations now relies
+%   on function icnna.op.deltaOD2deltaConcentrations hence
+%   simplifying the code here.
+%   + Deprecated. Use icnna.op.intensity2deltaOD and
+%   icnna.op.deltaOD2deltaConcentrations instead.
+%   + Option iod now operates in [mm] instead of [cm]
+%   for coherence with icnna.op.deltaOD2deltaConcentrations
+%
+
+warning('icnna:miscellaneous:mbll:Deprecated',...
+    ['This function is now deprecated. Please use ' ...
+     'functions icnna.op.intensity2deltaOD and ' ...
+     'icnna.op.deltaOD2deltaConcentrations instead.']);
+
+
+
+
 
 
 %Check if backward compatibility flag has been provided.
@@ -497,15 +542,17 @@ opt.dpf = 6.26; %Average DPF accepted value for normal adult head.
 opt.invert = 'moorepenrose'; %From v1.4.0. Matrix inversion
 opt.Ineg   = 'shift';   %From v1.4.0. Behaviour in case of negative
                         %intensities.
-opt.iod = 3; %Interoptode distance in [cm]
+opt.iod = 30; %Interoptode distance in [mm]
+                %Since 18-Feb-2026 (v1.4.0) this operates in [mm] 
                 %Since 12-Apr-2025 (v1.3.0) this changed from a simple
                 %scalar to either a scalar (same iod for ALL channels)
                 %or a column or row vector, with 1 iod per channel.
                 %This provides correct support to short channels and
                 %HD arrays.
-opt.Iref = 'first50'; %From v1.3.0. Method to calculate I0.
+opt.Iref = 'first50'; %From v1.4.0. Replaced I0ref (v1.3.0). Method to calculate I0.
 opt.regularization = 'tikhonov'; %From v1.4.0. Regularization
-opt.regularizationParams = 0.01; %From v1.4.0. Tikhonov's lambda or L
+opt.regularizationParams.lambda = 0.01; %From v1.4.0. Tikhonov's lambda or L
+opt.regularizationParams.Gamma  = eye(2); %From v1.4.0. Tikhonov's Gamma
 opt.wavelengths = [695 830]; %In [nm]
 if (exist('options','var') && isstruct(options))
     if isfield(options,'attenuationType')
@@ -533,6 +580,9 @@ if (exist('options','var') && isstruct(options))
     end
     if isfield(options,'regularization')
         opt.regularization = lower(options.regularization);
+    end
+    if isfield(options,'regularizationParams')
+        opt.regularizationParams = options.regularizationParams;
     end
     if isfield(options,'wavelengths')
         opt.wavelengths = options.wavelengths;
@@ -665,7 +715,11 @@ if strcmpi(compatibilityFlag,'-v1.2')
         M(:,ch,2)=conc(:,1);
         
     end     % for each channel pair
-    
+
+
+    M = 1000 * M; % uM /*To convert from mM->uM*/
+
+
 else %Since v1.3
 
     %%FOE: Code deprecated on 12-Feb-2026
@@ -719,78 +773,92 @@ else %Since v1.3
     opt2.Iref   = opt.I0ref;
     opt2.Ineg   = opt.Ineg;
     opt2.output = opt.attenuationType;
-    dA = icnna.op.intensity2DeltaOD(T,opt2); %Note that this is already
+    dOD = icnna.op.intensity2deltaOD(T,opt2); %Note that this is already
                                         %\Delta A ~ \Delta OD
                                         %See documentation in icnna.op.intensity2OD
 
-    dA = reshape(dA,size(dA,1),size(dA,2)*size(dA,3));
-        %Work in matrix form is faster than doing so in tensor form,
-        %so transiently change to matrix form by "concatenating" the
-        %third axis.
+
+   %  dA = reshape(dA,size(dA,1),size(dA,2)*size(dA,3));
+   %      %Work in matrix form is faster than doing so in tensor form,
+   %      %so transiently change to matrix form by "concatenating" the
+   %      %third axis.
+   % 
+   % 
+   % 
+   %  %Attenuation to concentrations
+   %      %%%Modified LAMBERT LAW:
+   %      %%%     deltaA=d.DPF.E.deltaC
+   %      %%%  => E.deltaC = deltaA/(d.DPF)
+   %      %%%
+   %      %%%== If using direct inverse:
+   %      %%%  => deltaC=E^{-1}*deltaA/(d.DPF)
+   %      %%%
+   %      %%%== If using Moore-Perose psedo-inverse:
+   %      %%%  => deltaC=(E^T*E)^{-1}*E^T*deltaA/(d.DPF)
+   %      %%%
+   %      %%%== If using Moore-Perose psedo-inverse and Tikhonov's regularization:
+   %      %%%  => deltaC=(E^T*E-L*I)^{-1}*E^T*deltaA/(d.DPF)
+   %      %%%
+   % 
+   %  %Differential Pathlength correction
+   %  path = repmat(path',nSamples,2);
+   %  dA   = dA./path; %path = iod*dpf (see above)
+   % 
+   %  %Reconstruction: OD to concentrations - Solve the inverse system
+   %  switch (opt.invert)
+   %      case 'direct' %Legacy
+   %          tmpInv = inv(E)';
+   %      case 'moorepenrose' %Default since v1.4.0
+   %          switch (opt.regularization)
+   %              case 'none'
+   %                  tmpInv = pinv(E)';
+   %                      %As far as I can tell, this is the one being used
+   %                      %by HomEr 2 (see function hmrOD2Conc.m, ln 46)
+   %                      % as well as by HomEr 3 (see function hmrR_OD2Conc.m, ln 64).
+   %              case 'tikhonov'
+   %                  L = opt.regularizationParams;
+   %                  tmpInv = ((E'*E-L*eye(2))*E')';
+   %              otherwise
+   %                  error('icnna:miscellaneous:mbll:InvalidParameterValue',...
+   %                    'Invalid option .regularization value.');
+   %          end
+   %      otherwise
+   %          error('icnna:miscellaneous:mbll:InvalidParameterValue',...
+   %                'Invalid option .invert value.');
+   %  end
+   %  for iCh = 1:nChannels
+   %      dC = nan(nSamples,2); % 2 signals
+   %      for num = 1:nSamples
+   %          dC(num,:) = dA(num,[iCh iCh+nChannels])* tmpInv;
+   %              %Watch out! This line won't generalize well if
+   %              %there are more than 2 signals e.g. in the presence
+   %              %of HbT or CCO!
+   %      end % for each sample
+   % 
+   %      %Watch out! See extinction matrix E!
+   %      % Oxy is in dC(:,2) and deoxy in dC(:,1)
+   %      M(:,iCh,1)=dC(:,2);
+   %      M(:,iCh,2)=dC(:,1);
+   % end % for each channel
 
 
-
-    %Attenuation to concentrations
-        %%%Modified LAMBERT LAW:
-        %%%     deltaA=d.DPF.E.deltaC
-        %%%  => E.deltaC = deltaA/(d.DPF)
-        %%%
-        %%%== If using direct inverse:
-        %%%  => deltaC=E^{-1}*deltaA/(d.DPF)
-        %%%
-        %%%== If using Moore-Perose psedo-inverse:
-        %%%  => deltaC=(E^T*E)^{-1}*E^T*deltaA/(d.DPF)
-        %%%
-        %%%== If using Moore-Perose psedo-inverse and Tikhonov's regularization:
-        %%%  => deltaC=(E^T*E-L*I)^{-1}*E^T*deltaA/(d.DPF)
-        %%%
-
-    %Differential Pathlength correction
-    path = repmat(path',nSamples,2);
-    dA   = dA./path; %path = iod*dpf (see above)
-    
-    %Reconstruction: OD to concentrations - Solve the inverse system
-    switch (opt.invert)
-        case 'direct' %Legacy
-            tmpInv = inv(E)';
-        case 'moorepenrose' %Default since v1.4.0
-            switch (opt.regularization)
-                case 'none'
-                    tmpInv = pinv(E)';
-                        %As far as I can tell, this is the one being used
-                        %by HomEr 2 (see function hmrOD2Conc.m, ln 46)
-                        % as well as by HomEr 3 (see function hmrR_OD2Conc.m, ln 64).
-                case 'tikhonov'
-                    L = opt.regularizationParams;
-                    tmpInv = ((E'*E-L*eye(2))*E')';
-                otherwise
-                    error('icnna:miscellaneous:mbll:InvalidParameterValue',...
-                      'Invalid option .regularization value.');
-            end
-        otherwise
-            error('icnna:miscellaneous:mbll:InvalidParameterValue',...
-                  'Invalid option .invert value.');
-    end
-    for iCh = 1:nChannels
-        dC = nan(nSamples,2); % 2 signals
-        for num = 1:nSamples
-            dC(num,:) = dA(num,[iCh iCh+nChannels])* tmpInv;
-                %Watch out! This line won't generalize well if
-                %there are more than 2 signals e.g. in the presence
-                %of HbT or CCO!
-        end % for each sample
-
-        %Watch out! See extinction matrix E!
-        % Oxy is in dC(:,2) and deoxy in dC(:,1)
-        M(:,iCh,1)=dC(:,2);
-        M(:,iCh,2)=dC(:,1);
-   end % for each channel
+    opt3.bgMua  = 0; %In [mm^{-1}]
+    opt3.lipidFraction  = 0;
+    opt3.waterFraction = 0;
+    opt3.iod    = opt.iod; %Interoptode distance in [mm]
+    opt3.dpf    = opt.dpf; %Average DPF accepted value for normal adult head.
+                    %Set to [] to reconstruct without dpf correction.
+    opt3.invert = 'moorepenrose'; %Matrix inversion
+    opt3.regularization = 'tikhonov'; %Regularization
+    opt3.regularizationParams = opt.regularizationParams;
+                           %Default: Tikhonov's lambda or L
+    opt3.wavelengths   = opt.wavelengths; %In [nm]
+    M = icnna.op.deltaOD2deltaConcentrations(dOD,opt3);
 
 end
 
 
 
-M = 1000 * M; % uM /*To convert from mM->uM*/
 
 
 end

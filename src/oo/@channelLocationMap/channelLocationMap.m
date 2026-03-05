@@ -36,9 +36,15 @@ classdef channelLocationMap
 %a physical holder a.k.a. optode array, and/or a probe set.
 %
 %
-% IMPORTANT: The channelLocationMap class does NOT hold any image data!
+% IMPORTANT: The @channelLocationMap class does NOT hold any
+%   image data!
 %   It only keeps track of the channel locations!
 %
+%% Known limitation
+%
+% @channelLocationMap class does NOT store the spatial units, e.g.
+% [cm] or [mm]. This can make deciding whether a channel is a short
+% channel or a long channel ambiguous.
 %
 %% Optode Arrays
 %
@@ -269,7 +275,7 @@ classdef channelLocationMap
 %  
 %
 %
-% Copyright 2012-23
+% Copyright 2012-26
 % @author: Felipe Orihuela-Espina
 %
 % See also rawData, rawData_ETG4000, nirs_neuroimage, icnnna.data.snirf.probe
@@ -297,6 +303,14 @@ classdef channelLocationMap
 %   + For those attributes above also started to simplify the set
 %   code replacing it with validation rules on the declaration.
 %   + Improved some comments.
+%
+% -- v1.4.0
+%
+% 18-Feb-2026: FOE
+%   + Added known limitation: 
+%       * @channelLocationMap class does NOT store the spatial
+%       units, e.g. [cm] or [mm]. This can make deciding whether
+%       a channel is a short channel or a long channel ambiguous.
 %
 
     properties (Constant, Access=private)

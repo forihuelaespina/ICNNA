@@ -60,6 +60,9 @@ classdef opticalCoefficient < icnna.data.core.identifiableObject
 %           * ppf - Partial pathlength factor
 %                   Strictly not an optical coefficient but it also
 %                   exhibits wavelength dependence.
+%           * kdpf - Wavelength-dependent part of a DPF
+%                   Strictly not an optical coefficient but it also
+%                   exhibits wavelength dependence.
 %           * other
 %
 %   .scaleType - String. Enum. Default is "macroscopic"
@@ -123,7 +126,7 @@ classdef opticalCoefficient < icnna.data.core.identifiableObject
         response(:,2) double {mustBeNumeric} = [200 0; 1400 0]; %Spectral response
         coefficientType (1,1) string {mustBeMember(coefficientType, ...
             ["absorption","scattering","reducedScattering","extinction",...
-             "dpf","ppf","other"])} = "other"
+             "dpf","ppf","kdpf","other"])} = "other"
         scaleType (1,1) string {mustBeMember(scaleType, ...
             ["macroscopic","specific"])} = "macroscopic"
         unit(1,:) char = 'm^{-1}'; % Unit of measure
@@ -314,20 +317,23 @@ classdef opticalCoefficient < icnna.data.core.identifiableObject
             %% Input parameters
             %
             % wavelengths - double[]
+            %   Column of row vector.
             %   List of wavelengths at which to retrieve the response.
             %
             %% Output
             %
             % val - double[]
-            %   List of response amplitude.
+            %   List of response amplitude as column vector
+            %   Note that this is returned as column vector even
+            %   if input wavelengths are expressed as row vector.
             %
     
             arguments
                 obj
-                wavelengths (1,:) double {mustBePositive}
+                wavelengths (:,1) double {mustBePositive}
             end
     
-            wl = obj.response(:,1);
+            wl  = obj.response(:,1);
             amp = obj.response(:,2);
 
             if strcmp(obj.extrapolationMethod,"none")

@@ -1,8 +1,8 @@
-function [dA] = intensity2DeltaOD(I,options)
+function [dA] = intensity2deltaOD(I,options)
 % Calculates the (\Delta) optical density (and/or absorbance) from intensities.
 %
-% [dOD] = icnna.op.intensity2DeltaOD(I,options)
-% [dA]  = icnna.op.intensity2DeltaOD(I,options)
+% [dOD] = icnna.op.intensity2deltaOD(I,options)
+% [dA]  = icnna.op.intensity2deltaOD(I,options)
 %
 %
 %% Optical density, absorbance and attenuation
@@ -186,7 +186,7 @@ function [dA] = intensity2DeltaOD(I,options)
 % Copyright 2026
 % @author Felipe Orihuela-Espina
 %
-% See also
+% See also icnna.op.deltaOD2deltaConcentrations
 %
 
 
@@ -228,8 +228,8 @@ end
 %Work in matrix form is faster than doing so in tensor form,
 %so transiently change to matrix form by "concatenating" the
 %third axis.
-[i,j,k] = size(I);
-I = reshape(I,i,j*k);
+[nSamples,nChannels,nSignals] = size(I);
+I = reshape(I,nSamples,nChannels*nSignals);
 
 % Check that absolute intensity does not reach zero or below zero
 flagNegative = any(any(I <= 0));
@@ -259,7 +259,7 @@ if (flagNegative)
 end
 
 % Decide on the reference Iref
-k=min(50,size(I,1)); %By default, use the first 50 samples
+k=min(50,nSamples); %By default, use the first 50 samples
       %as fOSA v2.2 to match previous behaviour
 switch opt.Iref
     case 'first'
@@ -267,7 +267,7 @@ switch opt.Iref
     case 'first50' %Default.
         %Do nothing
     case 'mean' %This one matches Homer 2/3
-        k = size(I,1);
+        k = nSamples;
     otherwise
         error('icnna:op:intensity2OD:InvalidParameterValue',...
             'Invalid parameter value for option .Iref.')
@@ -315,7 +315,7 @@ end
 
 
 
-dA = reshape(dA,i,j,k); %Return to original shape
+dA = reshape(dA,nSamples,nChannels,nSignals); %Return to original shape
 
 
 end

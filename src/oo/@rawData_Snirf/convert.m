@@ -69,22 +69,30 @@ function nimg=convert(obj,varargin)
 %           1 - (Default) Non-overlapping conditions
 %
 %   'DefaultDPF' - A default DPF value. By default is set to 6.26.
-%   'I0ref' - char array.
-%       Determines how to establish the reference intensity I0.
+%   .I0ref - DEPRECATED. See option .Iref instead.
+%   .Iref - char[]. Default is 'first50'
+%       Determines how to establish the reference intensity I(t=0)
+%       (note that this is different from the irradiated intensity I_0
+%       which is assume invariant over time).
 %       Options are;
 %       'first' - Use only the first sample. Used by classical fOSA
 %       'first50' - Default. Use the first 50 samples (or all if the
 %           timeseries is less than 50). Used by fOSA v2.2 and onwards
 %           and the ICNNA option.
-%       'mean' - Use the mean of the timeseries. Used by Homer.
+%       'mean' - Use the mean of the timeseries. Used by Homer. Although
+%           in principle this provides more stability, BUT in the
+%           presence of optode movements, this mean can be severely
+%           distorted.
 %
 %
 % 
-% Copyright 2023-25
+% Copyright 2023-26
 % @author: Felipe Orihuela-Espina
 % 
 %
-% See also rawData_NIRScout, import, neuroimage, NIRS_neuroimage, mbll
+% See also rawData_NIRScout, import, neuroimage, NIRS_neuroimage,
+%   mbll, icnna.op.deltaOD2deltaConcentrations, 
+%   icnna.data.core.opticalCoefficients
 %
 
 
@@ -157,16 +165,36 @@ function nimg=convert(obj,varargin)
 %   using the old format for @timeline rather than the new one
 %   for @icnna.data.core.timeline.
 %
+% -- v1.4.0
+%
+% 18-Feb-2026: FOE
+%   + Deprecated option .I0ref and replaced by option Iref to avoid
+%   confusion between I_0 (the irradiated light) and I(t=ref), the
+%   differential reference of the MBLL.
+%   + Updated from using deprecated miscellaneous/mbll to
+%   using icnna.op.intensity2deltaOD and
+%   icnna.op.deltaOD2deltaConcentrations instead.
+%   + Changed default behaviour;
+%   * Now uses optical density (instead of absorbance).
+%   * From direct inversion to usig Moore-Penrose pseudoinverse
+%   * Now uses Tikhonov's regularization
+%   * Now accounts for some assumed water, lipids and background
+%   absorption.
+%   + Now accounts for the fact that @channelLocationMap does not
+%   store the spatial units and hence the IOD may not be in [cm]
+%   by default.
+%
+
 
 
 opt.nirsDatasetIndex = 1; %Index of the nirs dataset to be converted.
 opt.allowOverlappingConditions = 1; %Default. Non-overlapping conditions
 opt.defaultDPF = 6.26; %Average DPF accepted value for normal adult head
-opt.I0ref = 'first50'; %From v1.3.0. Method to calculate I0.
+opt.Iref = 'first50'; %From v1.4.0. Replaced I0ref (v1.3.0). Method to calculate I0.
 while ~isempty(varargin) %Note that the object itself is not counted.
     optName = varargin{1};
     if length(varargin)<2
-        error('ICNA:rawData_NIRScout:convert:InvalidOption', ...
+        error('icnna:rawData_Snirf:convert:InvalidOption', ...
             ['Option ' optName ': Missing option value.']);
     end
     optValue = varargin{2};
@@ -182,16 +210,20 @@ while ~isempty(varargin) %Note that the object itself is not counted.
             if (optValue==0 || optValue==1)
                 opt.allowOverlappingConditions = optValue;
             else
-                error('ICNNA:rawData_Snirf:convert:InvalidOption', ...
+                error('icnna:rawData_Snirf:convert:InvalidOption', ...
                      ['Option ' optName ': Unexpected value ' num2str(optValue) '.']);
             end
             
         case 'defaultdpf'
             opt.defaultDPF = optValue;
         case 'i0ref'
-            opt.I0ref = optValue;
+            warning('icnna:rawData_Snirf:convert:DeprecatedOption',...
+                'Option .I0ref is deprecated. Use option .Iref instead.');
+            opt.Iref = optValue;
+        case 'iref'
+            opt.Iref = optValue;
         otherwise
-            error('ICNNA:rawData_Snirf:convert:InvalidOption', ...
+            error('icnna:rawData_Snirf:convert:InvalidOption', ...
                   ['Invalid option ' optName '.']);
     end
 end
@@ -201,8 +233,9 @@ end
 
 if (opt.nirsDatasetIndex>length(obj.snirfImg.nirs)    ...
     || opt.nirsDatasetIndex<=0)
-    warning('ICNNA:rawData_Snirf:convert:InvalidOption', ...
-                  ['Dataset ' num2str(opt.nirsDatasetIndex) ' not found. Returning empty image.']);
+    warning('icnna:rawData_Snirf:convert:InvalidOption', ...
+            ['Dataset ' num2str(opt.nirsDatasetIndex) ...
+             ' not found. Returning empty image.']);
     nimg=nirs_neuroimage(1);
     return
 end    
@@ -488,20 +521,52 @@ switch (tmpDataType)
             tmpLightRawData(:,iCh,iWl) = tmpNirs.data.dataTimeSeries(:,iMeas);
         end
 
-        %Apply MBLL
-        options.dpf = opt.defaultDPF; %Snirf format does NOT stores the DPF!
-                                      %Thus use some default one.
-        options.I0ref = opt.I0ref;
-        options.iod = nimg.chLocationMap.getIOD();
+        %Apply MBLL in two steps; I2OD -> OD2Conc
+
+        % Calculate (\Delta) optical densities
+        opt2.Iref   = opt.Iref;
+        opt2.Ineg   = 'shift';
+        opt2.output = 'od';
+        dOD = icnna.op.intensity2deltaOD(tmpLightRawData,opt2);
+
+        % Calculate (\Delta) concentrations        
+        %opt3.bgMua  = 0; %In [cm^{-1}]
+        opt3.bgMua  = 0.12; %In [cm^{-1}]
+        %opt3.lipidFraction  = 0;
+        opt3.lipidFraction  = 0.116;
+        %opt3.waterFraction = 0;
+        opt3.waterFraction = 0.8;
+        opt3.dpf    = opt.defaultDPF; %Average DPF accepted value for normal adult head.
+        tmp = nimg.chLocationMap.getIOD();
+            %18-Feb-2026: FOE (v1.4.0) 
+            %@channelLocationMap does NOT store the spatial units
+            %so I need to make an educated guess. Assume there
+            %are more or equal number of long channels than there
+            %are short channels and then adjuist distances until
+            %the only one figure is before the decimal point for
+            %such majority of channels.
+        [tmp, ~] = icnna.util.autoscaleIOD2mm(tmp);
+        opt3.iod = tmp; %In [mm]
+                    %icnna.op.snirf.getIOD(r); %Interoptode distance in [cm]
                          %12-Apr-2025: FOE (v1.3.0) Change in behaviour.
                          % Before v1.3.0 this was set to a default fixed
                          % iod equal to 3cm.
                          % Now direct support for short channel and HD
                          % can be done directly
-        M = mbll(tmpLightRawData,options);
+
+        %opt3.invert = 'direct'; %Matrix inversion
+        opt3.invert = 'moorepenrose'; %Matrix inversion
+        opt3.regularization = 'tikhonov'; %Regularization
+        opt3.regularizationParams.lambda = 0.01; %Tikhonov's lambda or L
+        opt3.regularizationParams.Gamma = eye(2); %Tikhonov's Gamma
+        opt3.wavelengths   = tmpNirs.probe.wavelengths; %In [nm]
+        dC = icnna.op.deltaOD2deltaConcentrations(dOD,opt3);
+
+
+
         tmpData = zeros(nSamples,nChannels,2);
-        tmpData(:,:,nirs_neuroimage.OXY)   = M(:,:,1);
-        tmpData(:,:,nirs_neuroimage.DEOXY) = M(:,:,2);
+        tmpData(:,:,nirs_neuroimage.OXY)   = dC(:,:,1);
+        tmpData(:,:,nirs_neuroimage.DEOXY) = dC(:,:,2);
         %nimg=set(nimg,'Data',tmpData);        
         nimg.data = tmpData;        
 
