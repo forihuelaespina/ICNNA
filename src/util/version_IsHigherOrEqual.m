@@ -27,7 +27,7 @@ function res=version_IsHigherOrEqual(verStr1,verStr2)
 
 warning('icnna:util:version_isHigherOrEqual:Deprecated',...
          ['This function is now deprecated (since v1.4.0). ' ...
-          'Please use icnna.util.compareVersion instead.']);
+          'Please use icnna.util.compareVersions instead.']);
 
 
 res=false;

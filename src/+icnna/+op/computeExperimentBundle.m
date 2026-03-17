@@ -134,7 +134,11 @@ function [S]=computeExperimentBundle(theExperiment,options)
 % 30-Aug-2025: FOE. 
 %   + Added a nominal 3D location to the sampling sites.
 %
-
+% -- ICNNA v1.4.0
+%
+% 14-Mar-2026: FOE
+%   + Revert back to regular value (non-handle) class.
+%
 
 %% TO DO
 %
@@ -184,7 +188,7 @@ end
 
 if isfield(options,'wsTaskExceed')
     if isfield(options,'wsTask')
-        warning('icnna.op.computeExperimentBundle:IncompatibleOption',...
+        warning('icnna:op:computeExperimentBundle:IncompatibleOption',...
                 ['Options .wsTask and .wsTaskExceed are incompatible. ' ...
                  'Ignoring option .wsTaskEceed.']);
     else
@@ -226,8 +230,8 @@ samplingSites = table('Size',[0 6],...
 
 
 %% Main loop
-expUnitIDs=getSubjectList(theExperiment);
-nExpUnits=length(expUnitIDs);
+expUnitIDs = getSubjectList(theExperiment);
+%nExpUnits  = length(expUnitIDs);
 for euID=expUnitIDs
     disp(['Processing experimental Unit (Subject) ' num2str(euID)])
     expUnit = getSubject(theExperiment,euID);
@@ -448,8 +452,8 @@ end %for experimental unit
 
 %Finally, put everything in place...
 S = icnna.data.core.experimentBundle();
-S.setSites(samplingSites);
-S.setBundle(E,B); %Use the implicit bijective projection p
+S = S.setSites(samplingSites);
+S = S.setBundle(E,B); %Use the implicit bijective projection p
 
 
 end

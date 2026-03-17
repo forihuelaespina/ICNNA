@@ -84,7 +84,13 @@ function mySaveFig(hfig,filename)
 %  Anyhow, bottom line is that the condition should be:
 %     isa(hfig, 'matlab.ui.Figure')
 %
-
+% 6-Mar-2026: FOE
+%  + Bug fixed: And yet another change by matlab!
+%  Now asking for isa(hfig, 'matlab.ui.Figure') yields true for both
+%  figures and uifigures. Now both figures and uifigure share the
+%  same class; that is matlab.ui.Figure and instead their internal
+%  behaviour is governed by property |Type|
+%   
 
 
 try
@@ -99,13 +105,35 @@ if verLessThan('matlab','8.6')
     print(['-f' num2str(hfig)],'-dpng','-r600',strcat(filename,'_600dpi.png'));
     %print(['-f' num2str(hfig)],'-djpeg','-r150',strcat(filename,'_150dpi.jpg'));
     
-else    
+else
 
-    if ~isa(hfig, 'matlab.ui.Figure')
-        %print(hfig,'-dtiff','-r300',strcat(filename,'_300dpi.tif'));
-        %print(hfig,'-dtiff','-r300',strcat(filename,'_600dpi.tif'));
-        print(hfig,'-dpng','-r600',strcat(filename,'_600dpi.png'));
-        %print(hfig,'-djpeg','-r150',strcat(filename,'_150dpi.jpg'));
+    % 6-Mar-2026: FOE. Bug fixing.
+    if isprop(hfig,'Type')
+        flagNormalFigure = strcmp(get(gcf,'Type'),'figure');
+    else
+        flagNormalFigure = ~isa(hfig, 'matlab.ui.Figure');
+    end
+
+    if flagNormalFigure
+
+        %Note that even if it is a normal figure
+        %but it may still have UI-typed subcomponents e.g.
+        %icnna.plot.plotTimeline
+
+        try
+            %print(hfig,'-dtiff','-r300',strcat(filename,'_300dpi.tif'));
+            %print(hfig,'-dtiff','-r300',strcat(filename,'_600dpi.tif'));
+            print(hfig,'-dpng','-r600',strcat(filename,'_600dpi.png'));
+            %print(hfig,'-djpeg','-r150',strcat(filename,'_150dpi.jpg'));
+        catch
+            containers = findall(hfig, 'Type', 'uipanel', '-or', 'Type', 'uitab');
+            for iChild = 1:numel(containers)
+                exportgraphics(containers(iChild),...
+                      strcat(filename,'_subfig',num2str(iChild,'%04d'),'_600dpi.png'),...
+                        'BackgroundColor','white', 'Resolution', 600);
+                    %For some reason, I can't change the option 'Padding'
+            end 
+        end
 
     else %uifigure?
         % Find all containers in the uifigure
@@ -115,7 +143,7 @@ else
             exportgraphics(containers(iChild),...
                   strcat(filename,'_subfig',num2str(iChild,'%04d'),'_600dpi.png'),...
                     'BackgroundColor','white', 'Resolution', 600);
-                %For some reason, I can change the option 'Padding'
+                %For some reason, I can't change the option 'Padding'
         end 
 
     end

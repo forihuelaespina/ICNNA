@@ -287,6 +287,7 @@ classdef timeline < icnna.data.core.identifiableObject
 %   + Property |conditions| is now column array instead of row array.
 %   + Method findConditions is now public.
 %
+
     properties (Constant, Access=private)
         classVersion = '1.2'; %Read-only. Object's class version.
     end
@@ -304,6 +305,7 @@ classdef timeline < icnna.data.core.identifiableObject
         conditions(:,1) icnna.data.core.condition = ...
                     icnna.data.core.condition.empty; % List of conditions 
     end
+
 
     properties (Dependent)
         length %Read-only

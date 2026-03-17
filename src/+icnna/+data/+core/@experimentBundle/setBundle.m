@@ -1,9 +1,9 @@
-function setBundle(obj,tmpE,tmpB,tmpp)
+function [obj] = setBundle(obj,tmpE,tmpB,tmpp)
 %Sets the total space, base space and projection of the bundle
 %
-% setBundle(obj,E,B)
-% setBundle(obj,E,B,p)
-% obj.setBundle(...)
+% obj = setBundle(obj,E,B)
+% obj = setBundle(obj,E,B,p)
+% obj = obj.setBundle(...)
 %
 % @li In principle the projection does NOT have to be 1-to-1 ergo the
 %   number of rows of E and B do not have to comply.
@@ -44,6 +44,12 @@ function setBundle(obj,tmpE,tmpB,tmpp)
 %
 % 26-Jul-2025: FOE 
 %   + File created. 
+%
+%
+% -- ICNNA v1.4.0
+%
+% 14-Mar-2026: FOE
+%   + Revert back to regular value (non-handle) class.
 %
 %
 

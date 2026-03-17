@@ -20,7 +20,7 @@ function element=guiTimeline(varargin)
 %   are 'on' or 'off'.
 %
 %
-% Copyright 2008-23
+% Copyright 2008-26
 % @author Felipe Orihuela-Espina
 %
 % See also guiExperiment, guiExperimentSpace, timeline
@@ -45,11 +45,18 @@ function element=guiTimeline(varargin)
 %   be in whatever working directory he likes. IF this works, I should
 %   extend this solution to other functions of the GUI.
 %
+% -- ICNNA v1.4.1
+%
+% 14-Mar-2026: FOE
+%   + Bug fixed. Initialization when input was of type
+%   icnna.data.core.timeline was incorrect.
+%
 
 
 %% Deal with options
-if ~isempty(varargin) && isa(varargin{1},'timeline')
-    element=varargin{1};
+if ~isempty(varargin) && (isa(varargin{1},'timeline') ...
+                       || isa(varargin{1},'icnna.data.core.timeline'))
+    element=timeline(varargin{1});
     varargin(1)=[];
 end
 tmpOpt.setTimelineLength=false; %Enable/Disable the option for setting

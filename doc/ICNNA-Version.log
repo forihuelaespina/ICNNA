@@ -5,6 +5,39 @@
 ====================================
 
 ====================================
+= ICNNA v1.4.1
+= * beta release on 17-Mar-2026 for Overprocessing paper.
+====================================
+
++ New functions
+* icnna.op.snirf.snirfProbe2channelLocationMap - Convert SNIRF probe (and channel pairing) to a @channelLocationMap.
+* icnna.op.snirf.snirfNirs2timeline - Extract a timeline from a SNIRF dataset
+* icnna.op.snirf.unfoldMeasurementList - Unfold the measurement list of the snirf data into a table.
+* icnna.op.snirf.snirf2nirsNeuroimage - Convert SNIRF object to ICNNA nirs_neuroimage without applying the MBLL (i.e. return intensities or OD depending on the SNIRF)
+
+Bugs fixed:
++ @structuredData/structuredData: After updating the timeline to
+    icnna.data.core.timeline, when using the constructor with size
+    parameters,  the constructor was still trying to write the
+    length (as per the old timeline class). But for 
+    icnna.data.core.timeline the length is a read only property.
++ guiTimeline: Initialization when input was of type
+    icnna.data.core.timeline was incorrect.
++ @timeline.timeline: In copy constructor from icnna.data.core.timeline
+    the extraction of the events' .info was only passing the "first"
+    event rather than the info for all events.
++ icnna.op.writeTimelineToSnirf: When using icnna.data.core.timeline
+    only the first event for each condition was being retrieved.
++ icnna.op.getTrialData: Type for *.timeUnitMultiplier is now correctly
+    set to int16 (instead of double) and whenever typecastings are needed
+    these are now explicit.
++ @condition.set.nominalSamplingRate: It was still using the tabular
+    syntax for cevents from object version 1.1.
+
+
+
+
+====================================
 = ICNNA v1.4.0  (released 5-Mar-2026)
 ====================================
 

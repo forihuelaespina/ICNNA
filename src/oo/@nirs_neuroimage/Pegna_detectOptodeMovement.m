@@ -98,7 +98,7 @@ end
 nSamples=length(signal);
 
 
-if version_IsHigherOrEqual(opt.version,'1.3.0')
+if icnna.util.compareVersions(opt.version,'1.3.0','>=')
     %18-May-2025: FOE
     % Reinterpretation of Pegna: Rather than ignoring large jumps that
     %only show in one sample, I now believe Pegna meant that the "cumulative"

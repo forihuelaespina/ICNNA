@@ -231,6 +231,13 @@ classdef condition < icnna.data.core.identifiableObject
 % 6-Dec-2025: FOE
 %	+ Further improved some comments for consistency.
 %
+%
+% -- ICNNA v1.4.1
+%
+% 17-Mar-2026: FOE
+%	+ Bug fixed; Method set.nominalSamplingRate was still using the tabular
+%   syntax for cevents from object version 1.1.
+%
 
     properties (Constant, Access=private)
         classVersion = '1.2'; %Read-only. Object's class version.
@@ -571,10 +578,12 @@ classdef condition < icnna.data.core.identifiableObject
             if strcmp(obj.unit,'samples')
                 % Adjust onsets and durations by the ratio of the new
                 % sampling rate to the old one
-                [obj.cevents.onsets] = round([obj.cevents.onsets] * ...
-                    (obj.nominalSamplingRate / currentSR));
-                [obj.cevents.durations] = round([obj.cevents.durations] * ...
-                    (obj.nominalSamplingRate / currentSR));
+                for iEv = 1:numel(obj.cevents)
+                    obj.cevents(iEv).onsets = round([obj.cevents(iEv).onsets] * ...
+                                        (obj.nominalSamplingRate / currentSR));
+                    obj.cevents(iEv).durations = round([obj.cevents(iEv).durations] * ...
+                                        (obj.nominalSamplingRate / currentSR));
+                end
             end
         end
 

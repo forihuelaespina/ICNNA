@@ -141,6 +141,14 @@ classdef structuredData
 %   + Updated from deprecated function version_IsHigherOrEqual
 %   to new icnna.util.compareVersions
 %
+% -- v1.4.1
+%
+% 5-Mar-2026:
+%   + Bug fixed: After updating the timeline to @icnna.data.core.timeline,
+%   when using the constructor with size parameters, the constructor was
+%   still trying to write the length (as per the old @timeline class). But
+%   for @icnna.data.core.timeline the length is a read only property.
+%
 
 
 
@@ -215,7 +223,13 @@ classdef structuredData
                         end
                         
                         t = obj.timeline;
-                        t.length = varargin{2}(1);
+                        %5-Mar-2026: FOE. Bug fixing
+                        %   After updating the timeline to @icnna.data.core.timeline,
+                        %   when using the constructor with size parameters, the constructor was
+                        %   still trying to write the length (as per the old @timeline class). But
+                        %   for @icnna.data.core.timeline the length is a read only property.
+                        %%%Original line
+                        % t.length = varargin{2}(1);
                         obj.timeline=t;
 
                         

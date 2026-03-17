@@ -43,7 +43,7 @@ function [aSnirf] = writeTimelineToSnirf(aSnirf,t,options)
 %
 %
 %
-% Copyright 2025
+% Copyright 2025-26
 % @author: Felipe Orihuela-Espina
 %
 % See also @rawData_Snirf.convert
@@ -62,6 +62,13 @@ function [aSnirf] = writeTimelineToSnirf(aSnirf,t,options)
 % 14-Dec-2025: FOE
 %   + Revert back to regular value (non-handle) class of both
 %   icnna.data.core.timeline and icnna.data.core.condition
+%
+%
+% -- ICNNA v1.4.1
+%
+% 14-Mar-2026: FOE
+%   + Bug fixed: When using icnna.data.core.timeline only the
+%   first event for each condition was being retrieved.
 %
 
 
@@ -83,12 +90,12 @@ if exist('options','var')
 end
 
 
-if strcmp(t,'icnna.data.core.timeline')
-    warning('ICNNA:op:writeTimelineToSnirf:OptionReserved',...
-        ['Input parameter t being of class @icnna.data.core.timeline ' ...
-         'reserved for future use. Currently only class @timeline is' ...
-         'available.']);
-end
+% if strcmp(t,'icnna.data.core.timeline')
+%     warning('ICNNA:op:writeTimelineToSnirf:OptionReserved',...
+%         ['Input parameter t being of class @icnna.data.core.timeline ' ...
+%          'reserved for future use. Currently only class @timeline is' ...
+%          'available.']);
+% end
 
 
 
@@ -212,7 +219,9 @@ else %icnna.data.core.timeline
 
         cEvents = theCond.cevents;
 
-        tmpStim.data = [cEvents.onsets cEvents.durations cEvents.amplitudes];
+        tmpStim.data = [[cEvents.onsets]' ...
+                        [cEvents.durations]' ...
+                        [cEvents.amplitudes]'];
         tmpStim.dataLabels = {'starttime','duration','amplitude'};
         aSnirf.nirs(opt.iNirs).stim(nStims+iCond) = tmpStim;
         

@@ -184,6 +184,12 @@ function nimg=convert(obj,varargin)
 %   store the spatial units and hence the IOD may not be in [cm]
 %   by default.
 %
+% -- v1.4.1
+%
+% 3-Mar-2026: FOE
+%   + Previous auxiliary function unfoldMeasurementList is now a fully
+%   isolated function icnna.op.snirf.unfoldMeasurementList
+%
 
 
 
@@ -249,7 +255,7 @@ tmpNirs = obj.snirfImg.nirs(opt.nirsDatasetIndex);
 
 
 
-tmpMeasurementList = unfoldMeasurementList(tmpNirs.data);
+tmpMeasurementList = icnna.op.snirf.unfoldMeasurementList(tmpNirs.data);
 
 %Figure out number of data types, e.g. number of wavelengths or
 %chromophores, as well as the number of channels
@@ -266,14 +272,14 @@ nDataTypes = length(tmpMeasurementsPerChannel);
 
 %Figure out the channels from the measurements
 channelList = table2array(unique(tmpMeasurementList(:,{'sourceIndex','detectorIndex'})));
-%nChannels = nMeasurements/nDataTypes;
-nChannels = size(channelList,1);
+%nChannels  = nMeasurements/nDataTypes;
+nChannels   = size(channelList,1);
 
 
-nSamples=size(tmpNirs.data.dataTimeSeries,1);
-nSignals=nMeasurements/nChannels;
-nWlengths=length(tmpNirs.probe.wavelengths);
-nimg=nirs_neuroimage(1,[nSamples,nChannels,nSignals]);
+nSamples   = size(tmpNirs.data.dataTimeSeries,1);
+nSignals   = nMeasurements/nChannels;
+nWlengths  = length(tmpNirs.probe.wavelengths);
+nimg       = nirs_neuroimage(1,[nSamples,nChannels,nSignals]);
 
 
 
@@ -432,7 +438,7 @@ for iStim = 1:nStims
             tmpCond.timeUnitMultiplier  = t.timeUnitMultiplier;
             tmpCond.nominalSamplingRate = t.nominalSamplingRate;
 
-            tmpCond.addEvents(tmpcevents);
+            tmpCond = tmpCond.addEvents(tmpcevents);
 
             if isproperty(tmpStim,'dataLabels')
                 %Ignore the dataLabels.
@@ -443,10 +449,10 @@ for iStim = 1:nStims
 
                 %DO NOTHING
             end
-            t.addConditions(tmpCond,0);
+            t = t.addConditions(tmpCond,0);
 
         else
-            t.addConditionEvents(cTag,tmpcevents);
+            t = t.addConditionEvents(cTag,tmpcevents);
         end
     else
         if isempty(t.getCondition(cTag))
@@ -606,156 +612,6 @@ switch (tmpDataType)
 end
 
 
-
-
-
-
-
-
-
-
-
 end
 
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% AUXILIARY FUNCTION
-
-
-function ml = unfoldMeasurementList(data)
-% ml = unfoldMeasurementList(data)
-% ml = unfoldMeasurementList(measurementList)
-%
-%Unfold the measurement list of the snirf data into a table for quicker
-% access of certain operations.
-%
-%
-%% Remark
-%
-% Everytime one needs to access the information about the source and
-%detectors involved in a channel. this list has to be navigated, which
-%is tedious and costly.
-%
-% This functions, unfolds the list for quicker access.
-%
-%
-%% Input Parameters
-%
-% data - A icnna.data.snirf.dataBlock dataClass object. This class is expected
-%   to have at least the following 3 attributes;
-%   .dataTimeSeries - A matrix of double sized <nSamples,2/3>
-%       This is a 2D or 3D array.
-%       If it's 3D then: <DATA TIME POINTS> x <DATA TYPES x CHANNELS> 
-%           where data types can be wavelengths or chromophores.
-%       If it's 2D then: <DATA TIME POINTS> x <Num OF MEASUREMENTS>
-%   .time - A matrix of double sized <nSamples,1>
-%       This is the vector of timestamps
-%   .measurementList - A list of Homer3 Snirf MeasListClass objects
-%       Each MeasListClass object contains information about the
-%       corresponding source, detector, wavelength or chromophore, etc
-%
-% OR
-%
-% measurementList - A list of icnna.data.snirf.measurement objects
-%       Each measurement object contains information about the
-%       corresponding source, detector, wavelength or chromophore, etc
-%       e.g. data.measurementList
-% 
-%
-%% Output Parameters
-%
-% ml - A table of measurements in data.
-%   Each column represents an original property of the
-%   icnna.data.snirf.measurement objects composing the data.measurementList.
-%   Each row represents one icnna.data.snirf.measurement object unfolded.
-%
-%
-%
-%
-%
-%
-% Copyright 2023
-% @author: Felipe Orihuela-Espina
-%
-% See also 
-%
-
-%% Log
-%
-% 20-Apr-2023: FOE
-%   + File adapted from script myHomer3_unfoldMeasurementList
-%
-
-tmpList = data; %Default; the measurement list has been passed directly.
-if isa(data,'icnna.data.snirf.dataBlock')
-    tmpList = data.measurementList;
-end
-
-
-%Unfold measurement list for quicker access of some operations below.
-nMeasurements = length(tmpList);
-tmpSourceIndex         = nan(nMeasurements,1);
-tmpDetectorIndex       = nan(nMeasurements,1);
-tmpWavelengthIndex     = nan(nMeasurements,1);
-tmpWavelengthActual    = nan(nMeasurements,1);
-tmpWavelengthEmissionActual = nan(nMeasurements,1);
-tmpDataType            = nan(nMeasurements,1);
-tmpDataUnit            = strings(nMeasurements,1);
-tmpDataTypeLabel       = strings(nMeasurements,1);
-tmpDataTypeIndex       = nan(nMeasurements,1);
-tmpSourcePower         = nan(nMeasurements,1);
-tmpDetectorGain        = nan(nMeasurements,1);
-tmpModuleIndex         = nan(nMeasurements,1);
-tmpSourceModuleIndex   = nan(nMeasurements,1);
-tmpDetectorModuleIndex = nan(nMeasurements,1);
-
-for iMeas = 1:nMeasurements
-    tmpSourceIndex(iMeas)         = tmpList(iMeas).sourceIndex;
-    tmpDetectorIndex(iMeas)       = tmpList(iMeas).detectorIndex;
-    tmpWavelengthIndex(iMeas)     = tmpList(iMeas).wavelengthIndex;
-    if tmpList(iMeas).isproperty('wavelengthActual')
-        tmpWavelengthActual(iMeas)    = tmpList(iMeas).wavelengthActual;
-    end
-    if tmpList(iMeas).isproperty('wavelengthEmissionActual')
-        tmpWavelengthEmissionActual(iMeas) = tmpList(iMeas).wavelengthEmissionActual;
-    end
-    tmpDataType(iMeas)            = tmpList(iMeas).dataType;
-    if tmpList(iMeas).isproperty('dataUnit')
-        tmpDataUnit(iMeas)            = tmpList(iMeas).dataUnit;
-    end
-    if tmpList(iMeas).isproperty('dataTypeLabel')
-        tmpDataTypeLabel(iMeas)       = tmpList(iMeas).dataTypeLabel;
-    end
-    tmpDataTypeIndex(iMeas)       = tmpList(iMeas).dataTypeIndex;
-    if tmpList(iMeas).isproperty('sourcePower')
-        tmpSourcePower(iMeas)         = tmpList(iMeas).sourcePower;
-    end
-    if tmpList(iMeas).isproperty('detectorGain')
-        tmpDetectorGain(iMeas)        = tmpList(iMeas).detectorGain;
-    end
-    if tmpList(iMeas).isproperty('moduleIndex')
-        tmpModuleIndex(iMeas)         = tmpList(iMeas).moduleIndex;
-    end
-    if tmpList(iMeas).isproperty('sourceModuleIndex')
-        tmpSourceModuleIndex(iMeas)   = tmpList(iMeas).sourceModuleIndex;
-    end
-    if tmpList(iMeas).isproperty('detectorModuleIndex')
-        tmpDetectorModuleIndex(iMeas) = tmpList(iMeas).detectorModuleIndex;
-    end
-end
-
-ml = table(tmpSourceIndex,tmpDetectorIndex,...
-           tmpWavelengthIndex,tmpWavelengthActual,tmpWavelengthEmissionActual,...
-           tmpDataType,tmpDataUnit,char(tmpDataTypeLabel),...
-           tmpDataTypeIndex,tmpSourcePower,tmpDetectorGain,...
-           tmpModuleIndex,tmpSourceModuleIndex,tmpDetectorModuleIndex, ...
-           'VariableNames',{'sourceIndex', 'detectorIndex',...
-           'wavelengthIndex','wavelengthActual','wavelengthEmissionActual',...
-           'dataType','dataUnit','dataTypeLabel',...
-           'dataTypeIndex','sourcePower','detectorGain',...
-           'moduleIndex','sourceModuleIndex','detectorModuleIndex',});
-
-
-end
 
