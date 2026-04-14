@@ -1,0 +1,217 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{longtable}
+
+\title{ICNNA Architectural Refactoring\\Phase~2: Architectural Decision (Session~3)\\
+\large Steps~C and~D --- Deep Analysis and Synthesis for the Bounded ICNNA Update\\
+Meeting Minute}
+\author{Felipe Orihuela-Espina \and Claude (Computational Research Architect)}
+\date{13 April 2026}
+
+\begin{document}
+\maketitle
+
+% ================================================================
+% Document Log
+% ================================================================
+\noindent\textbf{Document Log:}
+\begin{itemize}[nosep]
+    \item 13-Apr-2026: FOE/Claude --- Document created. Records Phase~2 Steps~C (deep analysis) and~D (synthesis) for the bounded ICNNA update path in MATLAB.
+\end{itemize}
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+% ================================================================
+\section{Session Overview}
+
+\begin{description}[style=nextline]
+    \item[Date:] 13 April 2026
+    \item[Participants:] Felipe Orihuela-Espina (FOE), Claude Opus 4.6 (Computational Research Architect role)
+    \item[Predecessors:] Phase~2a minute (\texttt{Phase2a\_minute.tex}, 12-Apr-2026); Phase~2b minute (\texttt{Phase2b\_minute.tex}, 13-Apr-2026).
+    \item[Objective:] Complete Phase~2 Steps~C and~D for ICNNA, now scoped as a \emph{bounded update in MATLAB} running in parallel with Cantor.
+    \item[Outcome:] Steps~C and~D completed. Nine design principles (P1--P9) agreed for the bounded update. Key simplifications recorded: all current GUIs to be deprecated; MATLAB R2021a minimum; flat architecture to replace tree architecture; test infrastructure as early priority.
+    \item[Model used:] Claude Opus 4.6
+    \item[Status:] Phase~2 Steps~A--D complete. Steps~E (transitional strategy), F (open risks), and G (documentation and \texttt{claude/} folder organization) pending for next session.
+\end{description}
+
+% ================================================================
+\section{Reframing: ICNNA as Bounded Update, Not Replacement}
+
+Following the Phase~2b decision to create Cantor as a separate successor project, Phase~2's remaining steps were re-scoped to analyse and plan ICNNA's continued development as a \textbf{bounded update in MATLAB}. This is a modest version of the original Option~1 (``update ICNNA''), distinct from the full-scale refactoring that Cantor now represents.
+
+\textbf{Two-tier structure agreed} (from earlier in the session):
+
+\begin{description}
+    \item[Survival tier:] What ICNNA \emph{must} deliver to remain usable for current users until Cantor reaches feature parity. Non-negotiable.
+    \item[Enhancement tier:] What would make ICNNA more capable but could also be deferred to Cantor. Done opportunistically.
+\end{description}
+
+\textbf{Operating assumption:} Act \emph{as if} ICNNA were not yet doomed. Cantor's 9+~month timeline is likely longer given research-paced development. ICNNA must be genuinely viable during this period.
+
+% ================================================================
+\section{Step~C: Deep Analysis of the Bounded Update Path}
+
+\subsection{Strengths (S1--S7)}
+
+\begin{enumerate}[label=\textbf{S\arabic*.}]
+    \item Mature domain knowledge embedded in 18~years of code --- not throwaway.
+    \item Partial modernization in place: $\sim$20~classes in \texttt{+icnna} namespace with established pattern.
+    \item SNIRF support substantially built (\texttt{icnna.data.snirf} package and \texttt{icnna.op.snirf.*} functions).
+    \item Small, known user base ($\sim$5--10) --- no backward-compatibility burden at scale.
+    \item MATLAB is native to the fNIRS community --- no adoption friction.
+    \item No learning curve for developer --- every hour is productive work.
+    \item Value-class decision settled after v1.3.1 lesson --- no further architectural ambiguity.
+\end{enumerate}
+
+\subsection{Limits (L1--L5)}
+
+All limits are \emph{accepted as constraints}, not problems to solve. They are why Cantor exists.
+
+\begin{enumerate}[label=\textbf{L\arabic*.}]
+    \item MATLAB deployment ceiling ($\sim$2--3\,GB runtime). ICNNA stays within MATLAB; no standalone target.
+    \item GUI framework ceiling. App Designer acceptable \emph{only} if full code control is retained (as in current manual implementation). To be considered during eventual GUI redo.
+    \item Pass-by-value performance ceiling for large 3D tensors. Stays --- lesson learned from v1.3.1 handle-class experiment.
+    \item AI integration ceiling. No AI work in ICNNA --- Cantor scope.
+    \item Vendor lock-in to MathWorks. Accepted.
+\end{enumerate}
+
+\subsection{Hidden Constraints (HC1--HC6)}
+
+\begin{enumerate}[label=\textbf{HC\arabic*.}]
+    \item \textbf{GUI coupling.} Originally: each modernized class breaks its GUI(s), doubling effort. \textbf{Neutralized} by decision to deprecate all current GUIs in the next version. API modernization now proceeds independently of GUI work.
+    \item \textbf{Dual architecture friction.} During transition, code must handle both \texttt{oo/} and \texttt{+icnna} types via conditional branching. No obvious shortcut --- accepted as unavoidable.
+    \item \textbf{No test infrastructure.} Modernization without tests is high-risk. Test infrastructure is an \textbf{early roadmap priority} (v1.4.2).
+    \item \textbf{Modernization order.} Originally strict bottom-up (leaf $\to$ container). \textbf{Relaxed} by the flat architecture decision: modernized classes hold IDs not nested objects, so container classes do not need dual-type handling of children. Bottom-up ordering still preferred but less rigid.
+    \item \textbf{Research-priority interrupts.} Historically 2--3~times over ICNNA's life (including ICAF$\to$ICNNA transition). Manageable, but roadmap must have flexibility.
+    \item \textbf{\texttt{@rawData\_Snirf} is a special case.} Logically belongs to SNIRF/BIDS work, not general rawData subtype modernization. May jump queue.
+\end{enumerate}
+
+\subsection{Failure Modes (FM1--FM5)}
+
+\begin{enumerate}[label=\textbf{FM\arabic*.}]
+    \item \textbf{Stuck-in-the-middle.} Modernization stalls, leaving a worse dual-architecture state than either pure-legacy or pure-modern. \textbf{Risk accepted as unavoidable.} Mitigated by sub-releases that each leave codebase in usable state.
+    \item \textbf{GUI breakage alienates users.} \textbf{Eliminated} by decision to deprecate all GUIs up front. ICNNA goes GUI-less for several versions.
+    \item \textbf{Cantor time competition.} Every hour on ICNNA delays Cantor. Mitigated by strict scope control and the enhancement-tier opt-out.
+    \item \textbf{Standards drift (BIDS/SNIRF).} Deferred as concern --- cross this bridge when it comes.
+    \item \textbf{MATLAB version incompatibility.} Resolved: \textbf{R2021a is the minimum supported version.} To be declared in startup script and documentation.
+\end{enumerate}
+
+\subsection{The Flat-Architecture Decision}
+
+During Step~C discussion, an important architectural point was clarified: in the new \texttt{+icnna} architecture, constructs such as \texttt{experimentalUnit}, \texttt{session}, and \texttt{group} are stored \textbf{flat} within \texttt{experiment}, referenced by ID via \texttt{identifiableObject}, not nested as trees.
+
+Implications:
+\begin{itemize}
+    \item Modernization is not a 1:1 class translation --- it is also a redesign of entity relationships.
+    \item Each class spec in Phase~3 must consider its new flat-architecture interface, not just port the old one.
+    \item Container classes (e.g. \texttt{experiment}) do not need to handle dual old/new types of children --- they hold IDs.
+    \item Strict bottom-up modernization order is relaxed (see HC4).
+\end{itemize}
+
+% ================================================================
+\section{Step~D: Synthesis and Recommendation}
+
+\subsection{Core Synthesis}
+
+The bounded ICNNA update has four defining characteristics:
+\begin{enumerate}
+    \item \textbf{A data-model modernization, not a full product update.} With GUIs deprecated and no AI/performance/deployment work, scope reduces to core class hierarchy, operations, plotting, tests, and documentation.
+    \item \textbf{An architectural redesign within MATLAB, not a port.} Flat architecture replaces tree architecture. Modernized classes are redesigned interfaces, not faithful translations.
+    \item \textbf{Bounded by Cantor's existence.} Genuinely architectural work (pipelines, AI, new analysis methods, GUI polish) belongs to Cantor. ICNNA's update sustains research utility during Cantor's build-out.
+    \item \textbf{A one-person, research-paced project with interrupt tolerance.} Roadmap must be modular --- pausable, resumable, and reprioritizable without leaving codebase unusable.
+\end{enumerate}
+
+\subsection{Design Principles (P1--P9)}
+
+\begin{enumerate}[label=\textbf{P\arabic*.}]
+    \item \textbf{Data model first, everything else second.} Core data path (\texttt{signal}, \texttt{structuredData}, \texttt{dataSource}, \texttt{session}, \texttt{experiment}, and \emph{Definition} siblings) modernized before any enhancement-tier work.
+    \item \textbf{Test-backed modernization from day one.} Every class modernized from v1.4.2 onwards ships with tests. A class without tests is not ``done.''
+    \item \textbf{Sub-releases of 1--3 sessions, each leaving the codebase usable.} No half-refactored releases. All modernized classes compile and pass tests; legacy classes still in use still work; users can pick up any release and do real work.
+    \item \textbf{GUI deprecation is a clean cut, not a slow fade.} Deprecate all GUIs in one version (v1.4.2 or v1.5.0). Document ICNNA as command-line/script-only during transition.
+    \item \textbf{Flat architecture is a design task, not a translation task.} Each class's new interface is \emph{designed} (briefly but explicitly) before being \emph{implemented}. Operational definition of this principle to be developed progressively in Phase~3.
+    \item \textbf{Bottom-up ordering, relaxed by flat architecture.} Leaf classes before containers, but with less strictness than pure trees would require.
+    \item \textbf{Survival tier is the commitment; enhancement tier is opportunistic.} Survival tier (core data path modernization, tests, BIDS/SNIRF, docs, packaging) is non-negotiable. Enhancement tier (signal processing, statistics, pipelines) is done if time permits, droppable to Cantor without guilt.
+    \item \textbf{Research-interrupt tolerance.} Roadmap must survive 2--3~weeks of no ICNNA work without losing coherence. Clear handover notes at each sub-release.
+    \item \textbf{Strict scope containment.} No scope creep. ``Nice-to-have'' items discovered during modernization are logged for Phase~3 revision, not added to the current sub-release.
+\end{enumerate}
+
+\subsection{What the Update Is Not}
+
+\begin{itemize}
+    \item Not a performance project --- pass-by-value stays; no parallel processing work.
+    \item Not a GUI project in the short term --- GUI redo is a future, separate effort \emph{within} this plan but late in it, built on the finished modern architecture.
+    \item Not an AI project --- all AI-assisted analysis goes to Cantor.
+    \item Not a new-methods project in general --- major new methods go to Cantor. However, some new methods in \texttt{+icnna.op} may be added on demand.
+    \item Not a cross-platform project --- same MATLAB support matrix; no new platform testing.
+\end{itemize}
+
+\subsection{The Endpoint at v2.0.0}
+
+\begin{itemize}
+    \item All classes in \texttt{+icnna} package namespace; \texttt{oo/} folder removed.
+    \item Flat architecture based on \texttt{identifiableObject}.
+    \item A new GUI included (developed late in the modernization plan).
+    \item BIDS compatibility delivered.
+    \item Full test coverage for core data model.
+    \item SNIRF compatibility maintained.
+    \item Documentation complete for all public API.
+\end{itemize}
+
+\textbf{Important clarification:} v2.0.0 marks the end of this \emph{modernization plan}, but not the end of ICNNA's journey. The door remains open for future features, releases, and sub-releases as needs arise.
+
+% ================================================================
+\section{Decisions Recorded}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lp{10cm}}
+\toprule
+\textbf{Item} & \textbf{Decision} \\
+\midrule
+Scope & Bounded ICNNA update in MATLAB, parallel to Cantor. Two-tier: survival + enhancement. \\
+GUI strategy & Deprecate all current GUIs in the next version. New GUI built late in the plan on the finished modern architecture. \\
+MATLAB minimum & R2021a. Declare in startup script and documentation when enforced. \\
+Architecture & Flat (IDs via \texttt{identifiableObject}), not tree. Modernization is redesign, not port. \\
+Pass-by-value & Final. No further handle-class experiments. \\
+Tests & Early priority (v1.4.2). Mandatory for every modernized class onwards. \\
+Principles & P1--P9 adopted as the design principles for the bounded update. \\
+Endpoint & v2.0.0 marks end of modernization; not end of ICNNA. Future features possible. \\
+\bottomrule
+\end{tabular}
+\caption{Decisions from Phase~2 Steps~C and~D.}
+\end{table}
+
+% ================================================================
+\section{Pending Items for Next Session}
+
+\begin{enumerate}[label=\textbf{Step~\Alph*:},start=5]
+    \item \textbf{Transitional strategy} --- how ICNNA transitions from current dual state to v2.0.0 endpoint, how it coexists with Cantor during Cantor's build-out, and how the eventual handover to Cantor is managed.
+    \item \textbf{Open risks / unknowns} --- explicit registry of what remains uncertain at the end of Phase~2.
+    \item \textbf{Session documentation and \texttt{claude/} folder organization} --- including a future-proof scalable organization of the \texttt{claude/} folder itself.
+\end{enumerate}
+
+Phase~3 (roadmap definition) follows Phase~2 completion. FOE has prepared an initial prompt for Phase~3.
+
+% ================================================================
+\section{Documents Referenced}
+
+\begin{enumerate}
+    \item Phase~1 minute: \texttt{claude/Phase1\_minute.tex}
+    \item Phase~2a minute: \texttt{claude/Phase2a\_minute.tex}
+    \item Phase~2b minute: \texttt{claude/Phase2b\_minute.tex}
+    \item Cantor project: \texttt{C:\textbackslash Users\textbackslash orihuelf-admin\textbackslash OneDrive\textbackslash Git\textbackslash Cantor}
+    \item Global CLAUDE.md and project CLAUDE.md
+    \item Memory files: user profile, ICNNA refactoring, Phase~2 Step~C outcomes, key documents
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,200 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+\title{ICNNA Architectural Refactoring\\Phase~1: Understanding and Decision Framework\\
+\large Meeting Minute}
+\author{Felipe Orihuela-Espina \and Claude (Computational Research Architect)}
+\date{7--8 April 2026}
+
+\begin{document}
+\maketitle
+
+% ================================================================
+% Document Log
+% ================================================================
+\noindent\textbf{Document Log:}
+\begin{itemize}[nosep]
+    \item 8-Apr-2026: FOE/Claude --- Document created.
+\end{itemize}
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+% ================================================================
+\section{Session Overview}
+
+\begin{description}[style=nextline]
+    \item[Date:] 7--8 April 2026
+    \item[Participants:] Felipe Orihuela-Espina (FOE), Claude Opus 4.6 (Computational Research Architect role)
+    \item[Objective:] Build structured understanding of ICNNA, OntoNIRS, and the long-term vision; identify critical unknowns; establish a decision framework for Phase~2.
+    \item[Outcome:] Phase~1 completed. Decision framework agreed. Three-view target architecture drafted. Ready for Phase~2.
+    \item[Model used:] Claude Opus 4.6 (architectural reasoning); Sonnet 4.6 for initial setup.
+\end{description}
+
+% ================================================================
+\section{Context Established}
+
+\subsection{ICNNA Current State}
+\begin{itemize}
+    \item MATLAB-based tool developed over 18+ years (2008--2026), currently at v1.4.1~beta.
+    \item 21 stable releases from ICNA~v1.0 through ICNNA~v1.4.1~beta.
+    \item Dual architecture: legacy \texttt{@class} folders (in \texttt{src/oo/}) coexisting with newer \texttt{+icnna} package namespace (in \texttt{src/+icnna/}).
+    \item Core data model: \texttt{experiment} $\to$ \texttt{subject} $\to$ \texttt{session} $\to$ \texttt{dataSource} $\to$ \texttt{rawData} / \texttt{structuredData} (3D tensor: time $\times$ channels $\times$ signals).
+    \item Newer classes include \texttt{experimentBundle} (fiber bundle formalization), \texttt{identifiableObject}, modernized \texttt{timeline}/\texttt{condition}, optode/montage classes, QC framework.
+    \item SNIRF support implemented via \texttt{icnna.data.snirf} package (8 classes).
+    \item 25+ MATLAB GUIs tightly coupled to legacy classes.
+    \item Handle vs.\ value class reversal (v1.3.1 $\to$ v1.4.0) --- a MATLAB-specific design constraint.
+    \item \texttt{src2/} directory (ICNNA~2.0 aspirations) --- confirmed abandoned.
+\end{itemize}
+
+\subsection{Research Program --- Three Threads}
+\begin{enumerate}
+    \item \textbf{Thread A --- Data Infrastructure:} ICNNA's current data backbone. Works but aging.
+    \item \textbf{Thread B --- Topological Analysis (MENA):} The scientific differentiator. Three generations:
+    \begin{itemize}
+        \item Gen~1 (2007--08): Manifold \emph{recovery} via dimensionality reduction (Isomap, LLE).
+        \item Gen~2 (2020, Avila-Sansores): Manifold \emph{design} --- IFM (RBF interpolation) and MTCA (Fourier projection, cylindrical Riemannian geometry, topological stability).
+        \item Gen~3 (2021--22, Rocha-Solache): Lorentzian semi-cubinder --- designed manifold with \emph{proven causal properties} (strongly causal spacetime). Extends from functional to effective connectivity.
+    \end{itemize}
+    Progression: Euclidean $\to$ Riemannian $\to$ Lorentzian $\to$ bundles over these manifolds.
+    \item \textbf{Thread C --- Pipeline Formalization:}
+    \begin{itemize}
+        \item \textbf{Overprocessing} (Orihuela-Espina \& Ward, 2026): Proves that in metrizable separable topological vector spaces with a Schauder base, unconstrained pipelines can produce \emph{any} result from \emph{any} data. Problem is ill-defined and ill-posed (Hadamard). Provides mathematical justification for pipeline constraints.
+        \item \textbf{Pipeline Optimization} (Ward et al.): Formalizes pipeline selection as Full Model Selection over hybrid discrete-dense space $\mathcal{A} = \tilde{\mathcal{A}} \times \Theta^{\mathbb{Z}} \times \Theta^{\mathbb{R}}$ with block-diagonal metric tensor $g_{\mathcal{A}}$. Gradient-based PSO variant. Graph pruning for constraint enforcement.
+        \item \textbf{OntoNIRS:} Ontology specification (OWL DL 1.0) for automating fNIRS experimentation. Four scenarios: optimal analysis (Sc1), optimal experiment design (Sc2), standards adherence (Sc3), method suitability (Sc4). Not integrated with ICNNA.
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Key Observation}
+The mathematical assets (Gen~2/3 topology, pipeline optimization, overprocessing theory) are mostly \emph{not} in the ICNNA codebase. They exist in papers and theses. ICNNA primarily contains Thread~A (data infrastructure) plus the obsolete Gen~1 MENA.
+
+% ================================================================
+\section{Decision Problem}
+
+\subsection{Options Under Consideration}
+\begin{description}
+    \item[Option 1 --- Evolve ICNNA:] Modernize and refactor, then extend toward AI-powered system.
+    \item[Option 2 --- Build from Scratch:] New AI-native system for fNIRS analysis.
+    \item[Option 3 --- Hybrid:] Orchestration layer wrapping computational core (without Python).
+\end{description}
+
+\subsection{End Goal}
+An AI-powered system that:
+\begin{enumerate}
+    \item Allows natural language interaction and visual pipeline programming.
+    \item Automates fNIRS analysis pipelines with mathematical guarantees (overprocessing safeguards, conformability, preconditions/postconditions, provenance, reproducibility).
+    \item Maintains strong mathematical and statistical rigor.
+    \item Reduces the need for users to directly implement methods.
+    \item Has outstanding data visualization and interpretation capabilities.
+\end{enumerate}
+
+% ================================================================
+\section{Constraints and Decisions Recorded}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lp{10cm}}
+\toprule
+\textbf{Item} & \textbf{Decision/Constraint} \\
+\midrule
+Language & MATLAB preferred but negotiable. Python excluded. Candidates: Java, Julia, Rust, C++. Single language. \\
+Deployment & Cross-platform standalone desktop application (installer preferred). Must work offline. \\
+AI integration & Cloud-based Claude API when online. No local LLM (low hardware requirements). \\
+Migration & Not a concern. SNIRF/BIDS provides bridge. Old ICNNA versions remain available. \\
+MENA coupling & Weak --- available on demand, not required for basic use. \\
+GUI & Current GUI will be replaced entirely. MVC or similar separation mandatory. \\
+Team & One-person project (FOE). No time constraints. Open-ended. \\
+Users & Target expansion to non-programmers (clinicians, psychologists, students). Currently 5--10 active users. \\
+\bottomrule
+\end{tabular}
+\caption{Constraints and decisions from Phase~1.}
+\end{table}
+
+% ================================================================
+\section{Decision Criteria Framework}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{clc}
+\toprule
+\textbf{\#} & \textbf{Criterion} & \textbf{Weight} \\
+\midrule
+C1 & Mathematical continuity (topological identity preserved) & Very High \\
+C2 & AI integration surface & High \\
+C3 & Time to first useful capability & Medium-High \\
+C4 & Maintainability by a small team (one person) & High \\
+C5 & Scientific reproducibility and provenance & Very High \\
+C6 & Extensibility to new modalities/methods & Medium \\
+C7 & User accessibility (non-programmers) & Medium-High \\
+C8 & Migration cost & Low \\
+C9 & Ecosystem alignment and standalone deployment & Medium \\
+C10 & OntoNIRS alignment & Low-Medium \\
+\bottomrule
+\end{tabular}
+\caption{Weighted decision criteria for Phase~2 evaluation.}
+\end{table}
+
+% ================================================================
+\section{Target Architecture --- Three Views}
+
+\subsection{View 1: Structure (What the system IS)}
+\begin{description}
+    \item[S1. Data Model:] Experiment design, subjects, sessions, runs, probes, channels, measurements, timelines, factors, treatments, QC, provenance. Supersedes ICNNA's current model (\`a la Cantor schema).
+    \item[S2. Method Repository:] All registered operations organized by type (processing, statistical, graph-theoretic, topological). Each method carries: signature, pre/postconditions, parameter domains, conformability rules.
+    \item[S3. Pipeline Model:] Pipeline as first-class object (\`a la FMS): composition space $\tilde{\mathcal{A}}$, parameter space $\Theta$, constraint graph, provenance log.
+    \item[S4. Knowledge Base:] Domain knowledge (OntoNIRS-derived): method constraints, overprocessing rules, standard practices, validity domains.
+\end{description}
+
+\subsection{View 2: Behavior (What the system DOES)}
+\begin{description}
+    \item[B1. Data I/O:] Import/export SNIRF, BIDS, device-specific formats.
+    \item[B2. Pipeline Construction:] Compose operations, validate conformability, enforce constraints, check overprocessing risk.
+    \item[B3. Pipeline Execution:] Run pipeline on data, record provenance, track transformations in signal space.
+    \item[B4. Analysis:] All types at equal standing --- statistical, graph-theoretic, causal, topological, connectivity.
+    \item[B5. Pipeline Optimization:] FMS framework --- navigate $\mathcal{A} = \tilde{\mathcal{A}} \times \Theta^{\mathbb{Z}} \times \Theta^{\mathbb{R}}$ to find optimal pipeline.
+    \item[B6. Visualization \& Interpretation:] Rendering, interactive exploration, publication-quality output.
+\end{description}
+
+\subsection{View 3: Interaction (How parts TALK)}
+\begin{description}
+    \item[I1. GUI:] Desktop, MVC-separated. Primary interface for non-programmers.
+    \item[I2. Visual Pipeline Editor:] Node-graph pipeline construction (offline capable).
+    \item[I3. AI Orchestration:] NL interaction via Claude API (when online). Maps user intent to pipeline construction, leverages S4 knowledge base.
+    \item[I4. Programmatic API:] For expert users and scripting.
+    \item[I5. External Interoperability:] SNIRF/BIDS file-based exchange.
+\end{description}
+
+\noindent\textbf{Key principle:} The Interaction layer does NO computation --- it delegates entirely to Behavior, which operates on Structure.
+
+% ================================================================
+\section{Next Steps}
+
+\begin{enumerate}
+    \item \textbf{Phase 2:} Evaluate Option~1 vs.\ Option~2 vs.\ Option~3 against the decision criteria framework. Includes formal language evaluation (Java, Julia, Rust, C++).
+    \item \textbf{Phase 3:} Roadmap definition.
+    \item \textbf{Phase 4:} Execution planning.
+\end{enumerate}
+
+% ================================================================
+\section{Documents Reviewed}
+
+\begin{enumerate}
+    \item ICNNA codebase: \texttt{src/oo/}, \texttt{src/+icnna/}, \texttt{src/GUI/}, \texttt{doc/ICNNA-Version.log}
+    \item Ward, Rodr\'iguez-G\'omez, Orihuela-Espina. ``Full model optimisation of the processing pipeline in fNIRS.'' (Manuscript)
+    \item Orihuela-Espina \& Ward. ``Overprocessing in neuroimaging processing pipelines, illustrated with fNIRS.'' J.\ Ambient Intell.\ Humaniz.\ Comput.\ (2026)
+    \item Rocha-Solache. ``The causal space-time of effective brain connectivity with functional optical neuroimaging.'' MSc thesis, INAOE (2021)
+    \item \'Avila-Sansores. ``Modelling brain connectivity using manifolds in functional optical neuroimaging.'' PhD thesis, INAOE (2020)
+    \item OntoNIRS Ontology Requirement Specification (2016)
+    \item Cantor data model: \texttt{cantor.sql} (Data Vault architecture for BIDS-fNIRS)
+\end{enumerate}
+
+\end{document}

@@ -7,6 +7,17 @@
 ##
 ## 9-May-2023 (v0.2): Added directory src2 towards ICNNA 2.0
 ##
+## 25-Mar-2026 (v0.3): Added project-local CLAUDE.md
+##
+## 14-Apr-2026 (v0.4): FOE/Claude
+##     + Narrowed claude/** exclusion: claude/README.md,
+##       claude/.gitignore, and claude/minutes/** are now
+##       publicly tracked so that CHANGELOG references to
+##       session minutes resolve for readers cloning from
+##       GitHub (Phase 2d minute, §E.4.5 and §G.3).
+##       claude/memory/, claude/prompts/, claude/state/,
+##       claude/media/ remain private (OneDrive-only).
+##
 ##
 
 
@@ -31,9 +42,15 @@ doc/ICNNA-MENA*.pdf
 
 ## ICNNA 2.0
 src2/**
+claude/**
+!claude/README.md
+!claude/.gitignore
+!claude/minutes/
+!claude/minutes/**
 rubbish/**
 
 ## Support
+CLAUDE.md
 src/external/m2uml/**
 ## M2UML - https://uk.mathworks.com/matlabcentral/fileexchange/59722-m2uml
 ## A toolbox to generate PlantUML models from the code.

@@ -1,0 +1,796 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{longtable}
+\usepackage{listings}
+\usepackage{graphicx}
+
+% ----------------------------------------------------------
+% Media folder convention (future use)
+% ----------------------------------------------------------
+\newcommand{\mediaDir}{media}
+% Usage:  \includegraphics[...]{\mediaDir/filename}
+
+% ----------------------------------------------------------
+% Listings style (for code excerpts)
+% ----------------------------------------------------------
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    columns=fullflexible
+}
+
+\title{ICNNA Architectural Refactoring\\Phase~2 Closing Minute (Session~4)\\
+\large Steps~E, F, and~G --- Transitional Strategy, Open Risks, and Session Documentation}
+\author{Felipe Orihuela-Espina \and Claude (Computational Research Architect)}
+\date{14 April 2026}
+
+\begin{document}
+\maketitle
+
+% ================================================================
+% Document Log
+% ================================================================
+\noindent\textbf{Document Log:}
+\begin{itemize}[nosep]
+    \item 14-Apr-2026: FOE/Claude --- Document created. Records Phase~2 Steps~E (transitional strategy), F (open risks registry), and~G (session documentation and \texttt{claude/} folder reorganisation), formally closing Phase~2.
+\end{itemize}
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+% ================================================================
+\section{Session Overview}
+
+\begin{description}[style=nextline]
+    \item[Date:] 14 April 2026
+    \item[Participants:] Felipe Orihuela-Espina (FOE), Claude Opus 4.6 (Computational Research Architect role)
+    \item[Predecessors:] Phase~1 minute (\texttt{Phase1\_minute.tex}); Phase~2a minute (12-Apr-2026); Phase~2b minute (13-Apr-2026); Phase~2c minute (\texttt{Phase2c\_minute.tex}, 13-Apr-2026, Steps~C and~D).
+    \item[Objective:] Complete Phase~2 Steps~E (transitional strategy from the current dual state to the v2.0.0 endpoint; coexistence with Cantor; handover to Cantor; user communication), F (registry of open risks, unknowns, deferred decisions, and open questions), and G (session documentation and \texttt{claude/} folder reorganisation).
+    \item[Outcome:] Phase~2 closed. Transitional strategy articulated as seven operating rules. Handover model defined with six policy axes. Registry of $\sim$30 open items established. \texttt{claude/} folder reorganised with a portable-by-default, memory-canonical structure. Three new policies codified (two in global CLAUDE.md, one in project context). Draft Phase~3 context prompt produced as handoff.
+    \item[Model used:] Claude Opus 4.6
+    \item[Status:] \textbf{Phase~2 is formally closed with this minute.} Phase~3 (roadmap definition) to follow in a separate session. FOE will prepare his own Phase~3 context prompt; the draft produced here serves as fallback and input.
+\end{description}
+
+\vspace{0.5em}
+
+\subsection{Carried forward from Phase~2c}
+
+Phase~2c (13-Apr-2026) produced:
+
+\begin{itemize}
+    \item The two-tier scope structure (survival tier + enhancement tier).
+    \item Design principles P1--P9 for the bounded ICNNA update.
+    \item The flat-architecture decision (\texttt{identifiableObject}-based IDs replace nested trees).
+    \item The v2.0.0 endpoint definition (all classes in \texttt{+icnna}, flat architecture, new GUI late, BIDS compatibility, full test coverage, SNIRF maintained, complete documentation).
+    \item The key clarification: v2.0.0 marks the end of \emph{this modernisation plan}, not the end of ICNNA's journey.
+\end{itemize}
+
+These form the settled foundation on which Phase~2 Session~4 built. No Phase~2c decision was reopened.
+
+% ================================================================
+\section{Step~E --- Transitional Strategy}
+
+Step~E was decomposed into four substeps, each addressed in turn. The decomposition is orthogonal: each substep concerns a distinct aspect of the transition and coexistence.
+
+\begin{description}
+    \item[E.1] Internal transition: from the current \texttt{oo/ + +icnna} dual state to the v2.0.0 endpoint.
+    \item[E.2] Coexistence with Cantor during Cantor's build-out.
+    \item[E.3] Handover to Cantor.
+    \item[E.4] User communication strategy across the three periods (modernisation, handover, post-handover).
+\end{description}
+
+% ----------------------------------------------------------
+\subsection{E.1 --- Internal transition}
+
+\subsubsection{Framing}
+
+ICNNA at the start of this session is in a partial dual state: \texttt{src/oo/} carries $\sim$18~years of legacy MATLAB class-folder implementations; \texttt{src/+icnna/} carries $\sim$20~classes already modernised under the new package namespace. Both subsystems are in simultaneous live use. Phase~2c fixed the endpoint but not the transition trajectory. E.1 fills that gap by resolving five interlocking questions.
+
+\subsubsection{Q1 --- Coexistence semantics per class}
+
+\textbf{Decision:} \textbf{Soft cut.} When modern \texttt{+icnna.X} ships, legacy \texttt{oo/@X} survives in deprecated form.
+
+\textbf{Rationale.}
+\begin{itemize}
+    \item \textbf{Consistency with established practice.} Soft cut is the long-standing pattern in ICNNA's own migration history. Changing it mid-stream creates asymmetry.
+    \item \textbf{P3 compliance.} Hard cut concentrates large caller-migration work inside the class-modernisation sub-release, easily breaching the 1--3~session budget for high-fan-out classes.
+    \item \textbf{P8 compliance.} A sub-release that leaves a class modernised but partially migrated at call sites is still usable under soft cut; under hard cut a mid-session interrupt could leave the repository non-compilable.
+    \item \textbf{Small user base (S4).} Deprecation warnings on a small, technically sophisticated user base cost little.
+    \item \textbf{HC2 explicitly accepted.} Phase~2c accepted dual-architecture friction as unavoidable. Soft cut honours that acceptance.
+\end{itemize}
+
+\textbf{Trade-off accepted.} Soft cut prolongs the period during which HC2 is felt. Deliberate cost paid to honour P3 and P8.
+
+\subsubsection{Q2 --- Sub-release granularity}
+
+\textbf{Decision:} \textbf{Mixed.} Sub-release unit is not fixed; size is driven by dependencies and the realities of research-paced development.
+
+\textbf{Rationale.}
+\begin{itemize}
+    \item P3 constrains sub-release \emph{behaviour} (usable state at the end), not sub-release \emph{contents}. Fixing granularity a priori is not required.
+    \item P8 tolerates variable granularity better than a fixed rule (natural pause points rarely coincide with class boundaries).
+    \item P9 enforces quality via ``no scope creep within the chosen sub-release,'' not via fixed sub-release content.
+    \item FM1 mitigation: oversized sub-releases are a leading cause of stuck-in-the-middle; mixed granularity allows erring on the side of smaller.
+\end{itemize}
+
+\subsubsection{Q3 --- Internal caller migration}
+
+Decomposed into three sub-questions once Q1 (soft cut) was fixed.
+
+\paragraph{Q3.1 --- Default for new code after \texttt{+icnna.X} ships.}
+\textbf{Decision: (a) New code must use \texttt{+icnna}.} Legacy is never a valid target for a fresh call site once its modern counterpart exists.
+
+\textit{Rationale.} Soft cut $\neq$ equivalence; without Q3.1=(a) the deprecation is toothless and soft cut degenerates into permanent duplication. P1 (data model first) and P7 (survival tier commitment) reinforce this: new consumers must be written against the modern data model or the modernisation is neutralised.
+
+\paragraph{Q3.2 --- Migration of existing callers.}
+\textbf{Decision: (a) opportunistic, with (b) soft overlay.} No scheduled sweep sub-releases. Callers migrate when they are themselves modernised or touched for unrelated reasons. The Phase~3 roadmap may insert an opportunistic cleanup sub-release when a deprecated class's caller count drops below a threshold (approx.\ $\leq 3$~sites --- exact value deferred to Phase~3).
+
+\textit{Rationale.} Pure scheduled sweeps (pure (b)) consume whole sub-release budgets on mechanical work, violating P7. Pure opportunistic (pure (a)) risks a permanent long tail that blocks deletion. The overlay is triage, not schedule: triggered by evidence (low caller count) rather than fixed cadence. Bounds HC2 in time.
+
+\paragraph{Q3.3 --- Bridge code policy.}
+\textbf{Decision: ($\beta$) adapter functions in a \texttt{+icnna.compat} package, applied to modern code only.} Legacy \texttt{oo/} code retains existing $\gamma$-style branching unchanged.
+
+\textit{Evidence driving the decision.} A codebase inspection conducted during the Q3.3 discussion:
+\begin{itemize}
+    \item Total \texttt{isa(\dots,'icnna.\dots')} usages: 275 across 172 files.
+    \item Of these, only $\sim$10~are true $\gamma$-style legacy/modern bridges. The rest are standard MATLAB copy-constructor idioms ($\sim$30+~sites) or legitimate polymorphic dispatch within the modern SNIRF object hierarchy.
+    \item True $\gamma$ in \emph{modern} code is concentrated around \texttt{timeline}: 5--6~sites (\texttt{plot/plotTimeline}, \texttt{plot/plotStructuredData}, \texttt{op/optodeMovement\_TDDR}, \texttt{op/getTrialData}, \texttt{op/+snirf/snirfNirs2timeline} at two locations).
+    \item Migration cost: $\leq$~1~afternoon of focused work.
+\end{itemize}
+
+\textit{Rationale for switching from $\gamma$ despite historical inertia.}
+\begin{enumerate}
+    \item \textbf{Cost minimum is now.} Only \texttt{timeline} is currently in true dual state; adopting $\beta$ now prevents $\gamma$ from proliferating across every future modernised class over the remaining $\sim$18~months of the v2.0.0 roadmap.
+    \item \textbf{Visible debt ledger} (P9 alignment). \texttt{ls +icnna/+compat/} enumerates remaining legacy bridges. A grep for scattered \texttt{isa} calls does not.
+    \item \textbf{Enforceable rule.} ``Modern code accepts modern types; bridging happens in \texttt{+compat}'' is a single sentence. $\gamma$ requires per-call vigilance.
+    \item \textbf{Legacy carve-out} preserves historical consistency: \texttt{oo/} code is untouched, $\beta$ is imposed only where there is room to apply it cleanly.
+\end{enumerate}
+
+\textit{Mechanics.}
+
+\begin{lstlisting}[language=Matlab]
+% +icnna/+compat/toModernTimeline.m
+function tm = toModernTimeline(t)
+    % Accepts either legacy timeline or icnna.data.core.timeline;
+    % returns icnna.data.core.timeline. Idempotent.
+    if isa(t, 'icnna.data.core.timeline'), tm = t; return; end
+    if isa(t, 'timeline'), tm = icnna.data.core.timeline(t); return; end
+    error('icnna:compat:unsupportedType', ...);
+end
+\end{lstlisting}
+
+At each $\gamma$ site:
+\begin{lstlisting}[language=Matlab]
+t = icnna.compat.toModernTimeline(t);   % adapt at function boundary
+% rest of function assumes modern type
+\end{lstlisting}
+
+\texttt{+icnna.compat} is documented as scheduled for deletion at v2.0.0. Each adapter carries a Doxygen-style header noting the scheduled deletion.
+
+\textit{Naming.} \texttt{+icnna.compat} preferred over \texttt{+icnna.legacy} (misleading: the package contains \emph{modern} bridging code) or \texttt{+icnna.bridge} (collides with the Bridge design pattern). \texttt{compat} is the conventional term across software engineering.
+
+\subsubsection{Q4 --- Timing of the GUI clean cut}
+
+\textbf{Decision:} \textbf{v1.4.2 (early).}
+
+\textbf{Rationale.}
+\begin{itemize}
+    \item HC1 (GUI coupling) is neutralised only when the cut is executed. Delaying means every class modernised in the interim breaks its GUI.
+    \item User disruption is a one-time cost; concentrating GUI deprecation, test introduction, $\gamma \to \beta$ migration, and R2021a declaration into a single v1.4.2 release ensures the user-facing ``modernisation mode begins'' moment happens once.
+    \item P2 (test-backed modernisation from day one) requires tests at v1.4.2; bundling leverages that heavy release maximally.
+    \item No stakeholder benefits from delay.
+\end{itemize}
+
+\textbf{v1.4.2 becomes the ``modernisation mode begins'' milestone}, bundling:
+\begin{itemize}[nosep]
+    \item Introduction of test infrastructure (P2 requirement).
+    \item Deprecation of all current GUIs.
+    \item Creation of \texttt{+icnna.compat} package.
+    \item Migration of the 5--6 existing modern $\gamma$ sites to \texttt{icnna.compat.toModernTimeline}.
+    \item R2021a declared as minimum supported MATLAB version.
+\end{itemize}
+
+\subsubsection{Q5 --- Definition-class lockstep}
+
+\textbf{Decision:} \textbf{Decoupled.} A class and its \texttt{*Definition} sibling are not obligated to ship together.
+
+\textbf{Rationale.} P5 (flat architecture is a design task, not translation) requires the freedom to redesign the \texttt{*}/\texttt{*Definition} relationship; lockstep quietly re-imposes translation discipline. P3 keeps sub-release scope controllable; P9 allows deferring a sibling when its redesign is not yet settled.
+
+\subsubsection{E.1 --- Seven operating rules}
+
+The internal transition is governed by seven operating rules derived from Q1--Q5:
+
+\begin{enumerate}
+    \item \textbf{Soft cut per class} (Q1). Legacy \texttt{oo/@X} survives deprecated alongside \texttt{+icnna.X}.
+    \item \textbf{Mixed granularity} (Q2). Sub-release size dependency-driven; P3 is the constraint.
+    \item \textbf{Deprecation contract} (Q3.1): no new callers of legacy types once the modern counterpart exists.
+    \item \textbf{Opportunistic caller migration} (Q3.2), with cleanup sub-releases inserted by Phase~3 when caller count $\leq \sim 3$.
+    \item \textbf{Bridging via \texttt{+icnna.compat}} (Q3.3, $\beta$ policy). Modern code single-type; legacy \texttt{oo/} keeps $\gamma$.
+    \item \textbf{v1.4.2 is the ``modernisation mode begins'' milestone} (Q4).
+    \item \textbf{\texttt{*} and \texttt{*Definition} classes decoupled} (Q5).
+\end{enumerate}
+
+\subsubsection{E.1 --- Principle traceability}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Decision} & \textbf{Primary principle(s)} & \textbf{Secondary} \\
+\midrule
+Q1 soft cut & P3, P8 & P7 \\
+Q2 mixed granularity & P3, P9 & P8 \\
+Q3.1 new code = modern only & P1, P7 & --- \\
+Q3.2 opportunistic + soft overlay & P3, P7, P9 & FM1 mitigation \\
+Q3.3 $\beta$ via \texttt{+icnna.compat} & P9 & P2, P5 \\
+Q4 v1.4.2 clean cut & P2, P4 & HC1 neutralisation \\
+Q5 decoupled definitions & P5, P9 & P3 \\
+\bottomrule
+\end{tabular}
+\caption{Principles invoked by each E.1 decision. No conflicts; where multiple principles apply, they reinforce the choice.}
+\end{table}
+
+% ----------------------------------------------------------
+\subsection{E.2 --- Coexistence with Cantor}
+
+\subsubsection{Framing}
+
+Coexistence will span an extended period ($\sim$9+~months, likely longer at research pace). ICNNA serves current users; Cantor is built from scratch; FOE is sole developer of both. Coexistence requires a \emph{set} of policies rather than a single decision.
+
+Six orthogonal axes were resolved.
+
+\subsubsection{E.2.1 --- Data interoperability}
+
+\textbf{Decision:} ICNNA and Cantor retain independent internal formats. ICNNA keeps MATLAB-based (\texttt{.mat}) storage; Cantor will likely adopt a SQLite-linked file format (decided within the Cantor project). Interchange --- between the two tools and with the wider ecosystem (HomER, Cedalion, neuroDOT, MNE-NIRS, \ldots) --- goes exclusively via \textbf{SNIRF and BIDS}. Neither project reads the other's internals.
+
+\textit{Rationale.} Cantor is clean-sheet (Phase~2b); reading legacy \texttt{.mat} would compromise that. ICNNA is bounded; adding Cantor-awareness would violate P9. Standards-first interop also serves each project's interop with the broader ecosystem at no extra engineering cost. User migration follows the same SNIRF/BIDS path any external tool would --- no privileged bilateral format.
+
+\subsubsection{E.2.2 --- Scope-leakage prevention}
+
+\textbf{Decision:} Case-by-case, with default bias that \emph{most new features go to Cantor}. ICNNA is not in competition with Cantor; nor is it dying. It remains bounded but may accept new features when case-by-case judgement warrants.
+
+\textit{Rationale.} Phase~2c kept the door open for future ICNNA features; a strict ``no new features ever'' rule would contradict that. Case-by-case respects the small user base's actual needs. The Cantor-default bias makes the exception explicit: onus is on a request to justify why it belongs in ICNNA rather than Cantor.
+
+\textit{Operational heuristic.} A request is ICNNA-eligible if it is:
+\begin{itemize}[nosep]
+    \item[(a)] a bug fix,
+    \item[(b)] survival-tier modernisation per E.1,
+    \item[(c)] SNIRF/BIDS compliance maintenance, or
+    \item[(d)] a small feature a current user needs before Cantor ships.
+\end{itemize}
+Everything else is Cantor-bound by default, subject to case-by-case exception.
+
+\subsubsection{E.2.3 --- Shared assets}
+
+\textbf{Decision:} Test datasets and sample fixtures: \textbf{duplicate}. Code: \textbf{separate but referenced}. Neither project depends on the other; both are aware of each other and may cite in documentation or mathematical specifications.
+
+\textit{Rationale.} For two codebases and one developer, decoupling is worth more than deduplication. Shared assets create coupling; coupling propagates breakage. Test fixtures are stable and small --- duplication is cheap over a multi-year horizon. Awareness without dependency preserves intellectual continuity without technical entanglement. A third shared-math repo was considered but deferred to Phase~3 if volume justifies.
+
+\subsubsection{E.2.4 --- Developer time allocation}
+
+\textbf{Decision:} Phased priority with ongoing parallel work.
+
+\begin{itemize}
+    \item \textbf{Initial phase:} ICNNA has priority until it reaches a reasonably updated, stable state (approximately: v1.4.2 shipped, test infrastructure in place, GUI deprecated, data-model modernisation well under way).
+    \item \textbf{Subsequent phase:} Cantor becomes the primary focus, with ICNNA attention continuing in parallel.
+    \item \textbf{Standing instruction to Claude:} flag explicitly whenever one project appears to lag behind the other, in either direction. The flag is informational; FOE decides whether to rebalance.
+\end{itemize}
+
+\textit{Rationale.} ICNNA's bounded modernisation has a near-term endpoint (v1.4.2); front-loading gets the heavy release out of the way and reverts to steady-state maintenance. Fixed percentage splits are fictions at research pace (P8). The lag-detection responsibility is cheap insurance against lopsided neglect.
+
+\subsubsection{E.2.5 --- Repository hygiene}
+
+\textbf{Decision:} Completely independent repositories. No linkage beyond README cross-references (subject to the asymmetry in E.2.6). Each project keeps its own commit schedule and conventions. Both follow the ICNNA commit-style defined in global CLAUDE.md but are not coordinated.
+
+\textit{Paths.}
+\begin{itemize}[nosep]
+    \item ICNNA: \texttt{C:\textbackslash Users\textbackslash orihuelf-admin\textbackslash OneDrive\textbackslash Git\textbackslash ICNNA}
+    \item Cantor: \texttt{C:\textbackslash Users\textbackslash orihuelf-admin\textbackslash OneDrive\textbackslash Git\textbackslash Cantor}
+\end{itemize}
+
+No shared meta-repo, CI, or submodules.
+
+\subsubsection{E.2.6 --- External communication (structural)}
+
+\textbf{Decision:} \textbf{Asymmetric awareness.}
+\begin{itemize}
+    \item Cantor exhibits \emph{higher} awareness of ICNNA. Cantor's README, documentation, and public presentation explicitly acknowledge ICNNA as predecessor, describe the relationship, point to ICNNA for current-production use, and define the migration path.
+    \item ICNNA acts \emph{almost blind} to Cantor. A single acknowledgement line in the ICNNA README pointing to Cantor (as successor) appears \emph{only at/after handover}, not during the modernisation period (see refinement in E.4.2).
+\end{itemize}
+
+\textit{Rationale.} Scope-discipline protection: if ICNNA documentation routinely defers features to Cantor, ICNNA's scope is re-opened for debate every time a user asks. Successor projects own the transition narrative --- it is Cantor's job to situate itself relative to what exists. Asymmetric awareness also reduces documentation churn on the ICNNA side as Cantor evolves.
+
+% ----------------------------------------------------------
+\subsection{E.3 --- Handover to Cantor}
+
+\subsubsection{Framing}
+
+Handover is the moment at which Cantor becomes the primary recommended tool and ICNNA transitions out of ``actively modernising'' role. A structural finding guided E.3 overall: \textbf{ICNNA is not scheduled to die.} Phase~2c kept the door open; E.3.3 and E.3.4 confirm ICNNA remains a live, maintained project post-handover. Handover changes ICNNA's \emph{role}, not its lifecycle.
+
+Six axes were resolved.
+
+\subsubsection{E.3.1 --- Handover trigger}
+
+\textbf{Decision:} Composite: Cantor v1.0.0 released \textbf{and} Cantor reaches feature parity with ICNNA (verified against a checklist). Usage-based validation component (a successful end-to-end user migration) is \emph{not} part of the trigger --- FOE handles user-side validation personally given the small community. Operational details (the feature-parity checklist itself) deferred to Phase~3.
+
+\textit{Rationale.} v1.0.0 alone is insufficient (a self-declaration does not guarantee parity); feature parity alone is insufficient (without v1.0.0 it is a moving target). Pairing freezes the question. Usage thresholds are unnecessary given direct personal shepherding.
+
+\subsubsection{E.3.2 --- User migration path}
+
+\textbf{Decision:} Personal guidance (FOE-shepherded) with minimal written support; no forced migration. Data migration follows E.2.1 (SNIRF/BIDS). FOE shepherds each user individually when that user is ready. A short migration guide accompanies the v1.0.0/feature-parity announcement. No time-boxed migration window. Users may decline to migrate indefinitely.
+
+\textit{Rationale.} Written docs scale; for 5--10~users, one-to-one is higher-quality and tractable. No forced migration preserves trust; since ICNNA stays alive (E.3.3), nothing compels users to move.
+
+\subsubsection{E.3.3 --- Post-handover repository status}
+
+\textbf{Decision:} \textbf{Maintained.} ICNNA remains a live, maintained project: repository public and active; bug fixes accepted; new-feature work possible (see E.3.4); documentation updated.
+
+\textit{Rationale.} Phase~2c stance preserved (``v2.0.0 is the endpoint of the modernisation plan, not the end of ICNNA's journey''). The loyal small user base is retained; a frozen-or-archived posture would push users off prematurely, contradicting E.3.2. ICNNA's MATLAB-native niche is durable (S5 from Phase~2c).
+
+\subsubsection{E.3.4 --- Post-v2.0.0 release posture}
+
+\textbf{Decision:} \textbf{Occasional feature releases permitted.} v2.0.x for maintenance; v2.1.x, v2.2.x, etc.\ when a new feature is warranted and FOE has time and interest. No cadence commitment.
+
+\textit{Rationale.} Consistent with E.3.3 (a ``maintained'' project that can never grow new features is frozen in practice). E.2.2 case-by-case discipline continues to apply post-handover. ``Occasional'' means zero-or-more per year; no release is ever owed.
+
+\subsubsection{E.3.5 --- Long-tail support triage}
+
+\textbf{Decision:} Category-based triage.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{p{5cm}p{8cm}}
+\toprule
+\textbf{Category} & \textbf{Policy} \\
+\midrule
+Critical data-integrity / security & Patch release promptly, no time bound on commitment \\
+Standards drift (SNIRF/BIDS spec update) & Best effort, non-urgent, bundled with next convenient release \\
+MATLAB version break & Case-by-case; may resolve by declaring the MATLAB version unsupported rather than patching \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textit{Rationale.} Matches urgency to category. Preserves FOE's ability to say no --- essential for a single developer maintaining two projects.
+
+\textbf{Mitigation carried forward (R.E3.5.1).} The softness of ``best effort'' and ``case-by-case'' can leave a user stranded on an unsupported MATLAB version with unclear recourse. Mitigation: clear MATLAB-version support statement at handover, setting explicit expectations (agreed).
+
+\subsubsection{E.3.6 --- Intellectual asset preservation}
+
+\textbf{Context (institutional).} ICNNA's intellectual assets are distributed:
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{ll}
+\toprule
+\textbf{Institution} & \textbf{ICNNA-related intellectual assets} \\
+\midrule
+Imperial College London (IC) & Original ICNNA framework (developed at IC) \\
+INAOE (Mexico) & MENA Gen~2, MENA Gen~3, ontoNIRS (at INAOE) \\
+University of Birmingham (UoB) & Overprocessing, pipeline optimisation, Cantor (at UoB) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+FOE maintains ICNNA personally under peer-to-peer agreements with the institutions where the work was developed. These agreements permit continued maintenance but do not transfer IP ownership.
+
+\textbf{Decision for E.3.6 proper.}
+\begin{itemize}
+    \item Intellectual assets (papers, theses, formal specifications, LaTeX documents) stay where authored. They remain in ICNNA's \texttt{doc/} structure. No forced relocation to Cantor.
+    \item Cantor may cite ICNNA intellectual assets (consistent with E.2.6).
+    \item Cantor's relationship to ICNNA intellectual content is, in the normal case, one of \textbf{honest academic citation and referencing}, not IP reuse. Standard scholarly practice covers this. Specific cases of genuine reuse (if any) are handled individually at the time under the relevant institutional agreements --- not a general project risk.
+\end{itemize}
+
+\textbf{Recommended artefact: IP ledger.} Create \texttt{doc/ip\_ledger.md} (or \texttt{.tex}) in ICNNA mapping major features/modules/specifications to owning institutions. Benefits: makes the ownership map explicit; provides paper trail; lets Cantor cite correctly. \textbf{Creation deferred to Phase~3 as a collaborative pass.}
+
+\subsubsection{E.3 --- Policy summary}
+
+\begin{enumerate}
+    \item Trigger: composite of Cantor v1.0.0 \emph{and} feature parity.
+    \item Migration: FOE-shepherded, SNIRF/BIDS mechanics, no forced timeline.
+    \item Post-handover status: maintained (not frozen, not archived).
+    \item Post-v2.0.0 releases: maintenance plus occasional features; no cadence commitment.
+    \item Long-tail support: category-based triage.
+    \item IP preservation: assets stay where authored; IP ledger artefact recommended (deferred).
+\end{enumerate}
+
+% ----------------------------------------------------------
+\subsection{E.4 --- User communication strategy}
+
+\subsubsection{Framing}
+
+Three temporally distinct periods require distinct messaging:
+
+\begin{enumerate}[nosep]
+    \item \textbf{Modernisation period} --- now through v2.0.0.
+    \item \textbf{Handover transition} --- at the Cantor v1.0.0 + feature-parity moment.
+    \item \textbf{Post-handover steady state} --- ICNNA maintained, Cantor primary.
+\end{enumerate}
+
+Five axes were resolved.
+
+\subsubsection{E.4.1 --- GUI deprecation messaging at v1.4.2}
+
+\textbf{Decision:} Matter-of-fact, forward-looking release-notes posture. Short explanation: the GUI is deprecated to permit clean architectural modernisation; a new GUI is planned late in the v2.0.0 roadmap. Substitute: command-line/script workflows documented with at least one worked example in \texttt{doc/}. Advance notice: mentioned in v1.4.1/v1.4.1-beta release notes if practical.
+
+\textit{Rationale.} Honesty over apology; apologetic language invites prolonged debate. Forward-looking framing preserves user confidence. Worked examples reduce support burden.
+
+\subsubsection{E.4.2 --- README posture during modernisation}
+
+\textbf{Decision:} ICNNA's public communications act \emph{as if unaware of Cantor} during the modernisation period. No mention of Cantor in ICNNA's README, documentation, or user-facing materials until handover approaches.
+
+\textbf{This refines E.2.6.} The ``single acknowledgement line pointing to Cantor'' is \emph{deferred} until handover, not present during modernisation.
+
+\textit{Rationale.} Cantor is not ready; a premature reference invites users to try an unready tool and return disappointed --- worst-of-both outcome. ICNNA is usable \emph{now} and its README should sell the current product, not hedge. Absence of reference = zero maintenance cost on ICNNA documentation as Cantor evolves (P9). Preserves Cantor's announcement freedom.
+
+\textit{README content during modernisation.} What ICNNA is; current version and state; installation; command-line/script usage posture; pointer to \texttt{ROADMAP.md}; license, citation, contact, acknowledgements. \textbf{No Cantor reference.}
+
+\subsubsection{E.4.3 --- Handover-moment announcement}
+
+\textbf{Decision: Deferred.} The form, channels, and timing are undecided and will be revisited closer to handover.
+
+\textit{Rationale.} Depends on context unavailable now (both projects' state, FOE's institutional context at the time, community needs then). Decision cost is low at the moment. No operational dependency.
+
+\subsubsection{E.4.4 --- Post-handover messaging}
+
+\textbf{Decision:} Neutral factual posture. README updated \emph{once} to reflect new role (e.g.\ ``ICNNA remains maintained for users with ongoing MATLAB-based workflows; Cantor is the recommended choice for new work''). The single acknowledgement line from E.2.6 lands here. Release notes continue normally for patch/maintenance releases. No anti-Cantor messaging; no pro-Cantor advocacy. Neutral factual acknowledgement only.
+
+\textit{Rationale.} Consistent with E.3.3 (maintained). Users of a maintained tool want stability; drama would unsettle those who chose to stay. Respects Cantor's ownership of the transition narrative (E.2.6).
+
+\subsubsection{E.4.5 --- CHANGELOG conventions}
+
+\textbf{Decision:} Adopt \texttt{CHANGELOG.md} at the repository root (Keep-a-Changelog conventions). Both ICNNA and Cantor will have one, each authored independently.
+
+\begin{itemize}
+    \item \textbf{Location:} \texttt{CHANGELOG.md} at the repository root --- standard practice, first-class metadata file alongside \texttt{README.md} and \texttt{LICENSE}. Not under \texttt{doc/}.
+    \item \textbf{Seed:} \texttt{doc/ICNNA-Version.log} is the seed for ICNNA's CHANGELOG. Content migrated; style modernised to Keep-a-Changelog sections (Added / Changed / Deprecated / Removed / Fixed / Security). \textbf{Full migration, per the transparency principle} (Q.2; see §3.E below and global CLAUDE.md~§9).
+    \item \textbf{Historical archive retained:} \texttt{doc/ICNNA-Version.log} remains in place with a forward pointer to \texttt{CHANGELOG.md} added at its top. No deletion --- preserves behavioural traceability per the ``never overwrite'' principle.
+    \item \textbf{Cross-references:} major CHANGELOG entries link to the corresponding \texttt{claude/minutes/} minute by symbolic reference (see §3.E, Q.5 resolution).
+    \item \textbf{Commit-level style} continues to follow global CLAUDE.md (feat/fix/refactor/test/docs/chore).
+\end{itemize}
+
+\textbf{Implementation of CHANGELOG seeding is a Phase~3 task.}
+
+\subsubsection{E.4 --- Policy summary}
+
+\begin{enumerate}[nosep]
+    \item GUI deprecation communicated matter-of-factly (E.4.1).
+    \item ICNNA silent on Cantor during modernisation (E.4.2) --- refinement of E.2.6.
+    \item Handover-moment announcement deferred (E.4.3).
+    \item Post-handover ICNNA neutral (E.4.4).
+    \item \texttt{CHANGELOG.md} at repo root, seeded from \texttt{doc/ICNNA-Version.log} (E.4.5).
+\end{enumerate}
+
+% ================================================================
+\section{Step~F --- Registry of Open Items}
+
+Step~F records the state of what is \emph{not} settled at the end of Phase~2, so that Phase~3 and subsequent sessions can resume without re-deriving context. Items are prefixed: \texttt{R.*} (risk), \texttt{U.*} (unknown), \texttt{D.*} (deferred decision), \texttt{Q.*} (open question). The registry is ongoing.
+
+\subsection{A. Accepted risks (acknowledged, tolerated, not technically mitigated)}
+
+\begin{longtable}{p{2cm}p{10cm}p{3cm}}
+\toprule
+\textbf{ID} & \textbf{Description} & \textbf{Disposition} \\
+\midrule
+\endhead
+R.FM1 & Stuck-in-the-middle: modernisation stalls leaving a worse dual-architecture state & Procedural mitigation via P3; no technical mitigation \\
+R.FM4 & Standards drift (SNIRF/BIDS spec changes) & Deferred; address if/when standards change \\
+R.HC2 & Dual-architecture friction during transition & Bounded by $\beta$ + \texttt{+icnna.compat}; not eliminated \\
+R.HC5 & Research-priority interrupts & Mitigated by P8 structurally \\
+R.L4 & No AI integration in ICNNA & Accepted; AI goes to Cantor \\
+R.L5 & MathWorks vendor lock-in & Accepted \\
+\bottomrule
+\end{longtable}
+
+\subsection{B. Unmitigated risks carried forward}
+
+\begin{longtable}{p{2.3cm}p{6.5cm}p{6cm}}
+\toprule
+\textbf{ID} & \textbf{Description} & \textbf{Mitigation path} \\
+\midrule
+\endhead
+R.E3.1.1 & Feature-parity definition deferred; if never settled, handover cannot fire & Phase~3 to address at appropriate moment \\
+R.E3.5.1 & Soft long-tail support commitments may strand users on unsupported MATLAB versions & Clear MATLAB-version support statement at handover \\
+R.F1 & Developer-time policy may degenerate into ``only the active project gets attention'' under interrupt pressure & Claude's lag-detection standing responsibility; FOE's parallel-work discipline. Residual structural risk \\
+R.F2 & Single-developer bus factor (FOE sole developer of both projects) & Partial mitigation by sequencing: front-load ICNNA to reach stable state, then focus on Cantor without ICNNA half-finished. Structural \\
+R.F3 & OneDrive sync conflicts across devices on hot files & Portable-context rule (global CLAUDE.md~§8) and git discipline. Residual risk accepted \\
+\bottomrule
+\end{longtable}
+
+\subsection{C. Deferred decisions (to Phase~3 or later)}
+
+\begin{longtable}{p{1.5cm}p{11cm}p{2.5cm}}
+\toprule
+\textbf{ID} & \textbf{Item} & \textbf{Raised in} \\
+\midrule
+\endhead
+D.1  & Q3.2 cleanup trigger threshold ($\leq 3$? $\leq 5$?) & E.1 \\
+D.2  & Deprecation warning mechanism specifics for legacy classes & E.1 \\
+D.3  & Doxygen-style header convention for \texttt{+icnna.compat} members & E.1 \\
+D.4  & Exact trigger milestone for ICNNA$\to$Cantor priority shift & E.2.4 \\
+D.5  & Feature-parity checklist for E.3.1 handover trigger & E.3.1 \\
+D.6  & Migration-guide skeleton (SNIRF/BIDS export $\to$ Cantor import) & E.3.2 \\
+D.7  & IP ledger artefact (\texttt{doc/ip\_ledger.md}) --- collaborative Phase~3 pass & E.3.6 \\
+D.8  & MATLAB-version support statement phrasing & E.3.5 \\
+D.9  & Handover-moment announcement form, channels, timing & E.4.3 \\
+D.10 & Exact wording of post-handover README Cantor acknowledgement line & E.4.4 \\
+D.11 & \texttt{CHANGELOG.md} seeding from \texttt{doc/ICNNA-Version.log} (full migration, per §9) & E.4.5 \\
+D.12 & Worked-example content for command-line workflows accompanying v1.4.2 GUI deprecation & E.4.1 \\
+D.13 & GUI v2.0.0 design & Phase~2c \\
+D.14 & BIDS compatibility implementation details & Phase~2c \\
+D.15 & Test infrastructure framework choice and structure (presumably \texttt{matlab.unittest}) & P2, v1.4.2 \\
+D.16 & Scheduling of \texttt{@rawData\_Snirf} special case (HC6) --- may jump queue & Phase~2c \\
+\bottomrule
+\end{longtable}
+
+\subsection{D. Unknowns (need observation, not decision)}
+
+\begin{longtable}{p{1.5cm}p{9cm}p{4cm}}
+\toprule
+\textbf{ID} & \textbf{Item} & \textbf{Impact} \\
+\midrule
+\endhead
+U.1 & Cantor development timeline ($>9$~months est., research pace) & Length of coexistence \\
+U.2 & Actual user response to v1.4.2 GUI deprecation & Post-v1.4.2 scheduling and messaging \\
+U.3 & Standards evolution (SNIRF, BIDS) during coexistence & Maintenance load; see R.FM4 \\
+U.4 & FOE's future institutional affiliation during the horizon & FOE handles personally \\
+U.5 & Cantor's final technical stack details (file format, build, packaging) & E.2.1 interop edge cases \\
+U.6 & Whether any ICNNA user declines to migrate indefinitely & Post-handover ICNNA activity level \\
+\bottomrule
+\end{longtable}
+
+\subsection{E. Open questions resolved during this session}
+
+All open questions raised in the draft registry were addressed.
+
+\begin{longtable}{p{1.5cm}p{6cm}p{7cm}}
+\toprule
+\textbf{ID} & \textbf{Question} & \textbf{Resolution} \\
+\midrule
+\endhead
+Q.1 & R2021a minimum appropriate for all modernised features? & Stick to R2021a. If a later-version feature is ever needed, Claude must warn FOE first and attempt to circumvent; raise minimum only if genuinely impossible, as explicit decision \\
+Q.2 & CHANGELOG seeding: any \texttt{doc/ICNNA-Version.log} content that should not migrate publicly? & No. Full migration. Full disclosure is FOE's default policy across all public projects; Claude must warn-and-ask on specific material of concern (codified in global CLAUDE.md~§9) \\
+Q.3 & Package name: \texttt{+icnna.compat} vs \texttt{legacy} vs \texttt{bridge}? & \texttt{+icnna.compat} --- conventional across software engineering; accurately describes bridging purpose; avoids design-pattern collision \\
+Q.4 & IP ledger: FOE alone or collaborative Phase~3 pass? & Collaborative pass in Phase~3 \\
+Q.5 & Citation format for \texttt{claude/} minutes from CHANGELOG / release notes --- most future-proof? & Symbolic reference by document title + section anchor (e.g.\ ``see Phase~2d minute, §E.1''). Survives folder reorganisation, repo relocation, format changes. Permalinks permitted as supplementary only \\
+\bottomrule
+\end{longtable}
+
+\subsection{F. New policies codified during Phase~2 Session~4}
+
+\begin{enumerate}
+    \item \textbf{Context and memory portability} (global CLAUDE.md~§8, added 14-Apr-2026). Project-local \texttt{.\textbackslash claude\textbackslash} folder is the canonical source of truth for session context, decisions, and memory-equivalent state. Auto-memory is a device-local cache, never the only place a non-trivial fact lives. Includes a recommended subfolder structure (\texttt{memory/}, \texttt{minutes/}, \texttt{prompts/}, \texttt{state/}, \texttt{media/}) applicable across projects.
+    \item \textbf{Transparency and disclosure} (global CLAUDE.md~§9, added 14-Apr-2026). Full-disclosure default; warn-before-filter exception handling; applies across projects unless explicitly overridden.
+    \item \textbf{Proactive project-lag flagging} (project memory, 14-Apr-2026). Claude flags when ICNNA or Cantor appears to lag behind the other, informationally only; FOE decides whether to rebalance.
+    \item \textbf{R2021a minimum standing policy} (project memory, 14-Apr-2026). Claude warns before using any MATLAB feature introduced after R2021a, attempts circumvention; minimum raised only as explicit decision.
+    \item \textbf{Stable-title minute citation convention} (project convention, 14-Apr-2026). Every \texttt{claude/minutes/} minute has a stable human-readable title used as the anchor in citations.
+\end{enumerate}
+
+% ================================================================
+\section{Step~G --- Session Documentation and Folder Reorganisation}
+
+Step~G produced this minute, compiled it to PDF, and reorganised the \texttt{claude/} folder from its previous flat layout to a future-proof portable structure.
+
+\subsection{G.1 --- This minute}
+
+This document (\texttt{Phase2d\_minute.tex}) is the Phase~2 closing minute. It consolidates Steps~E.1--E.4 and F into a single coherent record. Per FOE's instruction, length was not pre-constrained; clarity and 10--15~year traceability were the priorities. Interim per-step state notes (\texttt{Phase2d\_E1\_state.md}, \ldots, \texttt{Phase2d\_F\_state.md}) are retained under \texttt{claude/state/} as primary-source records of the progression, not deleted.
+
+\subsection{G.2 --- Build and cleanup}
+
+Compiled with two passes of \texttt{pdflatex}. Intermediate auxiliary files (\texttt{.aux}, \texttt{.log}, \texttt{.out}, \texttt{.synctex.gz}, \texttt{.toc}) removed after successful build. Only \texttt{.tex} source and \texttt{.pdf} output retained. The \texttt{\textbackslash newcommand\{\textbackslash mediaDir\}\{media\}} convention is established in the preamble of this minute for future use; the \texttt{claude/media/} folder is created as a placeholder.
+
+\subsection{G.3 --- Folder reorganisation}
+
+\subsubsection{Rationale}
+
+The pre-existing \texttt{claude/} folder was flat and mixed concerns: session prompts, minutes, build artefacts, exploratory scratch prompts, and (pending) state notes. It had no dedicated location for portable project memory (which per global CLAUDE.md~§8 must reside in project-local \texttt{claude/}). With ongoing Phase~3 work, the folder would grow --- more minutes, more state notes, eventually media and bibliography --- and the flat layout would become unnavigable.
+
+\subsubsection{New layout}
+
+\begin{lstlisting}[basicstyle=\ttfamily\footnotesize]
+claude/
+  README.md                          # folder index + conventions
+  .gitignore                         # ignores TeX build artefacts
+
+  memory/                            # PORTABLE PROJECT MEMORY (canonical)
+    MEMORY.md                        # index
+    user_profile.md
+    project_*.md
+    feedback_*.md
+    ...
+
+  minutes/                           # SESSION MINUTES
+    Phase1_minute.tex / .pdf
+    Phase2a_minute.tex / .pdf
+    Phase2b_minute.tex / .pdf
+    Phase2c_minute.tex / .pdf
+    Phase2d_minute.tex / .pdf        # this document
+
+  prompts/                           # SESSION INPUT PROMPTS
+    Phase1_context_prompt.txt
+    Phase2a_context_prompt.txt
+    Phase2b_context_prompt.txt
+    Phase2c_context_prompt.txt
+    Phase3_context_prompt.txt        # draft handoff
+    legacy/                          # early-session scratch prompts
+      ClaudeCode_promp0001.txt
+      ClaudeCode_promp0001b.txt
+      answers0001b.txt
+
+  state/                             # INTERIM SESSION STATE NOTES
+    Phase2d_E1_state.md
+    Phase2d_E2_state.md
+    Phase2d_E3_state.md
+    Phase2d_E4_state.md
+    Phase2d_F_state.md
+
+  media/                             # IMAGES / BIB (future use)
+\end{lstlisting}
+
+\subsubsection{Design points}
+
+\begin{enumerate}
+    \item \textbf{\texttt{memory/} is canonical.} Memory files are written to \texttt{claude/memory/} first (and mirrored to device-local auto-memory as a convenience cache). This operationalises global CLAUDE.md~§8.
+    \item \textbf{Auto-memory files copied into \texttt{claude/memory/}} during the reorganisation, establishing the portable canonical record.
+    \item \textbf{\texttt{prompts/legacy/}} separates early exploratory prompts from formal phase context prompts.
+    \item \textbf{\texttt{state/} preserved, not deleted.} Per the ``never overwrite'' principle: state notes are primary-source records of the progression, retained alongside the consolidated minute.
+    \item \textbf{\texttt{README.md}} at folder root documents the structure, the memory-canonical rule, the citation convention, and the lifecycle of each subfolder's contents.
+    \item \textbf{\texttt{.gitignore}} excludes TeX build artefacts (\texttt{*.aux}, \texttt{*.log}, \texttt{*.out}, \texttt{*.synctex.gz}, \texttt{*.toc}, \texttt{*.fls}, \texttt{*.fdb\_latexmk}).
+    \item \textbf{No per-phase subfolders} (e.g.\ \texttt{minutes/Phase1/}). File names encode the phase; flat-within-category is easier to scan. Revisit only when any subfolder exceeds $\sim$20~items.
+    \item \textbf{Trade-off rejected:} committing only \texttt{.tex} sources without built PDFs would prevent readers without a TeX installation from accessing the minutes, contradicting the full-disclosure principle (§9).
+\end{enumerate}
+
+\subsubsection{Global CLAUDE.md update}
+
+Global CLAUDE.md~§8.4 extended on 14-Apr-2026 to document the recommended subfolder structure as a default for all of FOE's projects (flexible: subfolders only created when populated; project-level CLAUDE.md may refine).
+
+\subsubsection{Execution}
+
+\begin{itemize}
+    \item \texttt{git mv} used for file moves to preserve rename tracking.
+    \item Searched for hard-coded path references in prior minute sources before moving; none material to the reorganisation found.
+    \item Reorganisation applied as a single atomic commit after this minute was produced.
+\end{itemize}
+
+\subsection{G.4 --- Draft Phase~3 context prompt}
+
+A draft Phase~3 context prompt has been produced at \texttt{claude/prompts/Phase3\_context\_prompt.txt}, following the style of previous phase prompts. It serves as a fallback and as input to the prompt FOE will prepare independently. At the start of Phase~3, Claude must first ask FOE for the prepared prompt; FOE's prompt takes precedence, and the draft is used only if the prepared prompt is not immediately available. This instruction is recorded in project memory.
+
+% ================================================================
+\section{Phase~2 Closing Statement}
+
+Phase~2 of the ICNNA architectural refactoring --- the architectural decision phase --- is \textbf{formally closed} with this minute.
+
+\subsection{What Phase~2 delivered}
+
+\begin{enumerate}
+    \item \textbf{The two-project split} (Phase~2b). Cantor created as the clean-sheet successor (C++23/wxWidgets); ICNNA scoped to a bounded modernisation in MATLAB.
+    \item \textbf{Nine design principles} (Phase~2c, P1--P9) governing the bounded ICNNA update.
+    \item \textbf{Seven operating rules} (Phase~2d, §2.1) governing the internal transition from the current dual state to the v2.0.0 endpoint.
+    \item \textbf{Six coexistence policies} (Phase~2d, §2.2) governing ICNNA/Cantor parallel operation.
+    \item \textbf{Six handover policies} (Phase~2d, §2.3) governing the transition to Cantor as primary tool, with ICNNA remaining maintained.
+    \item \textbf{Five communication policies} (Phase~2d, §2.4) across three temporal periods.
+    \item \textbf{An open-items registry} (Phase~2d, §3) of $\sim$30~items across five categories.
+    \item \textbf{Five new policies codified} (Phase~2d, §3.F), two at global CLAUDE.md level.
+    \item \textbf{A reorganised and documented \texttt{claude/} folder} (Phase~2d, §4) that is portable, canonical for project memory, and future-proof.
+\end{enumerate}
+
+\subsection{What Phase~2 did not decide}
+
+Phase~2 deliberately did not descend into:
+\begin{itemize}[nosep]
+    \item The concrete per-version content of v1.4.2, v1.4.3, \ldots, v2.0.0 --- this is Phase~3.
+    \item Specific class-level modernisation order within the data-model slice --- Phase~3.
+    \item The feature-parity checklist for the handover trigger --- Phase~3 or Cantor-side.
+    \item Detailed specification of GUI v2.0.0 --- deferred to when the modern architecture is sufficiently complete.
+\end{itemize}
+
+\subsection{Sufficiency for a cold start}
+
+Phase~2 closes with the explicit intent that Phase~3 can begin from a cold context on any device, reading only the canonical artefacts under \texttt{claude/}. This is both a design goal (global CLAUDE.md~§8) and an operational validation: the next session will test whether the portability principle actually holds. Any gap surfaced at that moment is itself valuable --- it identifies what the canonical record is missing and must be fixed before Phase~3 proceeds.
+
+% ================================================================
+\section{Hand-off to Phase~3}
+
+\textbf{Phase~3 objective:} produce the concrete roadmap from ICNNA v1.4.1-beta (current) through v1.4.2 (the ``modernisation mode begins'' milestone) through subsequent sub-releases to v2.0.0.
+
+\textbf{Phase~3 inputs.}
+\begin{itemize}
+    \item All Phase~2 minutes, especially this one and \texttt{Phase2c\_minute.pdf} (principles).
+    \item The open-items registry (this minute, §3; Phase 2d F state note).
+    \item The sixteen deferred decisions (D.1--D.16) are concrete roadmap candidates.
+    \item The five unmitigated risks (B section) to be monitored.
+    \item The seven operating rules (E.1) constraining how sub-releases are shaped.
+    \item v1.4.2 milestone content already identified: test infrastructure introduction; GUI deprecation; \texttt{+icnna.compat} creation and $\gamma \to \beta$ migration of 5--6~sites; R2021a declared minimum.
+\end{itemize}
+
+\textbf{Phase~3 starting action.} FOE will provide a prepared Phase~3 context prompt at session start. Claude must ask for it at the very beginning of the next session. The draft prompt at \texttt{claude/prompts/Phase3\_context\_prompt.txt} is a fallback only. FOE's prompt takes precedence.
+
+\textbf{Session-splitting rationale.} Phase~3 begins in a \emph{new} Claude session (hard split) rather than continuing in this one. Reasons: (i)~validates the canonical-context design; (ii)~matches the 10--15~year traceability principle (a future reader starts cold); (iii)~avoids contamination by this session's exploratory conversational artefacts; (iv)~gives Phase~3 a full context-window budget.
+
+% ================================================================
+\section{Decisions Recorded (Combined Table)}
+
+\begin{longtable}{p{3cm}p{11cm}}
+\toprule
+\textbf{Area} & \textbf{Decision} \\
+\midrule
+\endhead
+\multicolumn{2}{l}{\textit{E.1 --- Internal transition}} \\
+\midrule
+Q1 coexistence & Soft cut: legacy \texttt{oo/@X} survives deprecated alongside modern \texttt{+icnna.X} \\
+Q2 granularity & Mixed; dependency-driven, not fixed \\
+Q3.1 new code & Must use \texttt{+icnna} once modern counterpart exists \\
+Q3.2 caller migration & Opportunistic, with Phase~3 cleanup sub-release when caller count $\leq \sim 3$ \\
+Q3.3 bridging & $\beta$ policy via \texttt{+icnna.compat} package; modern code single-type; legacy \texttt{oo/} retains $\gamma$ \\
+Q4 GUI cut & v1.4.2 --- bundled with test infra, $\gamma\to\beta$ migration, R2021a declaration \\
+Q5 definition lockstep & Decoupled; no 1-to-1 pairing required \\
+\midrule
+\multicolumn{2}{l}{\textit{E.2 --- Coexistence}} \\
+\midrule
+E.2.1 interop & SNIRF/BIDS only; no reading of each other's internals \\
+E.2.2 scope & Case-by-case with Cantor default; ICNNA accepts narrow-scope only \\
+E.2.3 assets & Datasets duplicated; code separate but referenced \\
+E.2.4 time & Phased (ICNNA first, Cantor primary later); parallel throughout; Claude flags lag \\
+E.2.5 repos & Fully independent; no git linkage \\
+E.2.6 awareness & Asymmetric: Cantor aware of ICNNA; ICNNA blind to Cantor (refined in E.4.2) \\
+\midrule
+\multicolumn{2}{l}{\textit{E.3 --- Handover}} \\
+\midrule
+E.3.1 trigger & Cantor v1.0.0 + feature parity (composite); user-validation handled personally by FOE \\
+E.3.2 migration & FOE-shepherded; SNIRF/BIDS; no forced timeline \\
+E.3.3 post-handover status & Maintained (not frozen, not archived) \\
+E.3.4 post-v2.0.0 releases & Maintenance + occasional features; no cadence commitment \\
+E.3.5 long-tail support & Category-based triage \\
+E.3.6 IP preservation & Assets stay where authored; IP ledger artefact recommended (deferred Phase~3) \\
+\midrule
+\multicolumn{2}{l}{\textit{E.4 --- Communication}} \\
+\midrule
+E.4.1 v1.4.2 notes & Matter-of-fact, forward-looking, CLI substitutes documented \\
+E.4.2 README modernisation & Silent on Cantor; refines E.2.6 \\
+E.4.3 handover announcement & Deferred to closer to the moment \\
+E.4.4 post-handover messaging & Neutral; one-time README update; no advocacy \\
+E.4.5 CHANGELOG & \texttt{CHANGELOG.md} at repo root, Keep-a-Changelog, seeded from \texttt{doc/ICNNA-Version.log} (full migration, §9 principle); original log retained with forward pointer \\
+\midrule
+\multicolumn{2}{l}{\textit{F --- Policies codified}} \\
+\midrule
+Global §8 & Context/memory portability --- \texttt{claude/} canonical; recommended subfolder structure \\
+Global §9 & Transparency and disclosure --- full disclosure default; warn-before-filter \\
+Project memory & Proactive project-lag flagging (ICNNA/Cantor) \\
+Project memory & R2021a minimum standing policy \\
+Project convention & Stable-title minute citation (``see Phase 2d minute, §E.1'') \\
+\midrule
+\multicolumn{2}{l}{\textit{G --- Folder reorganisation}} \\
+\midrule
+Layout & \texttt{claude/\{memory,minutes,prompts,state,media\}/} with \texttt{README.md} and \texttt{.gitignore} at root \\
+Canonical memory & \texttt{claude/memory/} supersedes device-local auto-memory as source of truth \\
+State notes & Retained alongside minutes per ``never overwrite'' \\
+Build policy & Aux files removed post-compile; only \texttt{.tex}/\texttt{.pdf} tracked \\
+\bottomrule
+\end{longtable}
+
+% ================================================================
+\section{Documents and Artefacts Referenced}
+
+\begin{enumerate}
+    \item \textbf{Phase 2 predecessors.} \texttt{claude/minutes/Phase1\_minute.tex}, \texttt{Phase2a\_minute.tex}, \texttt{Phase2b\_minute.tex}, \texttt{Phase2c\_minute.tex}.
+    \item \textbf{This minute's source state notes.} \texttt{claude/state/Phase2d\_E1\_state.md}, \texttt{Phase2d\_E2\_state.md}, \texttt{Phase2d\_E3\_state.md}, \texttt{Phase2d\_E4\_state.md}, \texttt{Phase2d\_F\_state.md}.
+    \item \textbf{Global and project rules.} Global \texttt{CLAUDE.md} (as updated 14-Apr-2026, §§8--9); project \texttt{CLAUDE.md}.
+    \item \textbf{Canonical memory.} \texttt{claude/memory/MEMORY.md} and referenced files within.
+    \item \textbf{Cantor project location.} \texttt{C:\textbackslash Users\textbackslash orihuelf-admin\textbackslash OneDrive\textbackslash Git\textbackslash Cantor}.
+    \item \textbf{Phase 3 handoff.} \texttt{claude/prompts/Phase3\_context\_prompt.txt} (draft).
+\end{enumerate}
+
+\end{document}

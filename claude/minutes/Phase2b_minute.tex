@@ -1,0 +1,147 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+\title{ICNNA Architectural Refactoring\\Phase~2: Architectural Decision --- ICNNA Outcome\\
+\large Meeting Minute}
+\author{Felipe Orihuela-Espina \and Claude (Computational Research Architect)}
+\date{13 April 2026}
+
+\begin{document}
+\maketitle
+
+% ================================================================
+% Document Log
+% ================================================================
+\noindent\textbf{Document Log:}
+\begin{itemize}[nosep]
+    \item 13-Apr-2026: FOE/Claude --- Document created. Records the outcome of Phase~2 as it pertains to ICNNA's future.
+\end{itemize}
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+% ================================================================
+\section{Session Overview}
+
+\begin{description}[style=nextline]
+    \item[Date:] 13 April 2026
+    \item[Participants:] Felipe Orihuela-Espina (FOE), Claude Opus 4.6 (Computational Research Architect role)
+    \item[Predecessor:] Phase~2a minute (\texttt{claude/Phase2a\_minute.tex}), 12~April~2026.
+    \item[Objective:] Record the outcome of Phase~2 as it pertains to ICNNA specifically.
+    \item[Outcome:] ICNNA transitions to maintenance mode. Cantor (C++23) becomes the successor project. ICNNA remains live for pressing issues and current users.
+    \item[Model used:] Claude Opus 4.6
+    \item[Status:] Phase~2 complete for ICNNA. Active development continues in Cantor project.
+\end{description}
+
+% ================================================================
+\section{Key Decision: Cantor as Successor}
+
+The Phase~2 architectural analysis (Steps~A--C) concluded that:
+
+\begin{enumerate}
+    \item \textbf{Option~2 (clean-sheet design)} was selected over evolving ICNNA or a hybrid approach (weighted scores: 204 vs.\ 107.5 vs.\ 149.5).
+    \item The implementation language is \textbf{C++23 with wxWidgets}, not MATLAB.
+    \item The new system is a \textbf{separate project called Cantor}, not an ICNNA update.
+\end{enumerate}
+
+\textbf{Rationale:} ICNNA's value lies in 18~years of domain knowledge and mathematical theory, not in its code or architecture. The mathematical assets (MENA Gen~2/3, pipeline optimization, overprocessing theory) are mostly not in ICNNA's codebase --- they exist in papers and theses. A clean-sheet design in C++23 can be built \emph{from} these mathematical foundations rather than retrofitted to accommodate them.
+
+Full analysis is documented in the Cantor project:
+\begin{itemize}
+    \item \texttt{Cantor/claude/Phase1\_minute.tex} --- decision framework
+    \item \texttt{Cantor/claude/Phase2a\_minute.tex} --- language evaluation
+    \item \texttt{Cantor/claude/Phase2b\_minute.tex} --- final decisions and deep analysis
+\end{itemize}
+
+% ================================================================
+\section{ICNNA's New Role: Maintenance Mode}
+
+ICNNA transitions from active development to \textbf{maintenance mode} with the following scope:
+
+\subsection{In Scope}
+\begin{itemize}
+    \item \textbf{Bug fixes:} Address bugs reported by current users.
+    \item \textbf{Pressing feature requests:} Small, well-scoped features that current users need and that are quick to implement.
+    \item \textbf{SNIRF/BIDS compatibility:} Maintain compatibility with current standards so that ICNNA data can be read by Cantor when it is ready.
+    \item \textbf{Documentation:} Keep existing documentation current for the features that exist.
+    \item \textbf{Version releases:} Continue version numbering (v1.4.x, possibly v1.5.x) for maintenance releases.
+\end{itemize}
+
+\subsection{Out of Scope}
+\begin{itemize}
+    \item Major architectural refactoring.
+    \item New analysis methods (these go to Cantor).
+    \item GUI overhaul (Cantor will have a new GUI).
+    \item Pipeline formalization (FMS, overprocessing --- Cantor scope).
+    \item AI integration (Cantor scope).
+    \item Performance optimization beyond what is needed for current users.
+\end{itemize}
+
+\subsection{Deprecation Timeline}
+\begin{itemize}
+    \item \textbf{No fixed deprecation date.} ICNNA remains available and functional for as long as users need it.
+    \item \textbf{Natural transition:} As Cantor reaches feature parity for basic fNIRS analysis (SNIRF import, preprocessing, connectivity, visualization), users will be guided to transition.
+    \item \textbf{ICNNA is not abandoned} --- it is succeeded. All stable releases remain available on GitHub. The repository stays public.
+\end{itemize}
+
+% ================================================================
+\section{Decisions Recorded}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lp{10cm}}
+\toprule
+\textbf{Item} & \textbf{Decision} \\
+\midrule
+ICNNA status & Maintenance mode. No major new development. \\
+Successor & Cantor (C++23, wxWidgets, MIT license). Separate project. \\
+Current users & Supported via ICNNA maintenance releases. \\
+SNIRF/BIDS & ICNNA maintains compatibility so data bridges to Cantor. \\
+Deprecation & No fixed date. Natural transition as Cantor matures. \\
+Repository & Stays public on GitHub. All stable releases preserved. \\
+Cantor location & \texttt{C:\textbackslash Users\textbackslash orihuelf-admin\textbackslash OneDrive\textbackslash Git\textbackslash Cantor} \\
+\bottomrule
+\end{tabular}
+\caption{Decisions regarding ICNNA's future.}
+\end{table}
+
+% ================================================================
+\section{Relationship Between ICNNA and Cantor}
+
+\begin{itemize}
+    \item Cantor is \textbf{intellectually descended} from ICNNA but \textbf{architecturally independent}.
+    \item No code is shared or ported between the two projects.
+    \item Data interoperability is via \textbf{SNIRF/BIDS} standards (file-based exchange).
+    \item ICNNA's coding conventions (naming, documentation, logging) inform Cantor's conventions, adapted for C++23.
+    \item Domain knowledge from ICNNA (experimental design, fNIRS processing, QC framework) feeds into Cantor's design.
+\end{itemize}
+
+% ================================================================
+\section{Next Steps for ICNNA}
+
+\begin{enumerate}
+    \item Address any pressing issues or bug reports from current users.
+    \item Ensure current v1.4.1~beta is stable; consider a v1.4.1 release if warranted.
+    \item Maintain SNIRF/BIDS compatibility as standards evolve.
+    \item No further architectural planning --- that effort moves to Cantor.
+\end{enumerate}
+
+% ================================================================
+\section{Documents Referenced}
+
+\begin{enumerate}
+    \item Phase~1 minute: \texttt{claude/Phase1\_minute.tex}
+    \item Phase~2a minute: \texttt{claude/Phase2a\_minute.tex}
+    \item Cantor Phase~2b minute: \texttt{Cantor/claude/Phase2b\_minute.tex}
+\end{enumerate}
+
+\end{document}

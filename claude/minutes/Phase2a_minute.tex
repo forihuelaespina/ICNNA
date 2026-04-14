@@ -1,0 +1,196 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{longtable}
+
+\title{ICNNA Architectural Refactoring\\Phase~2: Architectural Decision (Session~1 of~$n$)\\
+\large Meeting Minute}
+\author{Felipe Orihuela-Espina \and Claude (Computational Research Architect)}
+\date{12 April 2026}
+
+\begin{document}
+\maketitle
+
+% ================================================================
+% Document Log
+% ================================================================
+\noindent\textbf{Document Log:}
+\begin{itemize}[nosep]
+    \item 12-Apr-2026: FOE/Claude --- Document created.
+\end{itemize}
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+% ================================================================
+\section{Session Overview}
+
+\begin{description}[style=nextline]
+    \item[Date:] 12 April 2026
+    \item[Participants:] Felipe Orihuela-Espina (FOE), Claude Opus 4.6 (Computational Research Architect role)
+    \item[Objective:] Begin Phase~2 --- evaluate Options~1/2/3 and candidate languages against the decision criteria framework from Phase~1.
+    \item[Outcome:] Language evaluation completed. MATLAB dropped. Analysis narrowed to Java vs.\ C++ (with Qt). Three open questions posed to FOE for next session. Session interrupted before completing the full option evaluation.
+    \item[Model used:] Claude Opus 4.6
+    \item[Status:] Phase~2 in progress --- Step~A (language evaluation) completed; Steps~B--G pending.
+\end{description}
+
+% ================================================================
+\section{Work Plan Agreed}
+
+The following stepped plan was agreed for Phase~2:
+
+\begin{enumerate}[label=\textbf{Step~\Alph*:}]
+    \item Language evaluation (MATLAB, Java, Julia, Rust, C++) --- \textbf{COMPLETED}
+    \item Evaluation table (C1--C10 + extended criteria vs.\ 3 options) --- pending
+    \item Deep analysis per option (strengths, limits, hidden constraints, failure modes) --- pending
+    \item Synthesis and recommendation --- pending
+    \item Transitional strategy --- pending
+    \item Open risks / unknowns --- pending
+    \item Session documentation and \texttt{claude/} folder organization --- \textbf{IN PROGRESS}
+\end{enumerate}
+
+% ================================================================
+\section{Step A Results: Language Evaluation}
+
+\subsection{Candidates Evaluated}
+
+Five languages were assessed across 10 dimensions on a 5-point scale (5 = excellent fit, 1 = poor fit):
+
+\begin{enumerate}
+    \item Mathematical expressiveness
+    \item Type system \& encapsulation
+    \item Desktop GUI ecosystem
+    \item AI/API integration
+    \item Standalone deployment
+    \item Scientific ecosystem
+    \item One-person maintainability
+    \item Numerical precision \& correctness
+    \item Dependency minimization
+    \item Long-term viability
+\end{enumerate}
+
+\subsection{Summary Scores}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Dimension} & \textbf{MATLAB} & \textbf{Java} & \textbf{Julia} & \textbf{Rust} & \textbf{C++} \\
+\midrule
+1. Math expressiveness     & \textbf{5} & 2 & \textbf{5} & 3 & 4 \\
+2. Type/encapsulation      & 3 & \textbf{5} & 2 & \textbf{5} & 4 \\
+3. Desktop GUI             & 2 & 4 & 1 & 2 & \textbf{5} \\
+4. AI/API integration      & 2 & \textbf{5} & 3 & \textbf{5} & 3 \\
+5. Standalone deployment   & 2 & 4 & 2 & \textbf{5} & 4 \\
+6. Scientific ecosystem    & \textbf{5} & 2 & \textbf{5} & 2 & 4 \\
+7. One-person maintain.    & \textbf{5} & 4 & 3 & 2 & 2 \\
+8. Numerical precision     & \textbf{5} & 4 & \textbf{5} & \textbf{5} & \textbf{5} \\
+9. Dependency minimization & 2 & 3 & 2 & 4 & 3 \\
+10. Long-term viability    & 3 & \textbf{5} & 3 & \textbf{5} & 4 \\
+\midrule
+\textbf{Raw Total}         & 34 & 38 & 31 & 38 & 38 \\
+\textbf{Weighted Total}    & $\sim$44 & $\sim$47 & $\sim$40 & $\sim$45 & $\sim$46 \\
+\bottomrule
+\end{tabular}
+\caption{Language evaluation scores. Weighting applied using Phase~1 criteria priorities.}
+\end{table}
+
+\subsection{Languages Eliminated}
+
+\begin{description}
+    \item[Julia:] Mathematically ideal but fails on desktop GUI (score~1) and standalone deployment (score~2). These are non-negotiable requirements. Eliminated.
+    \item[Rust:] Strongest type system and deployment, but steep learning curve (score~2 for maintainability) and thin scientific ecosystem (score~2). High investment, uncertain payoff for one-person project. Eliminated.
+    \item[MATLAB:] Eliminated by FOE decision based on:
+    \begin{itemize}
+        \item Deployment: MATLAB Runtime $\sim$2--3\,GB --- unacceptable for target user base.
+        \item Vendor lock-in: Complete dependence on MathWorks with no open-source escape route.
+        \item GUI and AI integration ceilings: structural, not solvable by engineering effort.
+    \end{itemize}
+\end{description}
+
+\subsection{Finalists: Java vs.\ C++ (with Qt)}
+
+A detailed head-to-head comparison was produced covering:
+
+\begin{itemize}
+    \item Vendor lock-in: Java has lower risk (multiple JDK vendors, open-source JavaFX). Qt introduces single-vendor dependency with documented licensing concerns.
+    \item Mathematical expressiveness: C++ with Eigen is more natural (\texttt{a * b} vs.\ \texttt{a.multiply(b)}). Significant for code that embodies theorems.
+    \item GUI: Qt is superior (comprehensive framework, Model/View, Graphics View for future pipeline editor). JavaFX is solid but less comprehensive.
+    \item Scientific ecosystem: C++ stronger (Eigen header-only, Boost.Graph, FFTW). Java requires assembling multiple libraries of varying quality.
+    \item Silent numerical corruption risk: Java eliminates memory-related undefined behavior entirely (GC). C++ carries risk of UB producing silently wrong results --- the worst failure mode for scientific software where C5 (reproducibility) is weighted Very High.
+    \item Learning investment: Java $\sim$1.5 months, C++ $\sim$3--4 months.
+    \item Long-term maintenance: Java lower burden (GC, IDE refactoring, no UB). C++ higher burden (memory management, build system, UB risk).
+    \item Dependency minimization: C++ better (Eigen is header-only, Qt is comprehensive). Java requires more external libraries.
+\end{itemize}
+
+\subsection{FOE Clarifications Provided}
+
+Four questions were posed regarding MATLAB viability. FOE answered:
+
+\begin{enumerate}
+    \item Visual node-graph editor essential? \textbf{No.}
+    \item Streaming AI interaction important? \textbf{Yes, but not essential.}
+    \item Lightweight deployment ($<$100\,MB) needed? \textbf{Definitively an issue} --- confirmed MATLAB's deployment is unacceptable.
+    \item Long-term vendor lock-in concern? \textbf{Yes}, but noted it applies to Java (Oracle) and Qt equally. (Analysis showed Java has structurally lower lock-in risk due to multiple independent JDK/JavaFX implementations.)
+\end{enumerate}
+
+% ================================================================
+\section{Decisions Recorded}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lp{10cm}}
+\toprule
+\textbf{Item} & \textbf{Decision} \\
+\midrule
+MATLAB & Dropped as target language. Structural ceilings on deployment, GUI, AI integration, vendor lock-in. \\
+Julia & Eliminated. GUI and deployment are dealbreakers. \\
+Rust & Eliminated. Learning curve and thin scientific ecosystem for one-person project. \\
+Finalists & Java and C++ (with Qt) remain. \\
+Node-graph editor & Not essential (relaxes I2 requirement). \\
+Streaming AI & Desirable but not essential (relaxes I3 requirement). \\
+ICNNA v2.0 / src2/ & Acknowledged as future direction; decision deferred. \\
+\bottomrule
+\end{tabular}
+\caption{Decisions from Phase~2, Session~1.}
+\end{table}
+
+% ================================================================
+\section{Open Questions for Next Session}
+
+Three questions were posed to FOE regarding the Java vs.\ C++ decision, unanswered due to session interruption:
+
+\begin{enumerate}
+    \item Does the silent-numerical-corruption risk (C++ UB) concern you, or do you feel confident managing it with sanitizers and disciplined modern C++?
+    \item Does the 3--4 month C++ relearning investment feel acceptable?
+    \item Is the mathematical expressiveness advantage of C++ (code reads like the paper) important enough to justify the higher maintenance burden?
+\end{enumerate}
+
+% ================================================================
+\section{Next Steps}
+
+\begin{enumerate}
+    \item FOE to answer the three open questions above.
+    \item Complete Step~A: finalize language recommendation (Java vs.\ C++).
+    \item Proceed to Steps~B--F: full option evaluation (Options~1/2/3) against criteria, deep analysis, synthesis, transitional strategy, risks.
+    \item Step~G: final documentation for Phase~2.
+\end{enumerate}
+
+% ================================================================
+\section{Documents Reviewed}
+
+\begin{enumerate}
+    \item Phase~1 minute: \texttt{claude/Phase1\_minute.tex}
+    \item Phase~1 context prompt: \texttt{claude/Phase1\_context\_prompt.txt}
+    \item Memory files: user profile, project state, reference documents.
+\end{enumerate}
+
+\end{document}

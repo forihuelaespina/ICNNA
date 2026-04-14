@@ -1,0 +1,17 @@
+# claude/.gitignore
+#
+# Excludes TeX build artefacts generated inside this folder.
+# Minute .tex sources and built .pdf outputs ARE tracked (see README.md).
+
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.fls
+*.fdb_latexmk
+*.bbl
+*.blg
+*.nav
+*.snm
+*.vrb
