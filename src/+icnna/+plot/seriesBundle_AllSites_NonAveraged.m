@@ -28,7 +28,7 @@ function seriesBundle_AllSites_NonAveraged(S,options)
 %   options - A struct of options with the following fields.
 %
 %   .destinationFolder - Destination folder. Default value is
-%       '.\<bundleId>_<bundleName>_series\PerSite_NonAveraged\'
+%       '.\<bundleId>_<bundleName>_AllSites_NonAveraged\'
 %
 %   .save - True (default) if you want your figures to be saved. False
 %       otherwise. Figures will be saved in MATLAB .fig format
@@ -135,7 +135,7 @@ function seriesBundle_AllSites_NonAveraged(S,options)
 %% Deal with options
 opt.destinationFolder          = ['.' filesep ...
                                   num2str(S.id,'%04d') '_' S.name ...
-                                  '_seriesAllSitesNonAveraged' filesep];
+                                  '_AllSites_NonAveraged' filesep];
 opt.save                       = true;
 
 %If empty -> not used for filter, ergo all elements included

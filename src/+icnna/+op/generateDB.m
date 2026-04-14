@@ -65,6 +65,8 @@ function [db]=generateDB(S,options)
 
 %% Log
 %
+%  -- ICNNA v1.3.1
+%
 % 7-Aug-2025: FOE
 %   + File created. Reused some code from old function
 %   generateDB_withBreak

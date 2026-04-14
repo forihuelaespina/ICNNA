@@ -1,7 +1,7 @@
-function [S2]=getSubbundle(S,w,c)
+function [S]=getSubbundle(S,w,c)
 % Retrieve a subbundle
 %
-% [S2] = icnna.op.getSubbundle(S,w,c)
+% [S] = icnna.op.getSubbundle(S,w,c)
 %
 %
 % A subbundle can result from filtering:
@@ -111,30 +111,21 @@ function [S2]=getSubbundle(S,w,c)
 %   by using arrayfun.
 %   + Added support for "empty" queries (c is empty).
 %
-
+% -- ICNNA v1.4.1
+%
+% 5-Aug-2025: FOE. 
+%   + Return to pass-by-value.
+%
 
 %% 0) Preliminaries
-%First deep copying the whole bundle and then operating on the copy
-%requires "moving" S.E, S.B and S.p in memory twice. This is slow but
-%safe, as even if new properties are added to the
-%@icnna.data.core.experimentBundle in later versions of the class, the
-%method will still correctly replicate all other properties.
-%
-%If instead, I "just" create a new bundle and copy other properties
-%manually, properties S.E, S.B and S.p only have to be moved in memory
-%once, i.e. faster, but then this method won't be robust to future
-%alterations of the @icnna.data.core.experimentBundle class.
-%
-% For now, I'm opting for the "slower but safer" option.
-S2 = copy(S); %Deep copy the bundle.
 
 if isempty(c) %No filter applied. Return the whole bundle.
     return
 end
 
-tmpE = S2.E;
-tmpB = S2.B;
-tmpp = S2.p;
+tmpE = S.E;
+tmpB = S.B;
+tmpp = S.p;
 
 
 
@@ -238,7 +229,7 @@ switch (w)
         %has now been altered, and hence the projection entries
         %(that are meant to relate to these entries) also ought
         %to be updated accordingly.
-        tmpp(ismember(S2.p{:,'BaseSpacePoint'},idx),:) = [];
+        tmpp(ismember(S.p{:,'BaseSpacePoint'},idx),:) = [];
         tmpp.BaseSpacePoint = updateEntries(tmpp.BaseSpacePoint, idx);
         %3) Remove preimages with no association
         survivingPreimages = unique(tmpp{:,'FamilyOfSpaces'});
@@ -250,7 +241,7 @@ switch (w)
         %1) Filter the total space
         tmpE(idx,:) = [];
         %2) Filter the projection
-        tmpp(ismember(S2.p{:,'FamilyOfSpaces'},idx),:) = [];
+        tmpp(ismember(S.p{:,'FamilyOfSpaces'},idx),:) = [];
         tmpp.FamilyOfSpaces = updateEntries(tmpp.FamilyOfSpaces, idx);
         %3) Remove images with no association
         survivingImages = unique(tmpp{:,'BaseSpacePoint'});
@@ -283,7 +274,7 @@ end
 
 
 %% 3) Finally, update the bundle
-S2.setBundle(tmpE,tmpB,tmpp);
+S = S.setBundle(tmpE,tmpB,tmpp);
 
 
 

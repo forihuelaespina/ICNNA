@@ -1,7 +1,7 @@
 function seriesBundle_SingleSite_NonAveraged(S,options)
 % Series of figures plotting the families of spaces by sampling site and non-block averaged in an icnna.data.core.experimentalBundle
 %
-% icnna.plot.seriesBundle_PerSite_NonAveraged(S,options)
+% icnna.plot.seriesBundle_SingleSite_NonAveraged(S,options)
 %
 % This function generates a series of figures plotting the families
 % of spaces in an icnna.data.core.experimentalBundle by sampling site
@@ -28,7 +28,7 @@ function seriesBundle_SingleSite_NonAveraged(S,options)
 %   options - A struct of options with the following fields.
 %
 %   .destinationFolder - Destination folder. Default value is
-%       '.\<bundleId>_<bundleName>_series\PerSite_NonAveraged\'
+%       '.\<bundleId>_<bundleName>_SingleSite_NonAveraged\'
 %
 %   .save - True (default) if you want your figures to be saved. False
 %       otherwise. Figures will be saved in MATLAB .fig format
@@ -150,7 +150,7 @@ function seriesBundle_SingleSite_NonAveraged(S,options)
 %% Deal with options
 opt.destinationFolder          = ['.' filesep ...
                                   num2str(S.id,'%04d') '_' S.name ...
-                                  '_seriesSingleSiteNonAveraged' filesep];
+                                  '_SingleSite_NonAveraged' filesep];
 opt.save                       = true;
 
 %If empty -> not used for filter, ergo all elements included
@@ -289,7 +289,7 @@ nSamplingSites = size(tmpS.sites,1);
 
 %% Main loop
 
-for iCase = 15232:nCases%1:nCases
+for iCase = 1:nCases
 
     theUnitID           = tmpBcases{iCase,'ExperimentalUnit.id'};
     theGroupID          = tmpBcases{iCase,'Group.id'};

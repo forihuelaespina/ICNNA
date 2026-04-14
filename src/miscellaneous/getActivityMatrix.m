@@ -1,5 +1,5 @@
 function [M,P,S,Im,hFig]=getActivityMatrix(db,options)
-%Computes and plot the channel (significant) activation matrix
+%DEPRECATED. Computes and plot the channel (significant) activation matrix
 %
 % [M,P,S,Im,hFig]=getActivityMatrix(db,options) computes
 %   and plot the channel (significant) activation matrix
@@ -155,6 +155,12 @@ function [M,P,S,Im,hFig]=getActivityMatrix(db,options)
 %
 
 
+warning('icnna:getActivityMatrix:Deprecated',...
+        ['This function is now deprecated. Please use ' ...
+         'icnna.op.getActivityMatrix instead.']);
+
+
+
 %% Log
 %
 % 15-May-2016 (FOE): Updated version.
@@ -163,6 +169,10 @@ function [M,P,S,Im,hFig]=getActivityMatrix(db,options)
 %   the activity matrix figure file is now done through the
 %   util/mySaveFig.m function
 %
+%  -- ICNNA v1.4.1
+%
+% 19-Mar-2026: FOE
+%   + Function deprecated.
 %
 
 internalOpt_Test='SignRank';

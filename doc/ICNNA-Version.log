@@ -14,6 +14,11 @@
 * icnna.op.snirf.snirfNirs2timeline - Extract a timeline from a SNIRF dataset
 * icnna.op.snirf.unfoldMeasurementList - Unfold the measurement list of the snirf data into a table.
 * icnna.op.snirf.snirf2nirsNeuroimage - Convert SNIRF object to ICNNA nirs_neuroimage without applying the MBLL (i.e. return intensities or OD depending on the SNIRF)
+* icnna.op.getActivityMatrix - Supersedes function getActivityMatrix.
+    Computes the activity matrix / Conduct Task-Baseline analysis.
+* icnna.io.exportActivityMatrix - Saves the activity matrix results to
+    Excel or CSV files
+
 
 Bugs fixed:
 + @structuredData/structuredData: After updating the timeline to
@@ -34,6 +39,8 @@ Bugs fixed:
 + @condition.set.nominalSamplingRate: It was still using the tabular
     syntax for cevents from object version 1.1.
 
+Misc
++ miscellaneous/getActivityMatrix - Deprecated
 
 
 
@@ -375,6 +382,7 @@ New functions
     but lighter. Instead of retrievnig a full structuredData object, this
     function concentrates on extracting the data subtensor only.
 + icnna.op.getSubbundle - Filters a bundle / Retrieves a subbundle.
++ icnna.op.generateDB - Generates a database from an @icnna.data.core.experimentBundle
 + icnna.util.padVectors - Pad the vectors in a cell array.
 + icnna_normalize - Replaces deprecated function normalize to avoid name
         conflict with MATLAB's normalize.
