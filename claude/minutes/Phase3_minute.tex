@@ -1,0 +1,842 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{longtable}
+\usepackage{listings}
+\usepackage{graphicx}
+
+% ----------------------------------------------------------
+% Media folder convention
+% ----------------------------------------------------------
+\newcommand{\mediaDir}{media}
+
+% ----------------------------------------------------------
+% Listings style
+% ----------------------------------------------------------
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    columns=fullflexible
+}
+
+\title{ICNNA Architectural Refactoring\\Phase~3 Minute --- Roadmap Definition\\
+\large From v1.4.1-beta to v2.0.0: twenty-eight sub-releases across four arcs}
+\author{Felipe Orihuela-Espina \and Claude (Computational Research Architect)}
+\date{14 April 2026}
+
+\begin{document}
+\maketitle
+
+% ================================================================
+% Document Log
+% ================================================================
+\noindent\textbf{Document Log:}
+\begin{itemize}[nosep]
+    \item 14-Apr-2026: FOE/Claude --- Document created. Records Phase~3 (roadmap definition) in full. Twenty-eight sub-releases organised in four arcs plus eight cross-cutting threads. Phase~3 formally closed by this minute.
+\end{itemize}
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+% ================================================================
+\section{Session Overview}
+
+\begin{description}[style=nextline]
+    \item[Date:] 14 April 2026
+    \item[Participants:] Felipe Orihuela-Espina (FOE), Claude Opus 4.6 (Computational Research Architect role).
+    \item[Predecessors:] Phase~1 minute; Phase~2a minute (12-Apr-2026); Phase~2b minute (13-Apr-2026); Phase~2c minute (13-Apr-2026); Phase~2d closing minute (14-Apr-2026).
+    \item[Objective:] Produce the concrete versioned roadmap from ICNNA v1.4.1-beta (current) through v1.4.2 (the ``modernisation mode begins'' milestone) through subsequent sub-releases to v2.0.0; slot the sixteen deferred decisions (D.1--D.16) from Phase~2d~\S3.C; identify and fold seven additional items surfaced during Phase~3 review.
+    \item[Outcome:] Roadmap defined. Twenty-eight sub-releases identified across four arcs (Readiness, Spine+Experimental-design, Peripheral+Behaviour, Endpoint). Eight cross-cutting threads embedded. Session budget estimate: \textbf{$\sim$65--95 sessions} across $\sim$2--3~years at research pace. All sixteen D.\texttt{*} items slotted. Seven new items incorporated (Phase~3 additions, \S\ref{sec:phase3additions}).
+    \item[Model used:] Claude Opus 4.6.
+    \item[Status:] \textbf{Phase~3 is formally closed with this minute.} Phase~4 (execution planning: v1.4.2 session-level breakdown) to follow in a separate session.
+\end{description}
+
+% ================================================================
+\section{Phase~3 Inputs and Starting Posture}
+
+Phase~3 opened with the canonical Phase~2 closing artefacts:
+
+\begin{itemize}
+    \item The nine design principles P1--P9 (Phase~2c minute \S4.2).
+    \item The seven operating rules for internal transition (Phase~2d minute \S E.1, Rules~1--7).
+    \item The six coexistence policies with Cantor (Phase~2d minute \S E.2).
+    \item The six handover policies (Phase~2d minute \S E.3).
+    \item The five communication policies (Phase~2d minute \S E.4).
+    \item The open-items registry (Phase~2d minute \S F), particularly the sixteen deferred decisions D.1--D.16.
+    \item The v1.4.2 pre-packed milestone content (Phase~2d minute \S E.1 Q4): test infrastructure, GUI deprecation, \texttt{+icnna.compat} creation, $\gamma\to\beta$ migration of 5--6 sites, R2021a declaration.
+\end{itemize}
+
+FOE supplied the Phase~3 prompt at session start, taking precedence over the draft at \texttt{claude/prompts/Phase3\_context\_prompt.txt} per the Phase~2d~\S G.4 instruction.
+
+Phase~3 proceeded iteratively: (i)~a first-draft roadmap presented for review; (ii)~five substantive gaps flagged by FOE (experimental-design flexibility, registration-tool behaviour, QC behaviour, signal processing, UML/docs); (iii)~revised roadmap; (iv)~seven further items surfaced in a ``what am I missing'' sweep; (v)~confirmations; (vi)~this minute.
+
+% ================================================================
+\section{Phase~3 Additions Beyond Phase~2d Deferred Decisions}
+\label{sec:phase3additions}
+
+Seven items were surfaced during Phase~3 review that were not explicit Phase~2d D.\texttt{*} items but have non-trivial implications for the roadmap:
+
+\begin{longtable}{p{1.5cm}p{11.5cm}p{2cm}}
+\toprule
+\textbf{ID} & \textbf{Item} & \textbf{Home} \\
+\midrule
+\endhead
+N.1 & \textbf{Experimental-design generalisation}: ICNNA's \texttt{experiment}/\texttt{session}/\texttt{condition} model currently struggles with event-related designs, within-group allocation, and multifactorial designs (users ``abuse'' the session concept). Generalisation is a survival-tier requirement of the \texttt{experiment} redesign. & v1.4.7a (memo), v1.4.7b (impl) \\
+N.2 & \textbf{Registration behaviour}: The registration tool is not a channelLocationMap wrapper but carries genuine computational behaviour (standards alignment 10/20/10-10/10-5, atlas alignment, mesh, distances). Research drift expected; FOE to supply material. & v1.5.2 (standards), v1.5.3 (atlas+research) \\
+N.3 & \textbf{QC concrete behaviour}: \texttt{+icnna.data.core.qc} and \texttt{qcCriterion} exist as classes but lack concrete criterion implementations. Split tiered: survival tier = current ICNNA criteria (saturation, mirroring, integrity); enhancement tier = SCI, CV, and others from overprocessing/pipeline-optimisation literature. & v1.5.4 (survival), v1.6.4 (enhancement) \\
+N.4 & \textbf{Signal processing expansion}: Current \texttt{+icnna.op} is thin. Serious enhancement needed in motion correction (beyond TDDR), physiological regression (SPA-like, beyond short-channel), and synthetic data generation (absent). Three dedicated sub-releases. & v1.6.0, v1.6.1, v1.6.2, v1.6.3 \\
+N.5 & \textbf{Documentation modernisation}: UML framework decision (keep \texttt{m2uml}, retire ArgoUML, adopt PlantUML); User Guide LaTeX migration (currently \texttt{.docx} lineage); Limitations document folded into User Guide appendix. & v1.4.3.3 (scaffolding), cross-cutting thread \\
+N.6 & \textbf{User \texttt{.mat} backward-compatibility}: When \texttt{oo/@X} classes are deleted at v1.8.0, users' saved \texttt{.mat} archives containing legacy class instances will fail \texttt{load()}. Mitigation via \texttt{+icnna.compat.load<ClassName>.m} adapters shipped with every modernised class in Arc~B. & Cross-cutting thread (Arc~B) \\
+N.7 & \textbf{Operational infrastructure}: Error-ID convention codification; MATLAB toolbox dependency declaration (Statistics accepted; Signal Processing to be avoided where feasible); CITATION.cff using DOI 10.1117/1.NPh.5.1.011011; hybrid CI (GitHub Actions on PR/push + local coverage); bug-tracking discipline (GitHub Issues with labels + CONTRIBUTING.md + User Guide ``Known limitations'' appendix); performance benchmark harness (acknowledging the pass-by-value ceiling as intended, detecting only redesign-introduced regressions within that ceiling). & v1.4.3.2, v1.4.7b/v1.4.8 (benchmarks) \\
+\bottomrule
+\end{longtable}
+
+These seven additions are first-class roadmap items from this point forward.
+
+% ================================================================
+\section{Roadmap Overview}
+
+\subsection{Arcs}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llll}
+\toprule
+\textbf{Arc} & \textbf{Versions} & \textbf{Sessions} & \textbf{Theme} \\
+\midrule
+A. Readiness & v1.4.2, v1.4.3.1--.3 & 6--8 & Code infra + disclosure + conventions + docs scaffolding \\
+B. Spine + experimental design & v1.4.4 -- v1.4.8 & 12--17 & P1 core-class modernisation + \texttt{experiment} generalisation \\
+C. Peripheral + behaviour & v1.4.9 -- v1.7.0 & 27--39 & rawData, spatial, registration, QC, analysis, signal proc, synthetic, BIDS \\
+D. Endpoint & v1.8.0 -- v2.0.0 & 15--25 & \texttt{oo/} removal, handover, unified GUI, User Guide polish \\
+\midrule
+\multicolumn{2}{l}{\textbf{Total}} & \textbf{60--89} & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Cross-cutting threads}
+
+Eight threads span versions rather than living in a single sub-release:
+
+\begin{enumerate}[label=\textbf{T\arabic*.}]
+    \item \textbf{User Guide (LaTeX migration)}: skeleton at v1.4.3.3; chapter landings at v1.4.8 (data model), v1.5.5 (analysis), v1.6.4 (quality control); full polish at v2.0.0.
+    \item \textbf{UML refresh}: initial snapshot at v1.4.3.3 (\texttt{m2uml} + PlantUML seed); spine refresh at v1.4.8; peripheral refresh at v1.5.5; final at v2.0.0.
+    \item \textbf{Compat ledger drain}: opportunistic every sub-release; explicit catch-up sweeps at v1.4.8 and v1.8.0; final deletion at v2.0.0.
+    \item \textbf{\texttt{.mat} load-compat adapters} (N.6): every legacy class modernised in Arc~B ships \texttt{+icnna.compat.load<ClassName>.m}; adapters retained past v1.8.0 \texttt{oo/} deletion; removed at v2.0.0.
+    \item \textbf{Performance benchmark harness} (N.7, \S\ref{sec:benchmarkclarification}): baseline at v1.4.7b; re-run at each Arc-B release; human-read comparison; not CI-gated.
+    \item \textbf{Examples gallery (cookbook)} (D.12 extension): grows organically in \texttt{doc/examples/}; FOE to contribute ``series''-style worked examples as seeds when the time comes.
+    \item \textbf{Bug-tracking discipline} (N.7): GitHub Issues adopted as tracker from v1.4.3.2 onward; durable known limitations mirror into User Guide appendix.
+    \item \textbf{Fixture provenance} (ties to D.7 IP ledger): Claude flags source, license, and IP-owner whenever a new fixture is introduced; FOE provides ownership details; ledger updated.
+\end{enumerate}
+
+\subsection{Principle and rule traceability}
+
+The roadmap honours:
+
+\begin{itemize}[nosep]
+    \item \textbf{P1} (data model first): Arc~B precedes Arc~C entirely.
+    \item \textbf{P2} (test-backed from day one): v1.4.2 lands test infrastructure; every Arc-B/C class modernised ships with tests.
+    \item \textbf{P3} (sub-releases 1--3 sessions, each usable): honoured across all sub-releases; heavy releases (v1.4.3, v1.4.7) split explicitly.
+    \item \textbf{P4} (GUI deprecation clean cut): v1.4.2.
+    \item \textbf{P5} (flat architecture = design task): enforced via design-memo releases (v1.4.7a, v1.5.3, v1.9.0).
+    \item \textbf{P6} (bottom-up, relaxed): respected in Arc~B ordering.
+    \item \textbf{P7} (survival vs enhancement): explicitly tiered in QC (v1.5.4 vs v1.6.4), signal processing (v1.6.0 survival vs v1.6.1/.2 enhancement), BIDS (export survival, round-trip enhancement).
+    \item \textbf{P8} (research-interrupt tolerance): 1--3 session budget per release; each release leaves codebase usable; Rule 2 mixed granularity.
+    \item \textbf{P9} (scope containment): design-memo splits prevent scope creep in implementation releases.
+    \item \textbf{Rule 1} (soft cut): every modernised class deprecates legacy rather than deleting.
+    \item \textbf{Rule 4} (opportunistic caller migration, cleanup at $\leq 3$ sites, D.1): absorbed into v1.4.8 and v1.7.0 cleanup sweeps.
+    \item \textbf{Rule 5} ($\beta$ bridging via \texttt{+icnna.compat}): all bridging in \texttt{+icnna.compat/}; final deletion at v2.0.0.
+    \item \textbf{Rule 6} (v1.4.2 is the ``modernisation mode begins'' milestone): locked.
+    \item \textbf{Rule 7} (\texttt{*}/\texttt{*Definition} decoupled): honoured by treating paired redesigns case-by-case.
+\end{itemize}
+
+% ================================================================
+\section{Version-by-Version Breakdown}
+
+Per-version convention: \textbf{G} goals, \textbf{M} modules, \textbf{T} tasks enumerated, \textbf{E} estimate, \textbf{R} primary risk. Cross-references to deferred decisions D.\texttt{*} and Phase~3 additions N.\texttt{*}.
+
+% ----------------------------------------------------------
+\subsection{Arc~A --- Readiness}
+
+\subsubsection*{v1.4.2 --- ``Modernisation Mode Begins''}
+
+Pre-packed per Phase~2d~\S E.1 Q4.
+
+\begin{description}
+    \item[G.] Land the one-time modernisation switch in a single release.
+    \item[M.] \texttt{tests/}, \texttt{+icnna.compat/}, \texttt{GUI/} (deprecation), \texttt{icnna\_startup.m}, \texttt{doc/examples/}.
+    \item[T.]
+        \begin{enumerate}[nosep]
+            \item Create \texttt{tests/} root with \texttt{matlab.unittest} skeleton and runner harness (D.15).
+            \item Implement \texttt{+icnna.compat.toModernTimeline}.
+            \item Migrate the 5--6 $\gamma$-sites in modern code to the adapter (Rule~5).
+            \item Deprecate \texttt{GUI/} folder: deprecation banner + release-note posture (E.4.1).
+            \item Enforce R2021a minimum in \texttt{icnna\_startup.m} with version guard.
+            \item One CLI worked example in \texttt{doc/examples/} (D.12 minimum).
+        \end{enumerate}
+    \item[E.] 1--2 sessions.
+    \item[R.] Concentrated breakage; tests-first mitigates.
+\end{description}
+
+\subsubsection*{v1.4.3.1 --- ``Disclosure artefacts''}
+
+\begin{description}
+    \item[G.] Lock durable disclosure/academic artefacts.
+    \item[M.] \texttt{CHANGELOG.md}, \texttt{doc/ip\_ledger.tex}, \texttt{CITATION.cff}, \texttt{doc/UserGuide/} (begun in .3.3).
+    \item[T.]
+        \begin{enumerate}[nosep]
+            \item Seed \texttt{CHANGELOG.md} at repo root (Keep-a-Changelog), full migration from \texttt{doc/ICNNA-Version.log} (D.11, per \S9 full-disclosure).
+            \item Collaborative \texttt{doc/ip\_ledger.tex} pass with FOE's institutional input (D.7).
+            \item \texttt{CITATION.cff} at repo root using DOI \texttt{10.1117/1.NPh.5.1.011011}; current citation extracted from \texttt{README.md}.
+            \item Retire \texttt{doc/ICNNA\_Limitations.doc} as standalone; content to be folded into User Guide at v1.4.3.3.
+        \end{enumerate}
+    \item[E.] 2 sessions.
+    \item[R.] D.7 blocked on institutional consultation; advance with placeholder and revisit.
+\end{description}
+
+\subsubsection*{v1.4.3.2 --- ``Conventions \& tooling''}
+
+\begin{description}
+    \item[G.] Lock operational conventions and CI so later releases inherit them.
+    \item[M.] \texttt{doc/conventions/}, \texttt{.github/workflows/}, \texttt{CONTRIBUTING.md}, \texttt{ROADMAP.md}.
+    \item[T.]
+        \begin{enumerate}[nosep]
+            \item Deprecation-warning mechanism convention (D.2).
+            \item Doxygen-style header template for \texttt{+icnna.compat} members (D.3).
+            \item MATLAB-version support statement wording (D.8) --- appears in \texttt{icnna\_startup.m} and User Guide.
+            \item Error-throwing convention document \texttt{doc/conventions/errorIds.tex} codifying current \texttt{icnna:<namespace>:<reason>} style. No behavioural change.
+            \item MATLAB toolbox dependency declaration \texttt{doc/conventions/toolboxDeps.tex}. Statistics Toolbox: accepted dependency. Signal Processing Toolbox: avoided where feasible; re-evaluate per-op in Arc~C. Startup warning if declared dependency missing.
+            \item Hybrid CI setup (N.7 option c): \texttt{.github/workflows/ci.yml} running \texttt{matlab.unittest} + lint on PR/push using MathWorks' published GitHub Action; coverage computed locally, not CI-gated.
+            \item Bug-tracking discipline: adopt GitHub Issues with labels (\texttt{bug}, \texttt{enhancement}, \texttt{question}, \texttt{blocked-on-cantor}, \texttt{survival-tier}, \texttt{enhancement-tier}); add \texttt{CONTRIBUTING.md} describing issue-filing.
+            \item Commit \texttt{ROADMAP.md} at repo root (this roadmap, textual form).
+        \end{enumerate}
+    \item[E.] 2 sessions.
+    \item[R.] CI friction on first green run; isolate by landing workflow last.
+\end{description}
+
+\subsubsection*{v1.4.3.3 --- ``Documentation scaffolding''}
+
+\begin{description}
+    \item[G.] Documentation toolchain locked; User Guide LaTeX skeleton ready to grow.
+    \item[M.] \texttt{doc/UML/}, \texttt{doc/UserGuide/}.
+    \item[T.]
+        \begin{enumerate}[nosep]
+            \item Retire ArgoUML: move \texttt{.zargo} + historical PDFs (\texttt{ICAF*.pdf}, old UML assets) to \texttt{doc/UML/historical/}; README note marking ArgoUML discarded; archive-only status.
+            \item Adopt PlantUML: create \texttt{doc/UML/plantuml/} with a seed flat-architecture diagram.
+            \item First \texttt{m2uml} run capturing current dual state (\texttt{oo/} + \texttt{+icnna/}) in \texttt{doc/UML/ICNNA/v1.4.3.3/}.
+            \item User Guide LaTeX skeleton: \texttt{doc/UserGuide/main.tex} with chapter stubs covering: Introduction; Installation; Data model; Sessions \& experiments; Hardware support (rawData); Registration; Quality control; Signal processing; BIDS; GUI; Known limitations (appendix, folded from \texttt{ICNNA\_Limitations.doc}); Migration from legacy (\texttt{.mat} load-compat rule documented here).
+            \item Migration plan from \texttt{ICNNA\_UserGuide.pdf} + MENA guide lineage to LaTeX.
+        \end{enumerate}
+    \item[E.] 1--2 sessions.
+    \item[R.] Scope of LaTeX migration; only skeleton here, content migrates progressively.
+\end{description}
+
+% ----------------------------------------------------------
+\subsection{Arc~B --- Data-model spine + experimental-design generalisation}
+
+Order derived from dependency graph: \texttt{signal} $\to$ \texttt{structuredData} $\to$ \texttt{dataSource} $\to$ \texttt{session} $\to$ \texttt{experiment}. \texttt{*Definition} siblings decoupled (Rule 7) except where natural pairing emerges.
+
+\subsubsection*{v1.4.4 --- \texttt{signal} + \texttt{structuredData} + \texttt{neuroimage} + \texttt{nirs\_neuroimage}}
+
+\begin{description}
+    \item[G.] Lowest layer of the spine; flat-architecture redesign, not port (P5).
+    \item[M.] \texttt{+icnna.data.core.signal}, \texttt{.structuredData}, \texttt{.neuroimage}, \texttt{.nirs\_neuroimage}; \texttt{tests/data/core/}; \texttt{+icnna.compat/load*} adapters.
+    \item[T.]
+        \begin{enumerate}[nosep]
+            \item Design note on \texttt{signal} / \texttt{structuredData} interface (P5).
+            \item Implement modern \texttt{signal}; tests.
+            \item Implement modern \texttt{structuredData}; tests.
+            \item Implement \texttt{neuroimage} and \texttt{nirs\_neuroimage} as \texttt{structuredData} specialisations; tests.
+            \item Ship \texttt{+icnna.compat.loadSignal}, \texttt{loadStructuredData}, \texttt{loadNeuroimage}, \texttt{loadNirs\_neuroimage} (N.6).
+            \item Deprecate \texttt{oo/@signal}, \texttt{oo/@structuredData}, \texttt{oo/@neuroimage}, \texttt{oo/@nirs\_neuroimage}.
+        \end{enumerate}
+    \item[E.] 3--4 sessions.
+    \item[R.] \texttt{structuredData} has deep semantic ties to analysis pipelines; strict P9.
+\end{description}
+
+\subsubsection*{v1.4.5 --- \texttt{dataSource} + \texttt{dataSourceDefinition}; retire \texttt{@rawData\_Snirf}}
+
+\begin{description}
+    \item[G.] Mid-spine layer; resolve HC6 (D.16).
+    \item[M.] \texttt{+icnna.data.core.dataSource}, \texttt{.dataSourceDefinition}; \texttt{oo/@rawData\_Snirf} retirement; \texttt{+icnna.compat/load*}.
+    \item[T.]
+        \begin{enumerate}[nosep]
+            \item Design note on \texttt{dataSource} $\leftrightarrow$ \texttt{dataSourceDefinition} interface (paired by necessity).
+            \item Implement modern \texttt{dataSource}; tests.
+            \item Implement modern \texttt{dataSourceDefinition}; tests.
+            \item D.16: migrate remaining \texttt{oo/@rawData\_Snirf} callers to \texttt{+icnna.data.snirf.*}; retire the legacy folder.
+            \item Ship \texttt{loadDataSource}, \texttt{loadDataSourceDefinition} (N.6).
+            \item Deprecate \texttt{oo/@dataSource}, \texttt{oo/@dataSourceDefinition}.
+            \item Add \texttt{+icnna.compat.toModernDataSource} if $\beta$-bridging needed.
+        \end{enumerate}
+    \item[E.] 2--3 sessions.
+    \item[R.] Pipeline analyses may assume old \texttt{dataSource} shape.
+\end{description}
+
+\subsubsection*{v1.4.6 --- \texttt{session} + \texttt{sessionDefinition}}
+
+\begin{description}
+    \item[G.] Session layer; holds modern \texttt{dataSource} by ID (flat).
+    \item[M.] \texttt{+icnna.data.core.session}, \texttt{.sessionDefinition}.
+    \item[T.]
+        \begin{enumerate}[nosep]
+            \item Design note (paired).
+            \item Implement modern \texttt{session} with multi-dataSource support; tests.
+            \item Implement modern \texttt{sessionDefinition} (or defer per Rule 7).
+            \item Ship \texttt{loadSession}, \texttt{loadSessionDefinition} (N.6).
+            \item Deprecate legacy; compat adapters as needed.
+        \end{enumerate}
+    \item[E.] 2 sessions.
+    \item[R.] Resist folding experimental-design generalisation here --- that is v1.4.7.
+\end{description}
+
+\subsubsection*{v1.4.7a --- Experimental-design \& experiment-container design memo}
+
+Design-only release per P5. \textbf{Requires FOE input}: Cantor-era pre-collaboration notes on experimental designs.
+
+\begin{description}
+    \item[G.] Agree on the generalised experiment model before implementing it.
+    \item[M.] \texttt{doc/designMemos/experimentModel.tex}; \texttt{doc/UML/plantuml/experimentModel.puml}; \texttt{claude/minutes/}.
+    \item[T.]
+        \begin{enumerate}[nosep]
+            \item Read and extract FOE's pre-collaboration Cantor notes.
+            \item Enumerate 5--8 concrete design scenarios ICNNA currently fails cleanly (event-related, within-group allocation, multifactorial, etc.).
+            \item Design memo: UML of revised \texttt{experiment}/\texttt{experimentalGroup}/\texttt{experimentalUnit}/\texttt{condition}/\texttt{timeline} relationships; mapping each scenario $\to$ revised model; non-goals (what stays Cantor-side).
+            \item Record decisions in \texttt{CHANGELOG.md} (Unreleased) and project memory.
+        \end{enumerate}
+    \item[E.] 1--2 sessions.
+    \item[R.] Gated on FOE material; advance with placeholders if delayed.
+\end{description}
+
+\subsubsection*{v1.4.7b --- \texttt{experiment} redesign implementation}
+
+\begin{description}
+    \item[G.] Implement the v1.4.7a memo; establish performance benchmark baseline.
+    \item[M.] \texttt{+icnna.data.core.experiment}; possibly extended \texttt{experimentalGroup}/\texttt{experimentalUnit}/\texttt{condition}; \texttt{tests/performance/}.
+    \item[T.]
+        \begin{enumerate}[nosep]
+            \item Implement modern \texttt{experiment} per memo; holds IDs, not nested objects.
+            \item Extend design-support classes per memo if needed.
+            \item Full test suite for identified design scenarios.
+            \item Ship \texttt{loadExperiment} (N.6).
+            \item Migration notes in \texttt{CHANGELOG.md} under Added/Changed.
+            \item Deprecate \texttt{oo/@experiment}.
+            \item \textbf{Performance benchmark harness baseline} (N.7): \texttt{tests/performance/} with 3--5 representative workflows on fixture data; baseline committed. See \S\ref{sec:benchmarkclarification} for the pass-by-value clarification.
+        \end{enumerate}
+    \item[E.] 3--4 sessions.
+    \item[R.] Largest single redesign of the plan; may split v1.4.7b-i (core \texttt{experiment}) / -ii (design-support classes).
+\end{description}
+
+\subsubsection*{v1.4.8 --- Spine cleanup + UML refresh + User Guide Data-model chapter}
+
+\begin{description}
+    \item[G.] Drain compat ledger for spine-layer; refresh UML; first User Guide content landing.
+    \item[T.]
+        \begin{enumerate}[nosep]
+            \item Audit \texttt{+icnna.compat/}; retire adapters whose legacy class is now unreachable.
+            \item Caller-migration sweep: any legacy spine class with caller count $\leq \sim 3$ (D.1 threshold, tentatively 3; confirm during sweep) --- migrate \& delete.
+            \item Full \texttt{m2uml} refresh of modern spine; commit under \texttt{doc/UML/ICNNA/v1.4.8/}.
+            \item Update PlantUML flat-architecture diagram.
+            \item \textbf{User Guide chapter}: ``Data model'' migrated to LaTeX (first chapter land, T.1 thread).
+            \item Benchmark re-run against v1.4.7b baseline.
+            \item Release notes + CHANGELOG.
+        \end{enumerate}
+    \item[E.] 1--2 sessions.
+    \item[R.] Low; designed as a breather release.
+\end{description}
+
+% ----------------------------------------------------------
+\subsection{Arc~C --- Peripheral modernisation + behaviour}
+
+\subsubsection*{v1.4.9 --- \texttt{rawData} base audit \& close}
+
+\begin{description}
+    \item[G.] Confirm modern \texttt{rawData} base is complete; lock interface before subtype family.
+    \item[T.] audit \texttt{+icnna.data.core.rawData}; add missing tests; interface-freeze note.
+    \item[E.] 1 session.
+    \item[R.] Low.
+\end{description}
+
+\subsubsection*{v1.5.0 --- rawData subtype family}
+
+\begin{description}
+    \item[G.] Modernise hardware-specific subtypes.
+    \item[M.] \texttt{+icnna.data.misc.rawData\_ETG4000}, \texttt{\_NIRScout}, \texttt{\_Shimadzu}, \texttt{\_UCLWireless}, \texttt{\_LSL}, \texttt{\_BioHarnessECG} (following \texttt{+icnna.data.misc.rawData\_NIRx} convention).
+    \item[T.] one subtype per 0.5--1 session; tests with small vendor fixture files; deprecate legacy; \texttt{loadRawData\_*} adapters per subtype (N.6); flag fixture provenance (T.8).
+    \item[E.] 3--4 sessions (may split).
+    \item[R.] Vendor-format drift; mitigation fixture-based regression tests.
+\end{description}
+
+\subsubsection*{v1.5.1 --- Spatial/ROI layer}
+
+\begin{description}
+    \item[G.] Spatial-infrastructure classes that registration depends on.
+    \item[M.] \texttt{+icnna.data.core.channelLocationMap}, \texttt{.cluster}, \texttt{.imagePartition}, \texttt{.roi}, grids (\texttt{.logarithmicRadialGrid}, \texttt{.menaGrid}).
+    \item[T.] modernise each; invariant-based tests; deprecate legacy; \texttt{+icnna.compat/load*}; migrate modern callers.
+    \item[E.] 3 sessions.
+    \item[R.] Low current use $\Rightarrow$ low-coverage tests; mitigation invariant-based tests.
+\end{description}
+
+\subsubsection*{v1.5.2 --- Registration~I: standards mapping}
+
+\begin{description}
+    \item[G.] Modernise registration computation layer aligned to standards (10/20, 10/10, 10/5).
+    \item[M.] \texttt{+icnna.op.registration.*}; \texttt{+icnna.data.core.referenceLocation} (if not modern).
+    \item[T.]
+        \begin{enumerate}[nosep]
+            \item Design note on registration API surface (separation from GUI).
+            \item Implement standards-system mapping (10/20 family); tests with known optode layouts.
+            \item Modernise mesh-related helpers driven by \texttt{channelLocationMap}.
+            \item Distance and projection primitives.
+        \end{enumerate}
+    \item[E.] 2--3 sessions.
+    \item[R.] Research-drift absorption (handled at v1.5.3).
+\end{description}
+
+\subsubsection*{v1.5.3 --- Registration~II: atlas alignment + research absorption}
+
+\textbf{Requires FOE input}: research material on atlas alignment.
+
+\begin{description}
+    \item[G.] Absorb FOE-provided research on atlas alignment into the registration API.
+    \item[T.]
+        \begin{enumerate}[nosep]
+            \item Read and extract the research material.
+            \item Design memo on atlas-alignment API (\texttt{doc/designMemos/registration.tex}).
+            \item Implement atlas-alignment operations; tests on synthetic + known atlases.
+        \end{enumerate}
+    \item[E.] 2--3 sessions (may split v1.5.3a/b once material reviewed).
+    \item[R.] Scope uncertainty; memo-first controls it.
+\end{description}
+
+\subsubsection*{v1.5.4 --- QC behaviour (survival tier)}
+
+\begin{description}
+    \item[G.] Give \texttt{+icnna.data.core.qc}/\texttt{qcCriterion} concrete behaviour for all criteria currently in legacy ICNNA.
+    \item[T.]
+        \begin{enumerate}[nosep]
+            \item Inventory current ICNNA criteria (saturation, mirroring, channel integrity, \ldots).
+            \item Define abstract \texttt{qcCriterion.evaluate(data) $\to$ qcResult} contract.
+            \item Implement concrete criteria: \texttt{qcCriterion\_Saturation}, \texttt{\_Mirroring}, \texttt{\_ChannelIntegrity}, \ldots (one per legacy check).
+            \item \texttt{qc} aggregation + reporting interface.
+            \item Tests per criterion against fixture data.
+        \end{enumerate}
+    \item[E.] 2--3 sessions.
+    \item[R.] Survival criteria assumed stable; enhancement criteria deferred to v1.6.4.
+\end{description}
+
+\subsubsection*{v1.5.5 --- \texttt{analysis} + \texttt{experimentSpace} + \texttt{integrityStatus} + \texttt{ecg} + UML refresh + User Guide Analysis chapter}
+
+\begin{description}
+    \item[G.] Top of analysis chain; second User Guide chapter; peripheral UML refresh.
+    \item[T.]
+        \begin{enumerate}[nosep]
+            \item Design note on \texttt{analysis}/\texttt{experimentSpace} interface (P5).
+            \item Modernise each class; tests.
+            \item Migrate callers; deprecate legacy; \texttt{+icnna.compat/load*}.
+            \item \texttt{m2uml} peripheral refresh.
+            \item \textbf{User Guide chapter}: ``Analysis'' migrated/updated.
+            \item Benchmark re-run.
+        \end{enumerate}
+    \item[E.] 3 sessions.
+    \item[R.] Moderate; \texttt{experimentSpace} semantics may need clarification --- contain via memo.
+\end{description}
+
+\subsubsection*{v1.6.0 --- Signal processing~I: survival-tier core ops}
+
+\begin{description}
+    \item[G.] Essential DSP ops expected by current users; missing or scattered today. Minimise Signal Processing Toolbox dependency.
+    \item[M.] \texttt{+icnna.op.signal.*}.
+    \item[T.]
+        \begin{enumerate}[nosep]
+            \item Bandpass / high-pass / low-pass filters (FIR + IIR) via base MATLAB \texttt{filter} where feasible; coefficient design via simple analytic formulae or offline. Flag if circumvention proves impractical.
+            \item Detrending (polynomial, moving average).
+            \item Concentration conversions audit: move existing \texttt{deltaOD2deltaConcentrations}, \texttt{intensity2deltaOD}, \texttt{invertMBLL} to \texttt{+icnna.op.signal.mbll.*}.
+            \item DC removal, baseline correction.
+            \item Tests: impulse/step responses; dimensional consistency per global CLAUDE.md~\S 2.5.
+        \end{enumerate}
+    \item[E.] 3 sessions.
+    \item[R.] Algorithm correctness; mitigation impulse/step-response tests.
+\end{description}
+
+\subsubsection*{v1.6.1 --- Signal processing~II: motion correction beyond TDDR}
+
+\begin{description}
+    \item[G.] Broader motion-correction toolkit; optode-movement is a stated concern.
+    \item[M.] \texttt{+icnna.op.signal.motion.*}.
+    \item[T.]
+        \begin{enumerate}[nosep]
+            \item Survey: TDDR (existing), spline interpolation, wavelet-based, CBSI, hybrid. Design note.
+            \item Implement top 2--3 per survey recommendation.
+            \item Unified motion-correction interface (method selection + composition).
+            \item Tests with synthetic movement artefacts (ties to v1.6.3).
+        \end{enumerate}
+    \item[E.] 2--3 sessions.
+    \item[R.] Method selection; mitigation unified interface, user picks.
+\end{description}
+
+\subsubsection*{v1.6.2 --- Signal processing~III: physiological regression (SPA-like and beyond)}
+
+\begin{description}
+    \item[G.] Physiological-regression toolkit beyond short-channel.
+    \item[M.] \texttt{+icnna.op.signal.physioReg.*}.
+    \item[T.]
+        \begin{enumerate}[nosep]
+            \item Design note: short-channel regression, SPA, adaptive filtering, ICA-based approaches.
+            \item Implement short-channel regression (baseline).
+            \item Implement SPA-like regression.
+            \item Tests with synthetic data (ties to v1.6.3).
+        \end{enumerate}
+    \item[E.] 2--3 sessions.
+    \item[R.] Research drift; expect refinement cycles.
+\end{description}
+
+\subsubsection*{v1.6.3 --- Synthetic data generation + reproducibility policy}
+
+\begin{description}
+    \item[G.] Generate synthetic fNIRS data with known ground truth for testing + method validation.
+    \item[M.] \texttt{+icnna.op.synthesis.*}.
+    \item[T.]
+        \begin{enumerate}[nosep]
+            \item Design note on synthetic data model: HRF shapes, noise models, physiological contamination (Mayer, respiration, cardiac), motion-artefact injection.
+            \item Implement HRF-based signal generator.
+            \item Implement noise generators (white, pink, physiological).
+            \item Implement motion-artefact injection to validate v1.6.1.
+            \item Round-trip tests through modernised pipeline.
+            \item \textbf{Random-seed policy}: all synthesis ops accept optional seed; default reproducible; \texttt{doc/conventions/reproducibility.tex}.
+        \end{enumerate}
+    \item[E.] 2--3 sessions.
+    \item[R.] Research-grade scope; mitigation minimum-first, iterate.
+\end{description}
+
+\subsubsection*{v1.6.4 --- QC behaviour (enhancement tier) + User Guide QC chapter}
+
+\begin{description}
+    \item[G.] Modern QC criteria beyond legacy.
+    \item[T.]
+        \begin{enumerate}[nosep]
+            \item Implement \texttt{qcCriterion\_SCI} (scalp coupling index).
+            \item Implement \texttt{qcCriterion\_CV} (coefficient of variation).
+            \item Additional criteria from overprocessing / pipeline-optimisation literature.
+            \item Tests; \texttt{m2uml} refresh of QC surface.
+            \item \textbf{User Guide chapter}: ``Quality control''.
+        \end{enumerate}
+    \item[E.] 2 sessions.
+    \item[R.] Enhancement-tier (P7); droppable to Cantor if under pressure.
+\end{description}
+
+\subsubsection*{v1.7.0 --- BIDS compatibility}
+
+\begin{description}
+    \item[G.] BIDS-fNIRS export; round-trip is enhancement (D.14).
+    \item[M.] \texttt{+icnna.io.bids.*}.
+    \item[T.]
+        \begin{enumerate}[nosep]
+            \item Pin to dated BIDS-fNIRS spec revision.
+            \item Implement BIDS export from modern \texttt{experiment}/\texttt{session}/\texttt{dataSource}/\texttt{rawData}.
+            \item Tests against BIDS-validator fixtures.
+            \item Enhancement: import (round-trip).
+        \end{enumerate}
+    \item[E.] 2--3 sessions.
+    \item[R.] R.FM4 spec drift; mitigated by dated pin.
+\end{description}
+
+% ----------------------------------------------------------
+\subsection{Arc~D --- Endpoint}
+
+\subsubsection*{v1.8.0 --- \texttt{oo/} removal sweep}
+
+\begin{description}
+    \item[G.] Delete the legacy \texttt{oo/} tree; \texttt{+icnna.compat/} shrinks to only \texttt{load*} adapters + residual legitimate bridges.
+    \item[T.] final grep audit; delete unreachable \texttt{oo/@*} folders; update startup path; tests pass clean; CHANGELOG ``Removed''. \textbf{Load-compat adapters retained} (N.6) for user archives.
+    \item[E.] 1--2 sessions.
+    \item[R.] Surprise caller; mitigation full test-suite run pre-delete.
+\end{description}
+
+\subsubsection*{v1.8.1 --- Handover preparation}
+
+\begin{description}
+    \item[G.] Draft handover artefacts per E.3 (may wait on Cantor maturity).
+    \item[T.]
+        \begin{enumerate}[nosep]
+            \item Draft feature-parity checklist (D.5) with Cantor; may stay open.
+            \item Draft migration guide skeleton SNIRF/BIDS $\to$ Cantor (D.6).
+            \item Draft handover-moment announcement (D.9); still deferred per E.4.3 if premature.
+        \end{enumerate}
+    \item[E.] 2 sessions.
+    \item[R.] Gated on Cantor progress; advance what is independent.
+\end{description}
+
+\subsubsection*{v1.9.0 --- New GUI design memo: unified application}
+
+Design-only release.
+
+\begin{description}
+    \item[G.] Design the unified GUI before building; subsume \texttt{guiRegistration} and other separate entry points.
+    \item[T.]
+        \begin{enumerate}[nosep]
+            \item Design memo: single entry point; view system (experiment designer, registration, integrity/QC, analysis, visualisation); MVC vs MVP (decision + rationale); App Designer acceptable only with full code control (L2).
+            \item PlantUML component + sequence diagrams for main flows.
+            \item \texttt{doc/designMemos/guiArchitecture.tex}.
+        \end{enumerate}
+    \item[E.] 1--2 sessions.
+    \item[R.] Architectural weight; strict review before v1.9.1.
+\end{description}
+
+\subsubsection*{v1.9.1 --- GUI~I: shell + core editing}
+
+\begin{description}
+    \item[G.] Unified GUI shell with editors for core entities.
+    \item[T.] main window + navigation; editors for experiment, subject, session, dataSource; tests where feasible.
+    \item[E.] 3--4 sessions.
+    \item[R.] GUI automated-testability limits; state explicitly per user instructions.
+\end{description}
+
+\subsubsection*{v1.9.2 --- GUI~II: analysis + visualisation views}
+
+\begin{description}
+    \item[G.] Integrate \texttt{+icnna.plot.*}; analysis configuration + execution view; results visualisation.
+    \item[E.] 3--4 sessions.
+    \item[R.] Scope creep from visualisation wishlist; strict P9.
+\end{description}
+
+\subsubsection*{v1.9.3 --- GUI~III: registration + QC + integrity views}
+
+\begin{description}
+    \item[G.] Registration as a unified-GUI view (no separate entry point); QC dashboard; integrity view.
+    \item[E.] 3 sessions.
+    \item[R.] Registration view is novel surface; validate on one real dataset.
+\end{description}
+
+\subsubsection*{v2.0.0 --- Release}
+
+\begin{description}
+    \item[G.] Endpoint per Phase~2c \S v2.0.0.
+    \item[T.]
+        \begin{enumerate}[nosep]
+            \item Delete \texttt{+icnna.compat/} (scheduled per E.1 Q3.3); \texttt{.mat load*} adapters removed alongside.
+            \item Final \texttt{m2uml} + PlantUML refresh of full modern surface.
+            \item \textbf{User Guide LaTeX polish}: all chapters current; replace \texttt{.docx} lineage.
+            \item README post-handover acknowledgement line (D.10) if handover has occurred; otherwise lands at whichever release coincides with handover.
+            \item Version tag, stable zip, release notes.
+        \end{enumerate}
+    \item[E.] 3--4 sessions.
+    \item[R.] Final-polish drift; set hard scope.
+\end{description}
+
+% ================================================================
+\section{Performance Benchmark Clarification}
+\label{sec:benchmarkclarification}
+
+The pass-by-value decision (Phase~2c, L3) sets a \emph{ceiling} on achievable performance; some copying cost is unavoidable and \textbf{acknowledged as intended}. The benchmark harness introduced at v1.4.7b detects \emph{regressions within that ceiling}: a redesigned class or caller that inadvertently triggers additional copies, loses a cache, or degrades from O($n\log n$) to O($n^2$). Those are redesign-introduced inefficiencies orthogonal to pass-by-value itself. The flat-architecture redesign at v1.4.7b is the release most likely to introduce such regressions, which is why the baseline lands there. Benchmarks are human-read, not CI-gated; the harness is deliberately modest.
+
+% ================================================================
+\section{Architectural Evolution Narrative}
+
+Arc~A lays infrastructure that every later arc consumes: tests, bridging, disclosure artefacts, error-ID and toolbox conventions, CI, bug-tracking discipline, and the documentation toolchain (User Guide LaTeX skeleton, PlantUML, \texttt{m2uml}; ArgoUML retired to historical archive). The three-way split v1.4.3.1/.2/.3 reflects the weight of Arc~A without violating P3.
+
+Arc~B carries the modernisation's structural thesis. The spine becomes flat and ID-referenced (P5), but v1.4.7 is explicitly a \emph{generalisation}, not a translation: \texttt{experiment} must express event-related designs, within-group allocation, and multifactorial designs without ``abusing'' \texttt{session}. The memo-first split (v1.4.7a design, v1.4.7b implementation) separates the research-like design decision from its implementation. The performance benchmark harness lands at v1.4.7b, where regressions are most likely.
+
+Arc~C is where ICNNA picks up \emph{behaviour} it never had or needs to regain. Registration takes two releases and expects research drift (FOE material). QC gains concrete criteria with a clean tier split (survival at v1.5.4, enhancement at v1.6.4). Signal processing is a three-release arc (v1.6.0--v1.6.2) covering core ops, motion correction, and physiological regression. Synthetic data (v1.6.3) doubles as validation infrastructure for v1.6.1 and v1.6.2. BIDS at v1.7.0 completes the standards posture begun with SNIRF.
+
+Arc~D is deletion + delivery. \texttt{oo/} disappears (v1.8.0) while \texttt{.mat} load-compat adapters are retained for user archives. Handover artefacts land where feasible (v1.8.1). The unified GUI is designed before built (v1.9.0 memo, v1.9.1--v1.9.3 implementation), subsuming the registration-tool entry point. v2.0.0 ships \texttt{+icnna}-only, with a completed LaTeX User Guide replacing the \texttt{.docx} lineage.
+
+\subsection{Research integration points}
+
+\begin{itemize}
+    \item \textbf{v1.4.7a} (experimental designs): consumes FOE's Cantor-era design notes.
+    \item \textbf{v1.5.3} (atlas alignment): consumes FOE-provided research material.
+    \item \textbf{v1.6.1--v1.6.3} (motion, physiological regression, synthetic data): informed by overprocessing / pipeline-optimisation theses; may trigger new research.
+    \item \textbf{v1.6.4} (enhancement QC): SCI, CV, and other methods from the thesis literature.
+\end{itemize}
+
+\subsection{New research likely triggered}
+
+\begin{itemize}
+    \item Atlas-alignment method choice if existing research is incomplete.
+    \item Synthetic-data ground-truth model --- may warrant a publishable specification.
+    \item Experimental-model generalisation --- may itself be publishable as a methodology note.
+\end{itemize}
+
+% ================================================================
+\section{Risk and Dependency Summary}
+
+\begin{longtable}{p{3cm}p{4cm}p{7cm}}
+\toprule
+\textbf{Risk} & \textbf{Versions} & \textbf{Mitigation} \\
+\midrule
+\endhead
+R.FM1 stuck-in-the-middle & Arc~B, esp. v1.4.7 & P3; v1.4.8 catch-up; v1.4.7 memo-first split \\
+R.HC2 dual-arch friction & Arc~A--C & \texttt{+icnna.compat}; drains progressively; final drain v2.0.0 \\
+R.HC5 research interrupts & All & Rule 2 mixed granularity; memo-first on research-heavy releases \\
+R.F1 lag ICNNA/Cantor & Arc~C--D & Claude standing responsibility to flag \\
+R.F2 single-developer bus factor & All & Sequenced: front-load ICNNA, then Cantor primary \\
+R.FM4 BIDS drift & v1.7.0 & Pin to dated spec; tests as floor \\
+D.7 IP ledger blocked & v1.4.3.1 & Placeholder, advance, revisit \\
+Research drift registration & v1.5.2, v1.5.3 & Memo-first; splittable \\
+Research drift signal proc & v1.6.1--v1.6.3 & Synthetic data (v1.6.3) provides validation floor \\
+GUI design weight & v1.9.0 & Design-only release before implementation \\
+User \texttt{.mat} archive breakage & v1.8.0 & Load-compat adapters retained past deletion until v2.0.0 \\
+Performance regression & v1.4.7b onwards & Benchmark harness at v1.4.7b; re-run each Arc-B release \\
+User Guide scope & Cross-cutting & Chapter-by-chapter landings; no big-bang \\
+\bottomrule
+\end{longtable}
+
+\subsection{Critical path}
+
+\[
+\text{v1.4.2} \to \text{v1.4.3.*} \to \text{Arc B spine} \to \text{v1.4.8 cleanup} \to \text{v1.8.0 \texttt{oo/} removal} \to \text{v2.0.0}
+\]
+
+Arc~C releases can reorder under research interrupt without violating the critical path. Arc~D handover artefacts (v1.8.1) gate on Cantor progress for D.5/D.6 but not for the critical path to v2.0.0.
+
+\subsection{Session budget summary}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Arc} & \textbf{Sub-releases} & \textbf{Sessions (low)} & \textbf{Sessions (high)} \\
+\midrule
+A & 4 & 6 & 8 \\
+B & 7 & 12 & 17 \\
+C & 13 & 27 & 39 \\
+D & 7 & 15 & 25 \\
+\midrule
+\textbf{Total} & \textbf{31}\footnotemark & \textbf{60} & \textbf{89} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\footnotetext{Counting v1.4.3.1/.2/.3 as three sub-releases and allowing potential v1.4.7b-i/-ii and v1.5.3a/b splits. Headline count is 28 at the roadmap level.}
+
+% ================================================================
+\section{Decisions Recorded}
+
+\begin{longtable}{p{3.5cm}p{10.5cm}}
+\toprule
+\textbf{Area} & \textbf{Decision} \\
+\midrule
+\endhead
+Sub-release count & 28 at roadmap level; up to 31 if v1.4.7b and v1.5.3 splits fire. \\
+Session budget & $\sim$60--89 sessions total over $\sim$2--3 years at research pace. \\
+Arc structure & A Readiness / B Spine+Experimental-design / C Peripheral+Behaviour / D Endpoint. \\
+v1.4.3 split & Three-way into v1.4.3.1 Disclosure / v1.4.3.2 Conventions+tooling / v1.4.3.3 Documentation scaffolding. \\
+Cross-cutting threads & Eight (User Guide, UML, compat drain, \texttt{.mat} load-compat, performance benchmarks, examples cookbook, bug tracking, fixture provenance). \\
+Experimental-design generalisation & Survival-tier; memo-first at v1.4.7a; implementation v1.4.7b. Requires FOE notes. \\
+Registration as first-class & Two-release arc v1.5.2 (standards) + v1.5.3 (atlas + research). Requires FOE research material. \\
+QC tiering & Survival tier v1.5.4 (current ICNNA criteria); enhancement tier v1.6.4 (SCI, CV, etc.). \\
+Signal processing & Three-release arc v1.6.0 survival / v1.6.1 motion / v1.6.2 physiological; synthetic data v1.6.3. \\
+Signal Processing Toolbox & Avoid where feasible; Statistics Toolbox accepted. \\
+UML toolchain & Keep \texttt{m2uml}; adopt PlantUML; retire ArgoUML to \texttt{doc/UML/historical/}. \\
+User Guide & LaTeX migration from \texttt{.docx} lineage; skeleton v1.4.3.3; chapter landings v1.4.8/v1.5.5/v1.6.4; polish v2.0.0. Fold \texttt{ICNNA\_Limitations.doc} as appendix. \\
+\texttt{.mat} load-compat & Per-class adapter in \texttt{+icnna.compat.load<ClassName>.m}; retained past v1.8.0; removed v2.0.0. \\
+Performance benchmarks & Baseline v1.4.7b; re-run each Arc-B release; human-read; pass-by-value ceiling acknowledged as intended. \\
+Error-ID convention & Codify current \texttt{icnna:<namespace>:<reason>} style at v1.4.3.2; no behavioural change. \\
+MATLAB toolbox deps & Statistics: accepted. Signal Processing: avoid where feasible; declare at v1.4.3.2. \\
+Citation & \texttt{CITATION.cff} at v1.4.3.1 using DOI 10.1117/1.NPh.5.1.011011. \\
+CI & Hybrid: GitHub Actions for \texttt{matlab.unittest} + lint on PR/push; coverage local; landed at v1.4.3.2. \\
+Bug tracking & GitHub Issues with labels; \texttt{CONTRIBUTING.md}; User Guide ``Known limitations'' appendix. \\
+GUI at v2.0.0 & Unified application subsuming \texttt{guiRegistration} and other separate entry points. Design memo v1.9.0; implementation v1.9.1--.3. \\
+D.16 \texttt{@rawData\_Snirf} & Retired at v1.4.5 with \texttt{dataSource} modernisation. \\
+D.1 cleanup threshold & Tentatively $\leq 3$ callers; confirm at v1.4.8 sweep. \\
+D.14 BIDS scope & Export survival-tier; round-trip enhancement. \\
+\bottomrule
+\end{longtable}
+
+% ================================================================
+\section{Slotting of Phase~2d Deferred Decisions}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llp{8cm}}
+\toprule
+\textbf{ID} & \textbf{Version} & \textbf{Note} \\
+\midrule
+D.1 & v1.4.8 & Cleanup-trigger threshold confirmed at sweep \\
+D.2 & v1.4.3.2 & Deprecation-warning mechanism convention \\
+D.3 & v1.4.3.2 & Doxygen header template for \texttt{+icnna.compat} \\
+D.4 & v1.4.8 (tentative) & ICNNA$\to$Cantor priority-shift milestone; revisited per Claude lag-flag \\
+D.5 & v1.8.1 & Feature-parity checklist; may stay open \\
+D.6 & v1.8.1 & Migration guide SNIRF/BIDS $\to$ Cantor \\
+D.7 & v1.4.3.1 & IP ledger collaborative pass \\
+D.8 & v1.4.3.2 & MATLAB-version support statement phrasing \\
+D.9 & v1.8.1 (draft) / deferred & Handover announcement draft; form/channels/timing still deferred \\
+D.10 & v2.0.0 (or handover release) & Post-handover README acknowledgement wording \\
+D.11 & v1.4.3.1 & CHANGELOG seeding (full migration, \S9) \\
+D.12 & v1.4.2 (seed) / cross-cutting cookbook & Worked-example content; gallery grows organically \\
+D.13 & v1.9.0 & GUI v2.0.0 design memo \\
+D.14 & v1.7.0 & BIDS compatibility \\
+D.15 & v1.4.2 & Test infrastructure (\texttt{matlab.unittest}) \\
+D.16 & v1.4.5 & \texttt{@rawData\_Snirf} retirement with \texttt{dataSource} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ================================================================
+\section{Hand-off to Phase~4}
+
+\textbf{Phase~4 objective:} execution planning for v1.4.2 --- session-level breakdown of the six v1.4.2 tasks into a concrete one-to-two-session plan; acceptance criteria per task; test-harness structure decision (\texttt{matlab.unittest} suite layout, fixture directory layout); GUI deprecation-banner text; \texttt{+icnna.compat.toModernTimeline} implementation skeleton.
+
+\textbf{Phase~4 inputs.}
+\begin{itemize}
+    \item This minute, especially \S v1.4.2.
+    \item Phase~2d minute \S E.1 Q4 (v1.4.2 pre-packed content).
+    \item Phase~2c minute \S P1--P9 (design principles).
+    \item The \texttt{ROADMAP.md} at repo root.
+\end{itemize}
+
+\textbf{Phase~4 starting action.} FOE will provide a Phase~4 context prompt at session start. A draft prompt will be produced at \texttt{claude/prompts/Phase4\_context\_prompt.txt} as fallback.
+
+% ================================================================
+\section{Phase~3 Closing Statement}
+
+\subsection{What Phase~3 delivered}
+
+\begin{enumerate}
+    \item A concrete versioned roadmap from v1.4.1-beta to v2.0.0 comprising 28 sub-releases across four arcs.
+    \item All 16 Phase~2d deferred decisions slotted.
+    \item Seven additional Phase~3 items (N.1--N.7) folded into the roadmap.
+    \item Eight cross-cutting threads defined.
+    \item A session budget estimate ($\sim$60--89 sessions) calibrating expectations over the $\sim$2--3-year horizon.
+    \item A \texttt{ROADMAP.md} at the repository root (committed with this minute) providing the public-facing version of the plan.
+    \item Handoff to Phase~4 (execution planning for v1.4.2).
+\end{enumerate}
+
+\subsection{What Phase~3 did not decide}
+
+\begin{itemize}[nosep]
+    \item Session-level task breakdown within any sub-release --- that is Phase~4 for v1.4.2 and per-version execution-planning sessions thereafter.
+    \item Specific test framework specifics beyond \texttt{matlab.unittest} --- Phase~4.
+    \item Implementation detail of any modernised class --- per-release design-memo or implementation session.
+    \item Exact cleanup-threshold numeric for D.1 --- confirmed at v1.4.8 when sweep runs.
+    \item Signal-processing method shortlists (v1.6.1, v1.6.2) --- per-release survey notes.
+\end{itemize}
+
+\subsection{Sufficiency for a cold start}
+
+Phase~3 closes with the explicit intent that Phase~4 can begin from a cold context on any device, reading only the canonical artefacts under \texttt{claude/} plus \texttt{ROADMAP.md}. The portability validation established at Phase~3 start (FOE's prompt + this minute's slotting) reconfirms the canonical-context design works.
+
+% ================================================================
+\section{Documents and Artefacts Referenced}
+
+\begin{enumerate}
+    \item \textbf{Phase predecessors.} \texttt{claude/minutes/Phase\{1,2a,2b,2c,2d\}\_minute.\{tex,pdf\}}.
+    \item \textbf{Global and project rules.} Global \texttt{CLAUDE.md} (\S\S8--9 in particular); project \texttt{CLAUDE.md}.
+    \item \textbf{Canonical memory.} \texttt{claude/memory/MEMORY.md} and referenced entries; new entry \texttt{claude/memory/project\_icnna\_roadmap.md} added.
+    \item \textbf{This roadmap's public artefacts.} \texttt{ROADMAP.md} (repo root); \texttt{CHANGELOG.md} (v1.4.3.1 deliverable, not yet present); \texttt{CITATION.cff} (v1.4.3.1 deliverable).
+    \item \textbf{Phase~4 handoff.} \texttt{claude/prompts/Phase4\_context\_prompt.txt} (draft).
+    \item \textbf{Cantor project location.} \texttt{C:\textbackslash Users\textbackslash orihuelf-admin\textbackslash OneDrive\textbackslash Git\textbackslash Cantor}.
+\end{enumerate}
+
+\end{document}
