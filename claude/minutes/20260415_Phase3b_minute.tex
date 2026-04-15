@@ -1,0 +1,217 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{longtable}
+\usepackage{listings}
+\usepackage{graphicx}
+
+\newcommand{\mediaDir}{media}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    columns=fullflexible
+}
+
+\title{ICNNA Architectural Refactoring\\Phase~3b Minute --- UML Snapshot and v2.0.0 Projection\\
+\large Current dual architecture and projected end-state, package and spine class level}
+\author{Felipe Orihuela-Espina \and Claude (Computational Research Architect)}
+\date{15 April 2026}
+
+\begin{document}
+\maketitle
+
+% ================================================================
+% Document Log
+% ================================================================
+\noindent\textbf{Document Log:}
+\begin{itemize}[nosep]
+    \item 15-Apr-2026: FOE/Claude --- Document created. Records Phase~3b (UML snapshot + v2.0.0 projection) inserted between Phase~3 (roadmap) and Phase~4 (v1.4.2 readiness work). Adopts new \texttt{YYYYMMDD\_*} filename convention for minutes, prompts, and state artefacts. Portable PlantUML installed at \texttt{\%OneDrive\%\textbackslash Tools\textbackslash PlantUML\textbackslash} (GPL build, Adoptium Temurin JRE 21, cross-device via OneDrive). All four diagrams rendered to PNG; transient inspection deferred to next session.
+\end{itemize}
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+% ================================================================
+\section{Session Overview}
+
+\begin{description}[style=nextline]
+    \item[Date:] 15 April 2026
+    \item[Participants:] Felipe Orihuela-Espina (FOE), Claude Opus 4.6 (Computational Research Architect role).
+    \item[Phase:] Phase~3b --- UML snapshot and v2.0.0 projection.
+    \item[Position in series:] Inserted between Phase~3 (roadmap definition, 14-Apr-2026) and the originally-planned Phase~4 (v1.4.2 readiness work). Phase~3b does \emph{not} alter the roadmap; it makes the roadmap's implicit end-state explicit at the UML level.
+    \item[Objective:] (i)~Capture the current dual architecture (\texttt{oo/} + \texttt{+icnna/}) at v1.4.1-beta as PlantUML package and spine-class diagrams. (ii)~Project the v2.0.0 modernised surface at the same two granularities. (iii)~Adopt a date-stamped filename convention for portable-context artefacts.
+    \item[Outcome:] Four PlantUML diagrams, one scope memo, this minute, the next-session prompt, and a proposed (not-yet-executed) rename plan for pre-existing \texttt{claude/} artefacts.
+\end{description}
+
+% ================================================================
+\section{Filename Convention --- Adoption}
+\label{sec:naming}
+
+\subsection*{Decision}
+
+Adopted convention for all artefacts under \texttt{claude/minutes/},
+\texttt{claude/prompts/}, and \texttt{claude/state/}:
+
+\begin{center}
+\texttt{YYYYMMDD\_PhaseN[suffix]\_<kind>.<ext>}
+\end{center}
+
+Examples:
+\begin{itemize}[nosep]
+    \item \texttt{20260415\_Phase3b\_minute.tex}
+    \item \texttt{20260415\_Phase3b\_scope.md}
+    \item \texttt{20260415\_Phase4\_context\_prompt.txt}
+\end{itemize}
+
+\subsection*{Rationale}
+
+\begin{itemize}[nosep]
+    \item \textbf{Chronological sortability}: as the record grows, lexical sort within each subfolder coincides with chronological order without parsing filenames.
+    \item \textbf{Phase semantics retained}: the \texttt{PhaseN[suffix]} segment preserves the existing taxonomy and survives multi-session phases (e.g. Phase~2a/2b/2c/2d).
+    \item \textbf{Cross-device portability}: dates remain unambiguous across devices and OneDrive sync.
+\end{itemize}
+
+\subsection*{Migration of pre-existing artefacts}
+
+A rename plan for the existing \texttt{Phase[1234]*} files in
+\texttt{claude/minutes/} and \texttt{claude/prompts/} is proposed but
+\textbf{not executed} this session, per never-overwrite and
+commit-discipline rules. Approval will be requested at the start of
+Phase~4. The proposed mapping uses each file's git-recorded creation
+date.
+
+% ================================================================
+\section{Phase 3b Scope Recap}
+
+Per \texttt{claude/state/20260415\_Phase3b\_scope.md}:
+
+\begin{description}[style=nextline]
+    \item[3b.1 (current snapshot):] mechanical capture of \texttt{oo/} + \texttt{+icnna/} at v1.4.1-beta.
+    \item[3b.2 (v2.0.0 projection):] forward projection from Phase~3 roadmap targets, package-level for the whole system, class-level only for the spine.
+    \item[Non-goals:] class-level projection of peripheral subsystems (analysis, registration, QC enhancement, signal processing, GUI), method-level signatures, rendering, premature landing under \texttt{doc/UML/}.
+\end{description}
+
+% ================================================================
+\section{Deliverables}
+
+\begin{longtable}{p{6.2cm}p{8.0cm}}
+\toprule
+\textbf{File} & \textbf{Content} \\
+\midrule
+\endhead
+\texttt{claude/state/20260415\_Phase3b\_scope.md} & Scope memo (this Phase~3b's terms of reference). \\
+\texttt{claude/state/20260415\_Phase3b\_current\_packages.puml} & Current dual-architecture package diagram. \\
+\texttt{claude/state/20260415\_Phase3b\_current\_classes\_spine.puml} & Current \texttt{+icnna.data.core} class diagram (modern spine; legacy bridging stubs). \\
+\texttt{claude/state/20260415\_Phase3b\_v200\_packages.puml} & Projected v2.0.0 package diagram (\texttt{+icnna/}-only). \\
+\texttt{claude/state/20260415\_Phase3b\_v200\_classes\_spine.puml} & Projected v2.0.0 spine class diagram (flat, ID-referenced). \\
+\texttt{claude/minutes/20260415\_Phase3b\_minute.tex/.pdf} & This minute. \\
+\texttt{claude/prompts/20260415\_Phase4\_context\_prompt.txt} & Next-session cold-start prompt for Phase~4. \\
+\texttt{doc/UML/plantuml/20260415\_Phase3b\_*.puml/.png} & Mirrored copy of the four PlantUML sources and rendered PNGs (per UML dual-location convention). \\
+\texttt{\%OneDrive\%\textbackslash Tools\textbackslash PlantUML\textbackslash} & Portable PlantUML install (jar + JRE + wrapper + README); cross-device via OneDrive. \\
+\bottomrule
+\end{longtable}
+
+\paragraph{PlantUML toolchain decision.} GPL build of PlantUML
+selected. Rationale: PlantUML is a build tool whose copyleft only
+applies on redistribution or modification of the tool itself. Running
+it locally to render \texttt{.puml} $\to$ \texttt{.png} does not bind
+ICNNA's license, by analogy with using GPL \texttt{gcc} to compile
+non-GPL code. The GPL build is the most feature-complete; non-GPL
+builds strip dependencies. Should ICNNA ever vendor PlantUML inside
+the repo (not the case today; install lives in
+\texttt{\%OneDrive\%\textbackslash Tools\textbackslash}), the build
+choice would be revisited.
+
+\paragraph{Render fixes applied.} Two issues surfaced during first
+render and were fixed in the \texttt{.puml} sources:
+\begin{itemize}[nosep]
+    \item \texttt{@startuml} identifiers containing dots (e.g.\ \texttt{ICNNA\_v1.4.1beta\_packages}) collided in output filenames because PlantUML treats the dot as an extension separator. Renamed to dot-free identifiers (e.g.\ \texttt{ICNNA\_v141beta\_packages}).
+    \item Empty packages (e.g.\ \texttt{package "+core (spine)" as i\_core}) require explicit \texttt{\{\}} bodies in the installed PlantUML version when nested inside a parent package with a body. Added empty braces throughout.
+\end{itemize}
+
+% ================================================================
+\section{Observations from the Snapshot (3b.1)}
+
+\begin{enumerate}[nosep]
+    \item The current \texttt{+icnna.data.core/} spine is largely \emph{containment-based}, not yet flat-ID-referenced. Principle P5 (Phase~3) is therefore an active structural change, not a tidy-up.
+    \item \texttt{+icnna.op/+snirf/} already produces a legacy \texttt{@nirs\_neuroimage} as an interim bridge; this is exactly the kind of bridging that \texttt{+icnna.compat/} (v1.4.3.2) is to formalise.
+    \item Several legacy classes (\texttt{@cluster}, \texttt{@roi}, \texttt{@imagePartition}, \texttt{@menaGrid}, \texttt{@logarithmicRadialGrid}) have \emph{no} modern counterpart yet. Their disposition (modernise vs.\ retire vs.\ defer to Cantor) is not explicitly slotted in the Phase~3 roadmap and may warrant an entry in the deferred-decisions ledger.
+    \item No modern \texttt{session} class exists yet; \texttt{experimentalUnit} currently bridges to \texttt{oo/@session}. The v1.4.7a memo will need to decide whether \texttt{session} survives as a first-class entity or is absorbed into \texttt{experimentalUnit} + \texttt{timeline}.
+\end{enumerate}
+
+% ================================================================
+\section{Observations from the Projection (3b.2)}
+
+\begin{enumerate}[nosep]
+    \item The generalised \texttt{experimentBundle} requires an explicit \texttt{factor} entity to express multifactorial designs and within-group allocation cleanly. This is a \emph{new} class not present at v1.4.1-beta and not named explicitly in the Phase~3 roadmap text; it falls naturally inside v1.4.7a's experimental-model design memo.
+    \item Events become first-class entities under \texttt{timeline} to support event-related designs. Whether events live in \texttt{+data.core} or in a sibling subpackage is a design choice deferred to v1.4.7a.
+    \item The flat ID-referenced model implies an in-memory or persisted \emph{registry}/\emph{index} resolving IDs to entities. The Phase~3 roadmap does not name this concern explicitly; it should be flagged as either part of v1.4.7b implementation or as a separate cross-cutting concern at v1.4.3.x.
+    \item The QC \texttt{targetID} can in principle reference any spine entity (an experimental unit, a raw-data record, a session). This generality has not been spelled out in the roadmap and is worth confirming during v1.5.4 (QC survival tier).
+\end{enumerate}
+
+% ================================================================
+\section{Items to Surface to the Roadmap}
+\label{sec:roadmapfeedback}
+
+The projection (3b.2) surfaced four candidate items not explicit in
+the Phase~3 roadmap. None are roadmap-altering on their own; all are
+candidates for the deferred-decisions ledger or for inclusion in the
+relevant memo.
+
+\begin{longtable}{p{0.8cm}p{6.0cm}p{7.5cm}}
+\toprule
+\textbf{ID} & \textbf{Item} & \textbf{Suggested home} \\
+\midrule
+\endhead
+P3b.1 & \texttt{factor} as a first-class spine entity & v1.4.7a memo (experimental-model generalisation). \\
+P3b.2 & \texttt{event} promoted under \texttt{timeline} & v1.4.7a memo. \\
+P3b.3 & ID-resolution registry / index strategy & v1.4.3.x cross-cutting, or v1.4.7b implementation. \\
+P3b.4 & Disposition of legacy spatial classes (\texttt{cluster}, \texttt{roi}, \texttt{imagePartition}, \texttt{menaGrid}, \texttt{logarithmicRadialGrid}) & Add to deferred-decisions ledger; review at v1.5.5 (peripheral arc). \\
+\bottomrule
+\end{longtable}
+
+These are recorded here for traceability; their adoption requires
+explicit FOE confirmation at the start of Phase~4 or later.
+
+% ================================================================
+\section{Revision Policy for Phase 3b Diagrams}
+
+These diagrams are working artefacts, not commitments. They will be
+revised at the scheduled UML refreshes of Phase~3:
+
+\begin{itemize}[nosep]
+    \item \textbf{v1.4.3.3} --- first formal landing under \texttt{doc/UML/plantuml/}; expected refinements from any Phase~4 (v1.4.2) discoveries.
+    \item \textbf{v1.4.7a/b} --- material spine revision (experimental-model generalisation).
+    \item \textbf{v1.4.8, v1.5.5, v2.0.0} --- scheduled refreshes.
+\end{itemize}
+
+Each Phase~3b artefact is preserved under its dated filename
+(never-overwrite rule, global CLAUDE.md \S8 / feedback memory).
+
+% ================================================================
+\section{Next Session}
+
+Phase~4 begins. The originally-planned scope (v1.4.2 readiness work
+under Arc~A) is unchanged; Phase~3b adds three openings before Phase~4
+proper:
+
+\begin{enumerate}[nosep]
+    \item \textbf{(FIRST)} FOE visual inspection of the four transient PNG diagrams produced this session. Diagrams are working artefacts, not commitments; FOE may request edits (content, structure, layout) before they are consumed downstream.
+    \item Decision on the rename plan for pre-existing \texttt{claude/} artefacts to the new \texttt{YYYYMMDD\_*} convention.
+    \item Decision on whether items P3b.1--P3b.4 (\S\ref{sec:roadmapfeedback}) should be folded into the deferred-decisions ledger / relevant memos before Phase~4 implementation work begins.
+\end{enumerate}
+
+The next-session prompt is at
+\texttt{claude/prompts/20260415\_Phase4\_context\_prompt.txt}.
+
+\end{document}
