@@ -1,0 +1,117 @@
+@startuml ICNNA_v141beta_packages
+' ============================================================
+' ICNNA v1.4.1-beta — Current package diagram
+' Phase 3b.1 deliverable
+' Date: 2026-04-15
+' Source: src/ tree, Phase 3 minute, project README
+' ============================================================
+' Conventions:
+'   - Solid arrow with open head: "depends on" (uses)
+'   - Dashed arrow: bridging / migration relationship
+'   - <<legacy>> stereotype: scheduled for removal at v1.8.0
+'   - <<modern>> stereotype: post-modernisation surface
+'   - Empty packages omitted
+' ============================================================
+
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+package "src/" as src {
+
+  package "oo/  <<legacy>>" as oo {
+    package "data containers" as oo_data {
+      class "@experiment" as oo_experiment
+      class "@experimentSpace" as oo_experimentSpace
+      class "@session" as oo_session
+      class "@sessionDefinition" as oo_sessionDefinition
+      class "@subject" as oo_subject
+      class "@dataSource" as oo_dataSource
+      class "@dataSourceDefinition" as oo_dsdef
+      class "@structuredData" as oo_structuredData
+      class "@neuroimage" as oo_neuroimage
+      class "@nirs_neuroimage" as oo_nirs
+      class "@rawData" as oo_rawData
+      class "@rawData_*" as oo_rawData_variants
+      class "@timeline" as oo_timeline
+      class "@signal" as oo_signal
+      class "@channelLocationMap" as oo_clm
+      class "@cluster" as oo_cluster
+      class "@roi" as oo_roi
+      class "@imagePartition" as oo_imgpart
+      class "@menaGrid" as oo_mena
+      class "@logarithmicRadialGrid" as oo_logrg
+      class "@analysis" as oo_analysis
+      class "@integrityStatus" as oo_intst
+      class "@ecg" as oo_ecg
+    }
+  }
+
+  package "+icnna/  <<modern>>" as icnna {
+    package "+data" as i_data {
+      package "+core (spine)" as i_core {}
+      package "+snirf" as i_snirf {}
+      package "+coeffs (data assets)" as i_coeffs {}
+      package "+misc" as i_misc {}
+    }
+    package "+io" as i_io {}
+    package "+op" as i_op {
+      package "+snirf" as i_op_snirf {}
+    }
+    package "+plot" as i_plot {}
+    package "+util" as i_util {}
+  }
+
+  package "GUI/" as gui {}
+  package "HR/  (heart-rate utilities)" as hr {}
+  package "plotting/  (legacy plotters)" as oldplot {}
+  package "util/" as oldutil {}
+  package "miscellaneous/" as oldmisc {}
+  package "external/  (third-party)" as ext {}
+}
+
+' --- Dependencies (intra-modern) ---
+i_op       --> i_core   : consumes
+i_op_snirf --> i_snirf  : consumes
+i_op_snirf --> i_core   : produces
+i_io       --> i_core
+i_plot     --> i_core
+i_plot     --> i_op
+i_snirf    --> i_core   : maps to
+i_op       ..> i_util
+
+' --- Dependencies (intra-legacy) ---
+oo_session       --> oo_subject
+oo_session       --> oo_dataSource
+oo_experiment    --> oo_session
+oo_experiment    --> oo_subject
+oo_experimentSpace --> oo_experiment
+oo_dataSource    --> oo_rawData
+oo_dataSource    --> oo_structuredData
+oo_rawData_variants --|> oo_rawData
+oo_nirs --|> oo_neuroimage
+oo_neuroimage --|> oo_structuredData
+oo_signal        --> oo_timeline
+oo_analysis      --> oo_experimentSpace
+
+' --- Bridging (modern <-> legacy) ---
+i_op_snirf ..> oo_nirs : "produces (interim,\nuntil v1.4.7b)"
+i_io       ..> oo_experiment : "exports from"
+oldplot    ..> oo_data : reads
+gui        ..> oo_data : reads/writes
+
+note bottom of oo
+  Legacy @-folder OO surface.
+  Scheduled deletion: v1.8.0 (Arc D).
+  .mat load-compat adapters retained
+  past v1.8.0; final removal at v2.0.0.
+end note
+
+note bottom of icnna
+  Modern package surface, partial.
+  Spine modernisation in progress;
+  signal processing, analysis,
+  registration, QC, BIDS, GUI not
+  yet present (Arcs B–D).
+end note
+
+@enduml

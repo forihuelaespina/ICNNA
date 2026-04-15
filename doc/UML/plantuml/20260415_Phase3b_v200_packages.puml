@@ -1,0 +1,120 @@
+@startuml ICNNA_v2_0_0_packages
+' ============================================================
+' ICNNA v2.0.0 — Projected package diagram
+' Phase 3b.2 deliverable
+' Date: 2026-04-15
+' Source: derived from Phase3_minute.tex roadmap targets,
+'         Phase2c_minute.tex v2.0.0 endpoint, D.* decisions.
+' ============================================================
+' Conventions:
+'   - All packages are <<modern>>; oo/ and +icnna.compat/ are
+'     deleted by v1.8.0 / v2.0.0 respectively.
+'   - <<new>> marks subpackages introduced after v1.4.1-beta.
+'   - Empty subpackages projected from roadmap are still shown.
+' ============================================================
+
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+package "src/" as src {
+
+  package "+icnna/" as icnna {
+
+    package "+data" as data {
+      package "+core (flat spine)" as core
+      package "+snirf  (I/O dataset model)" as snirf
+      package "+bids  <<new>> (v1.7.0)" as bids_data
+      package "+synthetic  <<new>> (v1.6.3)" as synth
+      package "+coeffs  (extinction etc.)" as coeffs
+    }
+
+    package "+op" as op {
+      package "+signal  <<new>> (v1.6.0–v1.6.2)" as op_signal {
+        package "+motion  <<new>> (v1.6.1)" as op_motion
+        package "+physio  <<new>> (v1.6.2)" as op_physio
+      }
+      package "+snirf" as op_snirf
+      package "+bids  <<new>> (v1.7.0)" as op_bids
+      package "+experiment  <<new>>\n(generalised designs, v1.4.7)" as op_exp
+    }
+
+    package "+analysis  <<new>> (v1.5.5)" as analysis
+    package "+experimentSpace  <<new>> (v1.5.5)" as espace
+    package "+qc  <<new>> (v1.5.4 survival,\nv1.6.4 enhancement)" as qc
+    package "+registration  <<new>>\n(v1.5.2 + v1.5.3)" as reg
+
+    package "+io" as io {
+      package "+snirf" as io_snirf
+      package "+bids  <<new>>" as io_bids
+      package "+legacy_mat  <<new>>\n(.mat load adapters; removed v2.0.0)" as io_matload
+    }
+
+    package "+plot" as plot
+    package "+util" as util
+
+    package "+gui  <<new>> (v1.9.x;\nunified MVC)" as guipkg {
+      package "+model"
+      package "+view"
+      package "+controller"
+    }
+  }
+
+  ' compat removed at v2.0.0 — show as ghost for traceability
+  package "+icnna.compat/  <<deleted at v2.0.0>>" as compat #LightGray
+}
+
+' --- Dependencies (intra-modern, flat-architecture) ---
+op       --> core      : operates over
+op_signal --> core
+op_motion --> op_signal
+op_physio --> op_signal
+op_exp   --> core
+op_snirf --> snirf
+op_snirf --> core
+op_bids  --> bids_data
+op_bids  --> core
+
+io_snirf --> snirf
+io_bids  --> bids_data
+io_matload --> core    : "loads legacy .mat\ninto modern spine"
+
+analysis --> espace
+analysis --> core
+espace   --> core
+qc       --> core
+qc       --> op_signal
+reg      --> core
+
+plot     --> core
+plot     --> analysis
+plot     --> qc
+
+guipkg   --> core      : model layer
+guipkg   --> op
+guipkg   --> analysis
+guipkg   --> qc
+guipkg   --> reg
+guipkg   --> io
+guipkg   --> plot
+
+synth    --> core      : "produces synthetic\nbundles for QC/op tests"
+
+note bottom of compat
+  +icnna.compat/ existed v1.4.3.x → v1.7.x for
+  bridging legacy <-> modern call sites.
+  Deleted at v2.0.0 per Phase 3 §"Rule 5".
+  Shown ghosted for historical traceability only.
+end note
+
+note bottom of guipkg
+  Unified GUI subsumes legacy GUI/ entry points
+  including the registration tool. MVC split is
+  the architectural commitment from v1.9.0 memo.
+end note
+
+note right of io_matload
+  N.6 — .mat load-compat adapters retained
+  past +icnna.compat removal; final deletion v2.0.0.
+end note
+
+@enduml

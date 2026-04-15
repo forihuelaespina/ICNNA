@@ -1,0 +1,126 @@
+@startuml ICNNA_v141beta_spine_classes
+' ============================================================
+' ICNNA v1.4.1-beta — Current spine class diagram
+' Scope: src/+icnna/+data/+core/  (modern spine only)
+' Legacy oo/ classes appear only as bridging stubs.
+' Phase 3b.1 deliverable
+' Date: 2026-04-15
+' ============================================================
+' Conventions:
+'   - Attributes shown only when known to be load-bearing.
+'   - Methods omitted (Phase 3b restricts to attribute + relation).
+'   - Multiplicities shown where derivable from current code.
+' ============================================================
+
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+package "src/+icnna/+data/+core/" as core {
+
+  abstract class identifiableObject {
+    +id : char
+    +description : char
+    +date : datetime
+    +version : char
+  }
+
+  class subject
+  class condition
+  class timeline {
+    +startTime : datetime
+    +nominalSamplingRate : double
+  }
+  class experimentalUnit {
+    +subjectID : char
+    --
+    note: groups one subject's data
+    across sessions for an experiment
+  }
+  class experimentalGroup
+  class experimentBundle {
+    +name : char
+  }
+
+  class metaEntry {
+    +key : char
+    +value : any
+  }
+
+  class signalDescriptor
+  class signalSet
+
+  class rawData
+  class qc
+  class qcCriterion
+
+  class montage
+  class nirsMontage
+  class optode {
+    +position : double[3]
+  }
+  class lightSource
+  class lightDetector
+  class referenceLocation {
+    +label : char
+    +position : double[3]
+  }
+  class opticalCoefficient
+}
+
+' --- Inheritance ---
+subject              --|> identifiableObject
+condition            --|> identifiableObject
+timeline             --|> identifiableObject
+experimentalUnit     --|> identifiableObject
+experimentalGroup    --|> identifiableObject
+experimentBundle     --|> identifiableObject
+signalDescriptor     --|> identifiableObject
+signalSet            --|> identifiableObject
+rawData              --|> identifiableObject
+qc                   --|> identifiableObject
+qcCriterion          --|> identifiableObject
+montage              --|> identifiableObject
+nirsMontage          --|> montage
+optode               --|> identifiableObject
+lightSource          --|> optode
+lightDetector        --|> optode
+referenceLocation    --|> identifiableObject
+opticalCoefficient   --|> identifiableObject
+
+' --- Composition / association (current; container-style) ---
+experimentBundle    *-- "1..*" experimentalGroup : groups
+experimentalGroup   *-- "1..*" experimentalUnit  : units
+experimentalUnit    o-- "1"    subject           : subjectRef
+experimentalUnit    *-- "0..*" rawData
+experimentalUnit    *-- "0..*" condition
+experimentalUnit    *-- "0..1" timeline
+nirsMontage         *-- "0..*" optode
+nirsMontage         *-- "0..*" referenceLocation
+qc                  *-- "0..*" qcCriterion
+signalSet           *-- "0..*" signalDescriptor
+rawData             ..> signalSet : described by
+identifiableObject  o-- "0..*" metaEntry : meta
+
+' --- Bridging to legacy (interim) ---
+package "src/oo/  <<legacy>>" as legacy {
+  class "@session" as legacy_session
+  class "@experiment" as legacy_experiment
+  class "@nirs_neuroimage" as legacy_nirs
+}
+
+experimentalUnit ..> legacy_session : "consumes\n(interim,\nuntil v1.4.7b)"
+rawData          ..> legacy_nirs    : "produces interim\nneuroimage"
+
+note right of experimentBundle
+  Current model is largely *containment-based*.
+  P5 (flat, ID-referenced) only partially applied.
+  Full flattening + generalisation (event-related,
+  multifactorial designs) lands at v1.4.7a/b.
+end note
+
+note bottom of legacy
+  Bridging via +icnna.compat/ at v1.4.3.x;
+  full removal at v1.8.0.
+end note
+
+@enduml

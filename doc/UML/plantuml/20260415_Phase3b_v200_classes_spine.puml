@@ -1,0 +1,197 @@
+@startuml ICNNA_v2_0_0_spine_classes
+' ============================================================
+' ICNNA v2.0.0 — Projected spine class diagram
+' Scope: +icnna.data.core/  (flat, ID-referenced)
+' Phase 3b.2 deliverable
+' Date: 2026-04-15
+' Source: Phase3_minute.tex (P5 flat architecture, v1.4.7
+'         experimental-model generalisation), Phase2c v2.0.0
+'         endpoint, D.* decisions.
+' ============================================================
+' Conventions:
+'   - "Flat + ID-referenced" (P5): entities hold IDs of related
+'     entities, not nested object references.
+'   - Multiplicities reflect the *generalised* experimental model
+'     (event-related, multifactorial, within-group allocation).
+'   - SPECULATIVE — to be revised at v1.4.7a memo.
+' ============================================================
+
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+package "+icnna.data.core (v2.0.0)" as core {
+
+  abstract class identifiableObject {
+    +id : char
+    +description : char
+    +created : datetime
+    +modified : datetime
+    +classVersion : char
+    +meta : metaEntry[*]
+  }
+
+  class metaEntry {
+    +key : char
+    +value : any
+  }
+
+  ' ---- Subject layer ----
+  class subject {
+    +demographics : struct
+  }
+
+  ' ---- Experimental design (generalised at v1.4.7) ----
+  class experimentBundle {
+    +name : char
+    +groupIDs : char[*]
+    +designKind : enum
+    note: designKind ∈ {block, eventRelated, mixed}
+  }
+
+  class experimentalGroup {
+    +unitIDs : char[*]
+    +factorAssignments : table
+  }
+
+  class experimentalUnit {
+    +subjectID : char
+    +sessionIDs : char[*]
+    +rawDataIDs : char[*]
+    +conditionIDs : char[*]
+    +timelineID : char
+  }
+
+  class session {
+    +date : datetime
+    +rawDataIDs : char[*]
+    +timelineID : char
+  }
+
+  class condition {
+    +label : char
+    +factorLevels : map
+  }
+
+  class factor {
+    +name : char
+    +levels : char[*]
+    +kind : enum
+    note: kind ∈ {within, between, mixed}
+  }
+
+  ' ---- Timeline / events ----
+  class timeline {
+    +tStart : datetime
+    +nominalFs : double
+    +eventIDs : char[*]
+  }
+  class event {
+    +tOnset : double
+    +tDuration : double
+    +conditionID : char
+  }
+
+  ' ---- Signal layer ----
+  class rawData {
+    +deviceKind : char
+    +signalSetID : char
+  }
+  class signalSet {
+    +descriptorIDs : char[*]
+  }
+  class signalDescriptor {
+    +modality : enum
+    +unit : char
+  }
+
+  ' ---- Optical hardware ----
+  class montage
+  class nirsMontage {
+    +optodeIDs : char[*]
+    +referenceLocationIDs : char[*]
+  }
+  class optode {
+    +position : double[3]
+  }
+  class lightSource
+  class lightDetector
+  class referenceLocation {
+    +label : char
+    +position : double[3]
+  }
+  class opticalCoefficient
+
+  ' ---- Quality control ----
+  class qc {
+    +criterionIDs : char[*]
+    +targetID : char
+  }
+  class qcCriterion {
+    +tier : enum
+    +parameters : struct
+    note: tier ∈ {survival, enhancement}
+  }
+}
+
+' --- Inheritance ---
+subject              --|> identifiableObject
+experimentBundle     --|> identifiableObject
+experimentalGroup    --|> identifiableObject
+experimentalUnit     --|> identifiableObject
+session              --|> identifiableObject
+condition            --|> identifiableObject
+factor               --|> identifiableObject
+timeline             --|> identifiableObject
+event                --|> identifiableObject
+rawData              --|> identifiableObject
+signalSet            --|> identifiableObject
+signalDescriptor     --|> identifiableObject
+montage              --|> identifiableObject
+nirsMontage          --|> montage
+optode               --|> identifiableObject
+lightSource          --|> optode
+lightDetector        --|> optode
+referenceLocation    --|> identifiableObject
+opticalCoefficient   --|> identifiableObject
+qc                   --|> identifiableObject
+qcCriterion          --|> identifiableObject
+
+' --- ID references (P5 flat-architecture; dashed = ID-by-value) ---
+experimentBundle    ..> experimentalGroup  : groupIDs
+experimentBundle    ..> factor             : factorIDs
+experimentalGroup   ..> experimentalUnit   : unitIDs
+experimentalUnit    ..> subject            : subjectID
+experimentalUnit    ..> session            : sessionIDs
+experimentalUnit    ..> rawData            : rawDataIDs
+experimentalUnit    ..> condition          : conditionIDs
+experimentalUnit    ..> timeline           : timelineID
+session             ..> rawData            : rawDataIDs
+session             ..> timeline           : timelineID
+condition           ..> factor             : factorLevels
+timeline            ..> event              : eventIDs
+event               ..> condition          : conditionID
+rawData             ..> signalSet          : signalSetID
+signalSet           ..> signalDescriptor   : descriptorIDs
+nirsMontage         ..> optode             : optodeIDs
+nirsMontage         ..> referenceLocation  : referenceLocationIDs
+qc                  ..> qcCriterion        : criterionIDs
+qc                  ..> identifiableObject : targetID  (any spine entity)
+
+note top of experimentBundle
+  GENERALISED at v1.4.7:
+  - block, event-related, mixed designs
+  - within-group allocation (factor)
+  - multifactorial designs (factor[*])
+  Replaces oo/@experiment containment model.
+end note
+
+note bottom of core
+  P5 flat-architecture: dashed arrows are ID
+  references resolved by an in-memory registry
+  (or persisted bundle). No nested object
+  composition across spine entities.
+  Method-level surface deferred to v1.4.7b
+  implementation memo.
+end note
+
+@enduml
