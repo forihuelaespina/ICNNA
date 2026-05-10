@@ -2,60 +2,100 @@
 ' ============================================================
 ' ICNNA v2.0.0 — Projected package diagram
 ' Phase 3b.2 deliverable
-' Date: 2026-04-15
+' ============================================================
+' Log:
+'   2026-04-15: FOE/Claude — File created from roadmap.
+'   2026-04-20: FOE/Claude — Revised per FOE review:
+'       + Added +data/+misc/ (survives; hosts spatial/ROI classes)
+'       + Added +op/+pipeline (CWL/Airflow/ONNX support)
+'       + Added +op/+stats (replaces erroneous +experimentSpace pkg)
+'       + document class noted in +data/+core
+'       + rawData importers migrate from +data/+misc to +io/+devices
+'       + Lazy-proxy pattern noted (cross-cutting)
+'       + Three-tier certainty: existing / planned / speculative
+'       + Container packages emphasised (coloured backgrounds,
+'         very thick borders)
+'       + Rebranded +op/+signal as +op/+proc
+'       + +qc kept: houses concrete qcCriterion subclasses
+'         (abstract qc/qcCriterion stay in +data/+core)
+' ============================================================
 ' Source: derived from Phase3_minute.tex roadmap targets,
-'         Phase2c_minute.tex v2.0.0 endpoint, D.* decisions.
+'         Phase2c_minute.tex v2.0.0 endpoint, D.* decisions,
+'         20-Apr-2026 FOE review session.
 ' ============================================================
 ' Conventions:
+'   - Solid border (normal): package exists in v1.4.1-beta
+'   - Solid border (bold):   <<planned>> — committed in roadmap
+'   - Dashed border:         <<speculative>> — likely but not committed
+'   - Container packages:    coloured bg, very thick borders
 '   - All packages are <<modern>>; oo/ and +icnna.compat/ are
 '     deleted by v1.8.0 / v2.0.0 respectively.
-'   - <<new>> marks subpackages introduced after v1.4.1-beta.
-'   - Empty subpackages projected from roadmap are still shown.
 ' ============================================================
 
 skinparam packageStyle rectangle
 skinparam linetype ortho
+skinparam nodesep 20
+skinparam ranksep 25
 
-package "src/" as src {
+' --- Tier styling via stereotypes ---
+skinparam package<<planned>> {
+  BorderColor DarkBlue
+  BorderThickness 2
+  FontStyle bold
+}
+skinparam package<<speculative>> {
+  BorderColor Gray
+  BorderStyle dashed
+  FontStyle italic
+}
+skinparam package<<container>> {
+  BorderThickness 4
+  FontStyle bold
+}
+package "src/" as src <<container>> #F0F0F0 {
 
-  package "+icnna/" as icnna {
+  package "+icnna/" as icnna <<container>> #E8ECFF {
 
-    package "+data" as data {
-      package "+core (flat spine)" as core
-      package "+snirf  (I/O dataset model)" as snirf
-      package "+bids  <<new>> (v1.7.0)" as bids_data
-      package "+synthetic  <<new>> (v1.6.3)" as synth
-      package "+coeffs  (extinction etc.)" as coeffs
-    }
-
-    package "+op" as op {
-      package "+signal  <<new>> (v1.6.0–v1.6.2)" as op_signal {
-        package "+motion  <<new>> (v1.6.1)" as op_motion
-        package "+physio  <<new>> (v1.6.2)" as op_physio
+    package "+data" as data <<container>> #FFFDE8 {
+      package "+core  (flat spine)" as core {
       }
-      package "+snirf" as op_snirf
-      package "+bids  <<new>> (v1.7.0)" as op_bids
-      package "+experiment  <<new>>\n(generalised designs, v1.4.7)" as op_exp
+      package "+snirf  (I/O dataset model)" as snirf
+      package "+coeffs  (extinction data assets)" as coeffs
+      package "+misc  (spatial, ROI, misc)" as misc
+      package "+bids" <<planned>> as bids_data
+      package "+synthetic" <<planned>> as synth
     }
 
-    package "+analysis  <<new>> (v1.5.5)" as analysis
-    package "+experimentSpace  <<new>> (v1.5.5)" as espace
-    package "+qc  <<new>> (v1.5.4 survival,\nv1.6.4 enhancement)" as qc
-    package "+registration  <<new>>\n(v1.5.2 + v1.5.3)" as reg
+    package "+op" as op <<container>> #E8FFE8 {
+      package "+snirf" as op_snirf
+      package "+proc" <<planned>> as op_proc {
+        package "+motion" <<planned>> as op_motion
+        package "+physio" <<planned>> as op_physio
+      }
+      package "+bids" <<planned>> as op_bids
+      package "+experiment" <<planned>> as op_exp
+      package "+pipeline" <<planned>> as op_pipeline
+      package "+stats" <<planned>> as op_stats
+    }
 
-    package "+io" as io {
+    package "+analysis" <<planned>> as analysis
+    package "+qc" <<planned>> as qc
+    package "+registration" <<planned>> as reg
+
+    package "+io" as io <<container>> #FFE8E0 {
       package "+snirf" as io_snirf
-      package "+bids  <<new>>" as io_bids
-      package "+legacy_mat  <<new>>\n(.mat load adapters; removed v2.0.0)" as io_matload
+      package "+bids" <<planned>> as io_bids
+      package "+devices" <<planned>> as io_devices
+      package "+legacy_mat" <<planned>> as io_matload
     }
 
     package "+plot" as plot
     package "+util" as util
 
-    package "+gui  <<new>> (v1.9.x;\nunified MVC)" as guipkg {
-      package "+model"
-      package "+view"
-      package "+controller"
+    package "+gui" <<planned>> as guipkg {
+      package "+model" <<planned>>
+      package "+view" <<planned>>
+      package "+controller" <<planned>>
     }
   }
 
@@ -64,57 +104,153 @@ package "src/" as src {
 }
 
 ' --- Dependencies (intra-modern, flat-architecture) ---
-op       --> core      : operates over
-op_signal --> core
-op_motion --> op_signal
-op_physio --> op_signal
-op_exp   --> core
-op_snirf --> snirf
-op_snirf --> core
-op_bids  --> bids_data
-op_bids  --> core
+op        --> core       : "operates over"
+op_proc   --> core
+op_motion --> op_proc
+op_physio --> op_proc
+op_exp    --> core
+op_snirf  --> snirf
+op_snirf  --> core
+op_bids   --> bids_data
+op_bids   --> core
+op_pipeline --> core     : "sequences ops\nover core data"
+op_pipeline --> op_proc
+op_stats  --> core       : "statistical ops\n(distances, embeddings,\nclustering)"
+op_stats  --> analysis
 
-io_snirf --> snirf
-io_bids  --> bids_data
-io_matload --> core    : "loads legacy .mat\ninto modern spine"
+io_snirf  --> snirf
+io_bids   --> bids_data
+io_devices --> core      : "device importers\n(rawData_NIRx etc.)"
+io_matload --> core      : "loads legacy .mat\ninto modern spine"
 
-analysis --> espace
-analysis --> core
-espace   --> core
-qc       --> core
-qc       --> op_signal
-reg      --> core
+analysis  --> core
+qc        --> core       : "concrete qcCriterion\nsubclasses"
+qc        --> op_proc
+reg       --> core
 
-plot     --> core
-plot     --> analysis
-plot     --> qc
+plot      --> core
+plot      --> analysis
+plot      --> qc
 
-guipkg   --> core      : model layer
-guipkg   --> op
-guipkg   --> analysis
-guipkg   --> qc
-guipkg   --> reg
-guipkg   --> io
-guipkg   --> plot
+guipkg    --> core       : "model layer"
+guipkg    --> op
+guipkg    --> analysis
+guipkg    --> qc
+guipkg    --> reg
+guipkg    --> io
+guipkg    --> plot
 
-synth    --> core      : "produces synthetic\nbundles for QC/op tests"
+synth     --> core       : "produces synthetic\nbundles for QC/op tests"
+misc      --> core
+
+' ================================================================
+' NOTES
+' ================================================================
 
 note bottom of compat
-  +icnna.compat/ existed v1.4.3.x → v1.7.x for
+  +icnna.compat/ existed v1.4.3.x -> v1.7.x for
   bridging legacy <-> modern call sites.
-  Deleted at v2.0.0 per Phase 3 §"Rule 5".
+  Deleted at v2.0.0 per Phase 3 Rule 5.
   Shown ghosted for historical traceability only.
 end note
 
 note bottom of guipkg
   Unified GUI subsumes legacy GUI/ entry points
   including the registration tool. MVC split is
-  the architectural commitment from v1.9.0 memo.
+  the architectural commitment from v1.9.0.
 end note
 
 note right of io_matload
-  N.6 — .mat load-compat adapters retained
+  N.6 -- .mat load-compat adapters retained
   past +icnna.compat removal; final deletion v2.0.0.
 end note
+
+note bottom of io_devices
+  Device-specific importers migrated here
+  from +data/+misc/ (e.g. rawData_NIRx)
+  and from oo/ legacy rawData_* classes.
+  Each importer subclasses +data/+core/rawData.
+end note
+
+note right of op_pipeline
+  Pipeline representation and execution.
+  Standard support planned:
+  CWL, Apache Airflow DAG, ONNX.
+  See overprocessing & pipeline
+  optimization papers.
+end note
+
+note bottom of op_stats
+  Statistical operations on experimentBundles:
+  distance metrics, embeddings (MDS etc.),
+  clustering. Replaces legacy analysis/
+  experimentSpace computational behaviour.
+  Domain class experimentBundle stays in +core.
+end note
+
+note bottom of qc
+  Houses concrete qcCriterion subclasses:
+  _Saturation, _Mirroring, _ChannelIntegrity
+  (v1.5.4 survival tier);
+  _SCI, _CV (v1.6.4 enhancement tier).
+  Abstract qc/qcCriterion contracts remain
+  in +data/+core.
+end note
+
+note bottom of core
+  Key v2.0.0 additions to +core:
+  ..
+  **document** (<<speculative>>)
+    Top-level container; holds experiment(s).
+    v2.0.0: single-experiment.
+    Post-v2.0.0: multi-experiment (meta-analysis).
+  ..
+  **experiment** (<<planned>>)
+    Modern replacement for legacy experiment.
+    Mediates group <-> unit associations.
+    Manages design (via experimentDesign),
+    sessions, devices, and bundles.
+  ..
+  **session** (<<planned>>)
+    Modern replacement for legacy session.
+    Holds devices, runs, timeline.
+    sessionDefinition (<<speculative>>)
+    provides the template/contract.
+  ..
+  **run** (<<speculative>>)
+    Temporal subdivision of a session
+    (from Cantor hub_run).
+  ..
+  **experimentDesign** (<<speculative>>)
+    Experimental design taxonomy (extracted
+    from experiment.designType struct).
+  ..
+  **Lazy-proxy pattern** (<<planned>>, cross-cutting)
+    Data containers load arrays on demand,
+    not at construction time. Enables large
+    datasets without exhausting memory.
+end note
+
+note bottom of misc
+  Hosts modern equivalents of spatial/ROI
+  classes (imagePartition, roi, menaGrid, etc.).
+  Exact class list is speculative; created as
+  legacy classes are migrated.
+end note
+
+' ================================================================
+' LEGEND
+' ================================================================
+legend bottom left
+  |= Border |= Meaning |
+  | <size:12>----</size> solid, normal | Exists in v1.4.1-beta |
+  | <size:12><b>====</b></size> solid, bold+blue | <<planned>> -- committed in roadmap |
+  | <size:12>- - -</size> dashed, gray | <<speculative>> -- likely but not committed |
+  | <size:12><b>####</b></size> thick, dark | <<container>> -- grouping package |
+  ..
+  Milestone versions shown where known.
+  All oo/ classes deleted at v1.8.0.
+  .mat load-compat adapters removed at v2.0.0.
+end legend
 
 @enduml

@@ -18,34 +18,6 @@ skinparam linetype ortho
 
 package "src/" as src {
 
-  package "oo/  <<legacy>>" as oo {
-    package "data containers" as oo_data {
-      class "@experiment" as oo_experiment
-      class "@experimentSpace" as oo_experimentSpace
-      class "@session" as oo_session
-      class "@sessionDefinition" as oo_sessionDefinition
-      class "@subject" as oo_subject
-      class "@dataSource" as oo_dataSource
-      class "@dataSourceDefinition" as oo_dsdef
-      class "@structuredData" as oo_structuredData
-      class "@neuroimage" as oo_neuroimage
-      class "@nirs_neuroimage" as oo_nirs
-      class "@rawData" as oo_rawData
-      class "@rawData_*" as oo_rawData_variants
-      class "@timeline" as oo_timeline
-      class "@signal" as oo_signal
-      class "@channelLocationMap" as oo_clm
-      class "@cluster" as oo_cluster
-      class "@roi" as oo_roi
-      class "@imagePartition" as oo_imgpart
-      class "@menaGrid" as oo_mena
-      class "@logarithmicRadialGrid" as oo_logrg
-      class "@analysis" as oo_analysis
-      class "@integrityStatus" as oo_intst
-      class "@ecg" as oo_ecg
-    }
-  }
-
   package "+icnna/  <<modern>>" as icnna {
     package "+data" as i_data {
       package "+core (spine)" as i_core {}
@@ -61,12 +33,15 @@ package "src/" as src {
     package "+util" as i_util {}
   }
 
-  package "GUI/" as gui {}
-  package "HR/  (heart-rate utilities)" as hr {}
-  package "plotting/  (legacy plotters)" as oldplot {}
-  package "util/" as oldutil {}
-  package "miscellaneous/" as oldmisc {}
-  package "external/  (third-party)" as ext {}
+  package "<<legacy>>" as legacy {
+    package "oo/" as oo {}
+    package "GUI/" as gui {}
+    package "plotting/" as oldplot {}
+    package "util/" as oldutil {}
+    package "miscellaneous/" as oldmisc {}
+    package "external/  (third-party)" as ext {}
+    package "HR/  (heart-rate utilities)" as hr {}
+  }
 }
 
 ' --- Dependencies (intra-modern) ---
@@ -79,31 +54,20 @@ i_plot     --> i_op
 i_snirf    --> i_core   : maps to
 i_op       ..> i_util
 
-' --- Dependencies (intra-legacy) ---
-oo_session       --> oo_subject
-oo_session       --> oo_dataSource
-oo_experiment    --> oo_session
-oo_experiment    --> oo_subject
-oo_experimentSpace --> oo_experiment
-oo_dataSource    --> oo_rawData
-oo_dataSource    --> oo_structuredData
-oo_rawData_variants --|> oo_rawData
-oo_nirs --|> oo_neuroimage
-oo_neuroimage --|> oo_structuredData
-oo_signal        --> oo_timeline
-oo_analysis      --> oo_experimentSpace
-
 ' --- Bridging (modern <-> legacy) ---
-i_op_snirf ..> oo_nirs : "produces (interim,\nuntil v1.4.7b)"
-i_io       ..> oo_experiment : "exports from"
-oldplot    ..> oo_data : reads
-gui        ..> oo_data : reads/writes
+i_op_snirf ..> oo : "produces (interim,\nuntil v1.4.7b)"
+i_io       ..> oo : "exports from"
+oldplot    ..> oo : reads
+gui        ..> oo : reads/writes
+hr         ..> oo : "builds on legacy classes"
 
-note bottom of oo
-  Legacy @-folder OO surface.
-  Scheduled deletion: v1.8.0 (Arc D).
-  .mat load-compat adapters retained
-  past v1.8.0; final removal at v2.0.0.
+note bottom of legacy
+  Legacy surface (oo/ @-folders + loose top-level folders).
+  oo/ scheduled for deletion at v1.8.0 (Arc D);
+  .mat load-compat adapters retained past v1.8.0,
+  final removal at v2.0.0.
+  HR/ builds on legacy classes; will need
+  review/rewrite after oo/ removal.
 end note
 
 note bottom of icnna

@@ -10,13 +10,19 @@
 ## 25-Mar-2026 (v0.3): Added project-local CLAUDE.md
 ##
 ## 14-Apr-2026 (v0.4): FOE/Claude
-##     + Narrowed claude/** exclusion: claude/README.md,
-##       claude/.gitignore, and claude/minutes/** are now
-##       publicly tracked so that CHANGELOG references to
-##       session minutes resolve for readers cloning from
-##       GitHub (Phase 2d minute, §E.4.5 and §G.3).
-##       claude/memory/, claude/prompts/, claude/state/,
-##       claude/media/ remain private (OneDrive-only).
+##     + Narrowed claude/** exclusion: claude/README.md and
+##       claude/.gitignore are publicly tracked.
+##       All other claude/ subfolders (memory/, minutes/,
+##       prompts/, state/, media/) remain private
+##       (OneDrive-only).
+##     + (Reverted 10-May-2026: minutes were originally made
+##       public but FOE decided they should remain private.
+##       Negation rules for claude/minutes/ removed.)
+##
+## 20-Apr-2026 (v0.5): FOE/Claude
+##     + Added claude/archive/ to .gitignore. Superseded
+##       artefacts archived here (OneDrive-only, not tracked).
+##       Long-term plan: project-root /archive/ (Option A).
 ##
 ##
 
@@ -45,8 +51,9 @@ src2/**
 claude/**
 !claude/README.md
 !claude/.gitignore
-!claude/minutes/
-!claude/minutes/**
+## Note: claude/archive/ is covered by claude/** above.
+## When Option A (/archive/ at project root) is adopted, add:
+## archive/**
 rubbish/**
 
 ## Support

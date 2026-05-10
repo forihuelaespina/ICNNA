@@ -1,0 +1,494 @@
+@startuml ICNNA_v141beta_classes_modern
+' ============================================================
+' ICNNA v1.4.1-beta — Modern class diagram (all modern packages)
+' Scope: src/+icnna/+data/+core/  (20 classes)
+'        src/+icnna/+data/+snirf/ (8 classes)
+'        src/+icnna/+data/+misc/  (1 class)
+' Companion: ICNNA_v141beta_classes_legacy (src/oo/)
+' Phase 3b.1 deliverable (revised 2026-04-20)
+' ============================================================
+' Log:
+'   2026-04-15: FOE/Claude — File created (modern spine only).
+'   2026-04-19: FOE/Claude — Split from combined; full props/methods.
+'   2026-04-20: FOE/Claude — Added snirf + misc packages; removed
+'       3 incorrect experimental-model relationships; colour-coded
+'       by sub-package; layout adjusted.
+' ============================================================
+' Conventions:
+'   - Triangle (--|>): inheritance
+'   - Filled diamond (*--): composition
+'   - Open diamond (o--): aggregation
+'   - Dashed (..>): dependency
+'   - <<abstract>>: abstract class
+'   - Trivial get/set accessors omitted for readability
+' Colour key:
+'   Light blue (#E0F0FF)  = +icnna/+data/+core/
+'   Light green (#E0FFE8) = +icnna/+data/+snirf/
+'   Light salmon (#FFE8E0)= +icnna/+data/+misc/
+' ============================================================
+
+skinparam classAttributeIconSize 0
+skinparam linetype polyline
+skinparam nodesep 40
+skinparam ranksep 40
+skinparam dpi 150
+
+title ICNNA v1.4.1-beta — Modern Classes (29 classes across 3 packages)\nColour key: blue = +data/+core, green = +data/+snirf, salmon = +data/+misc
+
+' ================================================================
+' +icnna/+data/+core/ — ROOT
+' ================================================================
+abstract class identifiableObject <<abstract>> #E0F0FF {
+  - classVersion : char = '1.1' <<Constant>>
+  + id : uint32 = 1
+  + name : char = 'object0001'
+  __
+  + classVersion() : char
+}
+
+' ================================================================
+' +icnna/+data/+core/ — EXPERIMENTAL MODEL (containers — top)
+' ================================================================
+class experimentBundle #E0F0FF {
+  - classVersion : char = '1.1' <<Constant>>
+  + description : char
+  - E : table
+  - B : table
+  - p : table
+  - sites : table
+  + /nBasePoints <<Dependent>>
+  + /nTotalPoints <<Dependent>>
+  + /nAssociations <<Dependent>>
+  __
+  + setBundle(E, B, p)
+  + setSites(sites)
+}
+
+class experimentalGroup #E0F0FF {
+  - classVersion : char = '1.1' <<Constant>>
+  + metadata : struct
+  - sessionDefinitions : uint32[] <<placeholder>>
+}
+
+class experimentalUnit #E0F0FF {
+  - classVersion : char = '1.1' <<Constant>>
+  + metadata : struct
+  - sessions : cell <<placeholder>>
+}
+
+class subject #E0F0FF {
+  - classVersion : char = '1.1' <<Constant>>
+  + /dob : datetime <<Dependent>>
+  + /sex : char <<Dependent>>
+  + /hand : char <<Dependent>>
+  + /age : int <<Dependent, read-only>>
+}
+
+' ================================================================
+' +icnna/+data/+core/ — RAW DATA
+' ================================================================
+abstract class rawData <<abstract>> #E0F0FF {
+  - classVersion : char = '1.1' <<Constant>>
+  + description : char = 'Raw data'
+  + date : datetime
+  + path : char
+  + dataFiles : struct[]
+  __
+  + {abstract} import(...) : structuredData
+  + eq(obj2) : logical
+}
+
+' ================================================================
+' +icnna/+data/+core/ — TEMPORAL
+' ================================================================
+class timeline #E0F0FF {
+  - classVersion : char = '1.2' <<Constant>>
+  + startTime : datetime
+  + timestamps : double[]
+  + nominalSamplingRate : double = 1
+  + unit : char = 'samples'
+  + timeUnitMultiplier : int16 = 0
+  - exclusory : logical[]
+  - conditions : condition[]
+  + /length <<Dependent>>
+  + /nConditions <<Dependent>>
+  + /averageSamplingRate <<Dependent>>
+  __
+  + addCondition(id, name, cevents, ...)
+  + addConditions(conds, exclusoryState)
+  + addEvents(...)
+  + removeConditions(tags)
+  + getConditions(id) : condition
+  + findConditions(tags, options) : idx
+  + clearConditions()
+  + setExclusory(tags, state, reflexive)
+}
+
+class condition #E0F0FF {
+  - classVersion : char = '1.2' <<Constant>>
+  + cevents : struct[]
+  + unit : char = 'samples'
+  + timeUnitMultiplier : int16 = 0
+  + nominalSamplingRate : double = 1
+  + /nEvents : int <<Dependent>>
+  + /onsets <<Dependent>>
+  + /durations <<Dependent>>
+  + /amplitudes <<Dependent>>
+  + /ends <<Dependent>>
+  __
+  + addEvents(...)
+  + clearEvents()
+}
+
+' ================================================================
+' +icnna/+data/+core/ — QUALITY CONTROL
+' ================================================================
+class qc #E0F0FF {
+  - classVersion : char = '1.0' <<Constant>>
+  - criteria : qcCriterion[]
+  + /nCriteria <<Dependent>>
+  + /size, nSamples, nChannels, nSignals <<Dep>>
+  __
+  + addCriteria(crit)
+  + removeCriteria(tags)
+  + getCriteria(val) : qcCriterion
+  + findCriteria(tags) : idx
+  + clearCriteria()
+  + getGlobalMaskAllOK / getGlobalMaskAnyFail
+  + isAllVerified / isComplete
+}
+
+class qcCriterion #E0F0FF {
+  - classVersion : char = '1.0' <<Constant>>
+  - layer_ : int8[3D]
+  - verified_ : logical = false
+  - codes_ : struct
+  - description_ : char
+  - qcOperator_ : function_handle
+  + /layer <<Dependent>>
+  + /verified <<Dependent>>
+  + /codes <<Dependent>>
+  __
+  + isVerified() : logical
+  + setValue(value, ...)
+  + setOK / setFAIL / setUNCHECK
+  + getMaskOK / getMaskFAIL / getMaskAnyFail
+  + getCountOK / getCountAnyFail
+  + isComplete() : logical
+  + {static} execute(...) : qcCriterion
+}
+
+' ================================================================
+' +icnna/+data/+core/ — SIGNAL DESCRIPTION
+' ================================================================
+class signalSet #E0F0FF {
+  - classVersion : char = '1.0' <<Constant>>
+  - descriptors : signalDescriptor[]
+  + /nSignals <<Dependent>>
+  + /signalNames <<Dependent>>
+  __
+  + addSignalDescriptors(desc)
+  + removeSignalDescriptors(tags)
+  + getSignalDescriptors(val) : signalDescriptor
+  + findSignalDescriptors(tags) : idx
+  + clearSignalDescriptors()
+}
+
+class signalDescriptor #E0F0FF {
+  - classVersion : char = '1.0' <<Constant>>
+  - additional : struct
+  __
+  + setField(name, value)
+  + getField(name) : any
+  + removeField(name)
+  + fieldnames() : cell
+  + hasfield(name) : logical
+  + meta(name) : metaEntry
+}
+
+' ================================================================
+' +icnna/+data/+core/ — METADATA
+' ================================================================
+class metaEntry #E0F0FF {
+  - classVersion : char = '1.0' <<Constant>>
+  + value : any
+  + samplingLocations : int[] = []
+  __
+  + appliesTo(samplingLocationsIdx) : logical
+  + appliesToAll() : logical
+  + disp()
+}
+
+' ================================================================
+' +icnna/+data/+core/ — INSTRUMENTATION
+' ================================================================
+abstract class montage <<abstract>> #E0F0FF {
+  - classVersion : char = '1.2' <<Constant>>
+  + samplingLocationName : char = 'pixel'
+  + /nSamplingLocations <<Dependent, Abstract>>
+}
+
+class nirsMontage #E0F0FF {
+  - classVersion : char = '1.0' <<Constant>>
+  + positioningSystem : char = 'UI 10/10'
+  + baseDistance : char = 'euclidean'
+  + shortChannelThreshold : double = 12
+  - exclusory : logical[]
+  - conditions : condition[]
+  - sources : lightSource[]
+  - detectors : lightDetector[]
+  - probesets : struct[]
+  - channels : struct[]
+  - measurements : struct[]
+  - landmarks : referenceLocation[]
+  + /nSamplingLocations <<Dependent>>
+  + /nOptodes, nSources, nDetectors <<Dep>>
+  + /nChannels, nMeasurements <<Dep>>
+  + /shortChannels <<Dependent>>
+  __
+  + addSources(srcs)
+  + addDetectors(dets)
+}
+
+class optode #E0F0FF {
+  - classVersion : char = '1.0' <<Constant>>
+  + nominalLocation : referenceLocation
+  + actualLocation : referenceLocation
+  + direction2D : double[2x1]
+  + direction3D : double[3x1]
+}
+note bottom of optode
+  lightSource and lightDetector
+  have only canonical get/set pairs
+  (no domain-logic methods)
+end note
+
+class lightSource #E0F0FF {
+  - classVersion : char = '1.0' <<Constant>>
+  + srcType : char = 'pencil'
+  + params : struct
+}
+
+class lightDetector #E0F0FF {
+  - classVersion : char = '1.0' <<Constant>>
+  + detType : char = 'disk'
+  + params : struct
+  + response : double[kx2]
+  + powerGain : double = 0
+}
+
+class referenceLocation #E0F0FF {
+  - classVersion : char = '1.0' <<Constant>>
+  + positioningSystem : char = 'none'
+  + landmark : char = ''
+  + location2D : double[2x1]
+  + location3D : double[3x1]
+}
+
+class opticalCoefficient #E0F0FF {
+  - classVersion : char = '1.0' <<Constant>>
+  + description : char
+  + response : double[kx2]
+  + coefficientType : string
+  + scaleType : string = 'macroscopic'
+  + unit : char = 'm^{-1}'
+  + unitMultiplier : int16 = 0
+  + interpolationMethod : string = 'linear'
+  + extrapolationMethod : string = 'extrap'
+  __
+  + getResponseAt(wavelengths) : double
+  + toJSON(filename)
+  + {static} create(filename) : opticalCoefficient
+}
+
+' ================================================================
+' +icnna/+data/+snirf/ — SNIRF FILE FORMAT SUPPORT
+' ================================================================
+class snirf #E0FFE8 {
+  - classVersion : char = '1.0' <<Constant>>
+  + formatVersion : char = '0.0'
+  + nirs : nirsDataset[]
+  + /nNirsDatasets <<Dependent>>
+  __
+  + save(filename)
+  + {static} load(filename) : snirf
+  + {static} readHD5file(filename) : [res, info]
+}
+
+class nirsDataset #E0FFE8 {
+  - classVersion : char = '1.0' <<Constant>>
+  + metaDataTags : metaDataTags
+  + data : dataBlock[]
+  + stim : stim[]
+  + probe : probe
+  + aux : auxBlock[]
+}
+
+class dataBlock #E0FFE8 {
+  - classVersion : char = '1.0' <<Constant>>
+  + dataTimeSeries : double[MxN]
+  + time : double[Mx1]
+  + measurementList : measurement[]
+}
+
+class "measurement\n{snirf}" as snirfMeasurement #E0FFE8 {
+  - classVersion : char = '1.0.1' <<Constant>>
+  + sourceIndex : double
+  + detectorIndex : double
+  + wavelengthIndex : double
+  + dataType : double
+  + dataTypeIndex : double
+  + wavelengthActual : double <<optional>>
+  + dataUnit : char <<optional>>
+  + dataTypeLabel : char <<optional>>
+  + sourcePower : double <<optional>>
+  + detectorGain : double <<optional>>
+  - flagVisible : struct
+  __
+  + isproperty(name) : logical
+  + rmproperty(name)
+}
+
+class stim #E0FFE8 {
+  - classVersion : char = '1.0.1' <<Constant>>
+  + name : char
+  + data : double[Mx3]
+  + dataLabels : string[] <<optional>>
+  - flagVisible : struct
+  __
+  + isproperty(name) : logical
+  + rmproperty(name)
+}
+
+class "probe\n{snirf}" as snirfProbe #E0FFE8 {
+  - classVersion : char = '1.0.1' <<Constant>>
+  + wavelengths : double[]
+  + sourcePos2D : double[Mx2]
+  + sourcePos3D : double[Mx3]
+  + detectorPos2D : double[Mx2]
+  + detectorPos3D : double[Mx3]
+  + sourceLabels : string[] <<optional>>
+  + detectorLabels : string[] <<optional>>
+  + landmarkPos2D/3D <<optional>>
+  + landmarkLabels : string[] <<optional>>
+  - flagVisible : struct
+  __
+  + isproperty(name) : logical
+  + rmproperty(name)
+}
+
+class auxBlock #E0FFE8 {
+  - classVersion : char = '1.0.1' <<Constant>>
+  + name : char
+  + dataTimeSeries : double[MxN]
+  + time : double[Mx1]
+  + dataUnit : char <<optional>>
+  + timeOffset : double[] <<optional>>
+  - flagVisible : struct
+  __
+  + isproperty(name) : logical
+  + rmproperty(name)
+}
+
+class "metaDataTags\n{snirf}" as snirfMetaDataTags #E0FFE8 {
+  - classVersion : char = '1.1' <<Constant>>
+  + subjectID : char
+  + measurementDate : datetime
+  + measurementTime : datetime
+  + lengthUnit : char
+  + timeUnit : char
+  + frequencyUnit : char
+  - additional : struct
+  __
+  + setField(name, value)
+  + getField(name) : any
+  + removeField(name)
+  + hasField(name) : logical
+  + fieldnames() : cell
+}
+
+' ================================================================
+' +icnna/+data/+misc/ — DEVICE-SPECIFIC RAW DATA
+' ================================================================
+class rawData_NIRx #FFE8E0 {
+  - classVersion : char = '1.0' <<Constant>>
+  ..no new properties..
+  __
+  + import(...) : structuredData
+}
+
+' ================================================================
+' INHERITANCE — +data/+core/
+' ================================================================
+metaEntry            --|> identifiableObject
+referenceLocation    --|> identifiableObject
+optode               --|> identifiableObject
+lightSource          --|> optode
+lightDetector        --|> optode
+opticalCoefficient   --|> identifiableObject
+condition            --|> identifiableObject
+montage              --|> identifiableObject
+nirsMontage          --|> montage
+signalDescriptor     --|> identifiableObject
+signalSet            --|> identifiableObject
+qcCriterion          --|> identifiableObject
+qc                   --|> identifiableObject
+rawData              --|> identifiableObject
+timeline             --|> identifiableObject
+experimentalUnit     --|> identifiableObject
+subject              --|> experimentalUnit
+experimentalGroup    --|> identifiableObject
+experimentBundle     --|> identifiableObject
+
+' INHERITANCE — +data/+misc/
+rawData_NIRx         --|> rawData
+
+' ================================================================
+' COMPOSITION / AGGREGATION — +data/+core/
+' ================================================================
+identifiableObject  o-- "0..*" metaEntry          : meta
+optode              *-- "1"    referenceLocation   : nominalLocation
+optode              *-- "1"    referenceLocation   : actualLocation
+nirsMontage         *-- "0..*" lightSource         : sources
+nirsMontage         *-- "0..*" lightDetector       : detectors
+nirsMontage         *-- "0..*" referenceLocation   : landmarks
+nirsMontage         *-- "0..*" condition           : conditions
+timeline            *-- "0..*" condition           : conditions
+qc                  *-- "0..*" qcCriterion         : criteria
+signalSet           *-- "0..*" signalDescriptor    : descriptors
+signalDescriptor    o-- "0..*" metaEntry           : additional
+
+' ================================================================
+' COMPOSITION — +data/+snirf/
+' ================================================================
+snirf               *-- "0..*" nirsDataset         : nirs
+nirsDataset         *-- "1"    snirfMetaDataTags   : metaDataTags
+nirsDataset         *-- "0..*" dataBlock           : data
+nirsDataset         *-- "0..*" stim                : stim
+nirsDataset         *-- "1"    snirfProbe           : probe
+nirsDataset         *-- "0..*" auxBlock            : aux
+dataBlock           *-- "0..*" snirfMeasurement    : measurementList
+
+' ================================================================
+' CROSS-ARCHITECTURE NOTE
+' ================================================================
+note as xref
+  **Cross-architecture dependencies**
+  (see companion diagram: legacy oo/)
+  ..
+  oo/@structuredData.timeline uses
+  this package's **timeline** class.
+  ..
+  +op.snirf produces interim
+  oo/@nirs_neuroimage objects.
+end note
+
+note as expNote
+  **Experimental model note**
+  experimentalGroup and experimentalUnit
+  are standalone. Their association to each
+  other is mediated by a future **experiment**
+  class (not yet implemented).
+end note
+
+@enduml

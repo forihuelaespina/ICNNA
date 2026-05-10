@@ -1,0 +1,594 @@
+@startuml ICNNA_v141beta_classes_legacy
+' ============================================================
+' ICNNA v1.4.1-beta — Legacy class diagram
+' Scope: src/oo/  (29 classes)
+' Companion: ICNNA_v141beta_classes_modern (+icnna.data.core)
+' Phase 3b.1 deliverable (revised 2026-04-19)
+' ============================================================
+' Conventions:
+'   - Triangle (--|>): inheritance
+'   - Filled diamond (*--): composition
+'   - Open diamond (o--): aggregation
+'   - Dashed (..>): dependency / cross-architecture ref
+'   - All legacy classes coloured wheat
+'   - Deprecation version shown per class
+'   - Trivial get/set accessors omitted for readability
+' ============================================================
+
+skinparam classAttributeIconSize 0
+skinparam linetype polyline
+skinparam nodesep 25
+skinparam ranksep 30
+skinparam dpi 150
+
+skinparam class {
+  BackgroundColor Wheat
+  BorderColor DarkGoldenRod
+}
+
+title src/oo/  —  Legacy Classes (v1.4.1-beta)\n29 classes; scheduled for deletion at v1.8.0 (Arc D)
+
+' ================================================================
+' CROSS-ARCHITECTURE STUBS (from +icnna.data.core)
+' These are NOT legacy; shown here as reference points only.
+' ================================================================
+class "icnna.data.core.timeline" as m_timeline <<modern>> #White {
+  (see modern spine diagram)
+}
+
+class "icnna.data.snirf.snirf" as m_snirf <<modern>> #White {
+  (see +icnna.data.snirf)
+}
+
+' ================================================================
+' EXPERIMENTAL MODEL
+' ================================================================
+class experiment {
+  + name : char = 'NewExperiment'
+  + description : char
+  + studyDate : datetime
+  - dataSourceDefinitions : cell
+  - sessionDefinitions : cell
+  - subjects : cell
+  + /nDataSourceDefinitions <<Dep>>
+  + /nSessionDefinitions <<Dep>>
+  + /nSubjects <<Dep>>
+  __
+  + addSubject / removeSubject / getSubject
+  + addSessionDefinition / removeSessionDefinition
+  + addDataSourceDefinition / removeDataSourceDefinition
+  + merge(exp)
+  .. deprecation: v1.4.7b ..
+}
+
+class subject {
+  + id : double
+  + name : char = 'Subj0001'
+  + age : double
+  + sex : char = 'U'
+  + hand : char = 'U'
+  - sessions : cell
+  + /nSessions <<Dep>>
+  __
+  + addSession / removeSession / getSession
+  + findSession / clearSessions
+  + checkIntegrity()
+  .. deprecation: v1.4.7b ..
+}
+
+class session {
+  + definition : sessionDefinition
+  + date : datenum
+  - sources : cell
+  + /nDataSources <<Dep>>
+  __
+  + addDataSource / removeDataSource
+  + getDataSource / findDataSource
+  + clearDataSources
+  .. deprecation: v1.4.7b ..
+}
+
+class sessionDefinition {
+  + id : double
+  + name : char = 'Session0001'
+  + description : char
+  - sources : cell
+  + /nDataSources <<Dep>>
+  __
+  + addSource / removeSource / getSource
+  + findSource / clearSources
+  .. deprecation: v1.4.7b ..
+}
+
+class dataSourceDefinition {
+  + id : double
+  + type : char
+  + deviceNumber : double
+  .. deprecation: v1.4.7b ..
+}
+
+' ================================================================
+' DATA SOURCE
+' ================================================================
+class dataSource {
+  + id : double
+  + name : char = 'DataSource0001'
+  + deviceNumber : double = 1
+  + rawData : rawData
+  + lock : logical = true
+  + activeStructured : double = 0
+  - structured : cell
+  + /type <<Dep>>
+  + /nStructuredData <<Dep>>
+  __
+  + addStructuredData / removeStructuredData
+  + getStructuredData / findStructuredData
+  + getRawData / setRawData / clearRawData
+  + lock() / unlock() / isLock()
+  .. deprecation: v1.4.9 ..
+}
+
+' ================================================================
+' STRUCTURED DATA HIERARCHY
+' ================================================================
+class structuredData {
+  + id : double
+  + name : char = 'StructuredData0001'
+  + description : char
+  + timeline : icnna.data.core.timeline
+  + data : double[3D]
+  + integrity : integrityStatus
+  + signalTags : cell
+  + /nSamples, nChannels, nSignals <<Dep>>
+  __
+  + crop(from, to)
+  + cut(from, to)
+  + getBlock / getChannel / getSignal / getSample
+  + windowSelection(...)
+  + checkIntegrity()
+  .. deprecation: v1.4.5 ..
+}
+
+note right of structuredData
+  **Cross-architecture dependency:**
+  timeline property holds a modern
+  icnna.data.core.timeline object.
+end note
+
+class neuroimage {
+  + chLocationMap : channelLocationMap
+  __
+  .. deprecation: v1.4.5 ..
+}
+
+class nirs_neuroimage {
+  + probeMode : char <<DEPRECATED>>
+  + {static} OXY=1, DEOXY=2
+  + {static} CYTOCHROME=3, TOTALHB=4, HBDIFF=5
+  __
+  + checkIntegrity()
+  + decimate()
+  + detrend()
+  + detectMirroringv3()
+  + detectSuddenChanges()
+  + Pegna_detectOptodeMovement()
+  + Sato_detectOptodeMovement()
+  + doubleES()
+  + mirroring()
+  .. deprecation: v1.4.5 ..
+}
+
+class ecg {
+  - samplingRate : double = 250
+  - startTime : datevec
+  - rPeaksMode : char = 'auto'
+  - rPeaksAlgo : char = 'LoG'
+  - threshold : double = 0
+  - rPeaks : double[]
+  - rr : double[]
+  + /timestamps <<Dep>>
+  __
+  + crop / cut / getBlock
+  + getBPM / getRPeaks / getRR
+  + lfhfRatio / nn50 / pnn50
+  + rmssd / sdann / sdnn
+  + qrsdetection()
+  + optimalThreshold()
+  .. deprecation: v1.4.9 ..
+}
+
+' ================================================================
+' SIGNAL
+' ================================================================
+class signal {
+  + samples : double[]
+  __
+  + plus / minus / mtimes / mrdivide / uminus
+  + ctranspose
+  + filter / decimate
+  + length / size / end
+  + subsref / subsasgn
+  .. deprecation: v1.4.5 ..
+}
+
+' ================================================================
+' TIMELINE (legacy)
+' ================================================================
+class "timeline" as oo_timeline {
+  + length : double = 0
+  + startTime : datenum
+  + timestamps : double[]
+  + nominalSamplingRate : double = 1
+  + conditions : cell
+  + exclusory : double[]
+  + /nConditions <<Dep>>
+  + /samplingRate <<Dep>>
+  __
+  + addCondition / removeCondition / clearConditions
+  + addConditionEvents / removeConditionEvents
+  + getCondition / getConditionEvents / getConditionTag
+  + setExclusory / getExclusory / setAllExclusory
+  + switchExclusory
+  + findCondition / getMaxEvents / getTotalEvents
+  + getAvgRestTime / getAvgTaskTime
+  + compatible(otherTimeline) : logical
+  .. deprecation: v1.4.5 ..
+  .. modern equivalent: icnna.data.core.timeline ..
+}
+
+' ================================================================
+' INTEGRITY
+' ================================================================
+class integrityStatus {
+  - elements : double[]
+  + {static} UNCHECK = -1
+  + {static} FINE = 0
+  + {static} MISSING = 1, NOISE = 2, OTHER = 3
+  + {static} MIRRORING = 11
+  + {static} NONRECORDINGS = 12
+  + {static} NEGATIVERECORDINGS = 13
+  + {static} OPTODEMOVEMENT = 14
+  + {static} HEADMOTION = 15
+  + {static} COEFFICIENTOFVARIATION = 16
+  __
+  + getStatus / setStatus
+  + getNElements / setNElements
+  + isCheck / isClean
+  .. deprecation: v1.5.4 ..
+}
+
+' ================================================================
+' SPATIAL / CHANNEL MAPPING
+' ================================================================
+class channelLocationMap {
+  + id, description
+  + nChannels : double, nOptodes : double
+  + chLocations : double[Nx3]
+  + optodesLocations : double[Mx3]
+  + optodesTypes : double[]
+  + referencePoints : struct[]
+  + surfacePositioningSystem : char = 'UI 10/10'
+  + chSurfacePositions : cell
+  + optodesSurfacePositions : cell
+  + stereotacticPositioningSystem : char = 'MNI'
+  + chStereotacticPositions : double[Nx3]
+  + chProbeSets, chOptodeArrays : double[]
+  + optodesProbeSets, optodesOptodeArrays : double[]
+  + pairings : double[Px2]
+  + optodeArrays : struct[]
+  + {static} OPTODE_TYPE_UNKNOWN = 0
+  + {static} OPTODE_TYPE_EMISOR = 1
+  + {static} OPTODE_TYPE_DETECTOR = 2
+  __
+  + setChannel3DLocations / getChannel3DLocations
+  + setOptode3DLocations / getOptode3DLocations
+  + setChannelSurfacePositions / getChannelSurfacePositions
+  + setOptodeSurfacePositions / getOptodeSurfacePositions
+  + setChannelStereotacticPositions / getChannelStereotacticPositions
+  + setPairings / getPairings
+  + getIOD()
+  + setOptodeTypes / getOptodeTypes
+  + setOptodeArraysInfo / getOptodeArraysInfo
+  + addReferencePoints / removeReferencePoints / getReferencePoints
+  + isValidSurfacePosition()
+  .. deprecation: v1.5.1 ..
+}
+
+' ================================================================
+' RAW DATA HIERARCHY
+' ================================================================
+abstract class rawData <<abstract>> {
+  + id : double
+  + description : char = 'RawData0001'
+  + date : datenum
+  __
+  + {abstract} convert()
+  + {abstract} import()
+  .. deprecation: v1.4.9 ..
+}
+
+class rawData_ETG4000 {
+  + fileVersion : char, userName : char
+  + userSex : char, userAge : double
+  + analyzeMode : char = 'continuous'
+  + wLengths : double = [695 830]
+  + samplingPeriod : double = 0.1
+  + lightRawData : double[3D]
+  + marks, timestamps : double[]
+  + bodyMovement, removalMarks, preScan : double[]
+  + probesetInfo : struct[]
+  + /nChannels, nProbesets <<Dep>>
+  + /nominalWavelengthSet, samplingRate <<Dep>>
+  __
+  + convert() / import()
+  + addProbeSetInfo / getProbeSetInfo / setProbeSetInfo
+  .. deprecation: v1.4.9 ..
+}
+
+class rawData_NIRScout {
+  + filename, device, source : char
+  + nSources, nDetectors, nChannels, nSteps : double
+  + wLengths : double = [780 830]
+  + samplingRate : double
+  + lightRawData : double[3D]
+  + gains : double[], eventTriggerMarkers : double[]
+  + sdKey, sdMask, channelDistances : double[]
+  + userName : char, userGender : char, userAge : double
+  + /samplingPeriod, nominalWavelengthSet <<Dep>>
+  __
+  + convert() / import()
+  .. deprecation: v1.4.9 ..
+}
+
+class rawData_Snirf {
+  + snirfImg : icnna.data.snirf.snirf
+  __
+  + convert() / import()
+  + export()
+  + nirs_neuroimage2snirf()
+  .. deprecation: v1.4.9 ..
+}
+
+class rawData_ShimadzuLabnirs {
+  - wLengths : double = [780 805 830]
+  - samplingRate : double = 27
+  - rawData : double[]
+  - timestamps, preTimeline, marks : double[]
+  __
+  + convert() / import()
+  .. deprecation: v1.4.9 ..
+}
+
+class rawData_UCLWireless {
+  - wLengths : double = [705 830]
+  - samplingRate : double = 5
+  - oxyRawData, deoxyRawData : double[]
+  - timestamps : double[]
+  - preTimeline : struct[]
+  __
+  + convert() / import()
+  .. deprecation: v1.4.9 ..
+}
+
+class rawData_BioHarnessECG {
+  - samplingRate : double = 250
+  - startTime : datevec
+  - timestamps, data : double[]
+  __
+  + convert() / import()
+  .. deprecation: v1.4.9 ..
+}
+
+class rawData_LSL {
+  - data
+  __
+  + convert() / import()
+  + getStream()
+  .. deprecation: v1.4.9 ..
+}
+
+' ================================================================
+' ANALYSIS CLUSTER
+' ================================================================
+class analysis {
+  + id, name, description
+  + metric : char = 'geo_euclidean'
+  + embedding : char = 'cmds'
+  + projectionDimensionality : double = 2
+  + subjectsIncluded, sessionsIncluded : double[]
+  + channelGrouping : double[]
+  + signalDescriptors : double[Mx2]
+  - runStatus : logical
+  - F : experimentSpace
+  - H : double[]
+  - I : double[Nx5]
+  - Y : double[Nx2]
+  - D : double[]
+  - clusters : cell
+  + /nPatterns, nClusters <<Dep>>
+  __
+  + run()
+  + addCluster / removeCluster / getCluster
+  + findCluster / clearClusters
+  + createCluster()
+  + kmeans()
+  + dist2 / emd / emd_calculateCosts
+  + mena_embedding / mena_geodesic / mena_metric
+  + mena_getGroundCosts
+  + ic_jsm / ic_pdist
+  .. deprecation: v1.5.5 ..
+}
+
+class experimentSpace {
+  + id, name, description
+  + sessionNames : struct[]
+  + performAveraging : logical = false
+  + performResampling : logical = false
+  + performFixWindow : logical = true <<DEPRECATED>>
+  + performNormalization : logical = false
+  + baselineSamples : double = 15
+  + restSamples : double = -1
+  + rsBaseline, rsTask, rsRest : double
+  + fwOnset, fwDuration, fwBreakDelay : double
+  + normalizationMethod : char = 'normal'
+  + normalizationScope : char = 'collective'
+  + normalizationDimension : char = 'combined'
+  - runStatus : logical
+  - Fvectors : cell
+  - Findex : double[Nx8]
+  + /nPoints <<Dep>>
+  __
+  + compute()
+  + getSubset(...)
+  + normalize()
+  + setVectors(...)
+  .. deprecation: v1.5.5 ..
+}
+
+class cluster {
+  + id : double
+  + tag : char = 'Cluster0001'
+  + description : char
+  + patternIndexes : double[]
+  + visible : logical = true
+  + subjectIDs, sessionIDs : double[]
+  + stimulusIDs, blockIDs, channelGroupIDs : double[]
+  + centroid : double[]
+  + furthestPoint : double[]
+  + averageDistance, maximumDistance : double
+  + /nPatterns <<Dep>>
+  __
+  + (visualization properties:
+  + showPatternPoints, showCentroid,
+  + showFurthestPoint, showLink,
+  + dataMarker/Color, centroidMarker/Color)
+  .. deprecation: v1.5.5 ..
+}
+
+' ================================================================
+' SPATIAL / ROI (P3b.4: disposition pending)
+' ================================================================
+class imagePartition {
+  - id, name
+  - size : double[1x2]
+  - screenResolution : double[1x2] = [1280 1024]
+  - associatedFile : char
+  - rois : cell
+  + {static} BACKGROUND = 0
+  + {static} OUTOFBOUNDS = -1
+  __
+  + addROI / removeROI / getROI
+  + findROI / getNROIs / getROIList
+  + checkPoint(x, y) : roiId
+  + importFromClearView(...)
+  + exportToTxt(...)
+  .. deprecation: review at v1.5.5 ..
+  .. (P3b.4: disposition pending) ..
+}
+
+class roi {
+  - id, name
+  - subregions : cell
+  + /area <<Dep>>
+  __
+  + addSubregion / removeSubregion / getSubregion
+  + getNSubregions / getNVertexes
+  + checkPoint(x, y) : logical
+  .. deprecation: review at v1.5.5 ..
+  .. (P3b.4: disposition pending) ..
+}
+
+abstract class menaGrid <<abstract>> {
+  - id : double
+  - lineWidth : double = 1.5
+  - edgeColor : double[1x3]
+  - highlightCells : double[]
+  - highlightEdgeColor, highlightFaceColor : double[1x3]
+  - highlightFaceAlpha : double = 1
+  - labelCells : logical = false
+  - vertexVisible : logical = false
+  - vertexColor : double[1x3]
+  - vertexMarker : char = '.'
+  - vertexMarkerSize : double = 8
+  __
+  + {abstract} getNCells()
+  + {abstract} getCellCenter(idx)
+  + {abstract} getPolygon(idx)
+  + {abstract} inWhichCells(points)
+  + {abstract} gridCell2ind / ind2gridCell
+  + {abstract} plot()
+  .. deprecation: review at v1.5.5 ..
+  .. (P3b.4: disposition pending) ..
+}
+
+class logarithmicRadialGrid {
+  - minR : double = 10
+  - maxR : double = 1000
+  - nRings : double = 5
+  - nAngles : double = 12
+  + /r, th <<Dep>>
+  __
+  + createGrid()
+  + getNCells / getCellCenter / getPolygon
+  + inWhichCells(points)
+  + gridCell2ind / ind2gridCell
+  + plot()
+  .. deprecation: review at v1.5.5 ..
+  .. (P3b.4: disposition pending) ..
+}
+
+
+' ================================================================
+' INHERITANCE
+' ================================================================
+neuroimage           --|> structuredData
+nirs_neuroimage      --|> neuroimage
+ecg                  --|> structuredData
+rawData_ETG4000      --|> rawData
+rawData_NIRScout     --|> rawData
+rawData_Snirf        --|> rawData
+rawData_ShimadzuLabnirs --|> rawData
+rawData_UCLWireless  --|> rawData
+rawData_BioHarnessECG --|> rawData
+rawData_LSL          --|> rawData
+logarithmicRadialGrid --|> menaGrid
+
+' ================================================================
+' COMPOSITION / AGGREGATION
+' ================================================================
+experiment           *-- "0..*" dataSourceDefinition : dataSourceDefinitions
+experiment           *-- "0..*" sessionDefinition    : sessionDefinitions
+experiment           *-- "0..*" subject              : subjects
+subject              *-- "0..*" session              : sessions
+session              *-- "1"    sessionDefinition    : definition
+session              *-- "0..*" dataSource           : sources
+sessionDefinition    *-- "0..*" dataSourceDefinition : sources
+dataSource           *-- "1"    rawData              : rawData
+dataSource           *-- "0..*" structuredData       : structured
+neuroimage           *-- "1"    channelLocationMap   : chLocationMap
+analysis             *-- "1"    experimentSpace      : F
+analysis             *-- "0..*" cluster              : clusters
+imagePartition       *-- "0..*" roi                  : rois
+structuredData       *-- "1"    integrityStatus      : integrity
+
+' ================================================================
+' CROSS-ARCHITECTURE DEPENDENCIES
+' ================================================================
+structuredData       *-- "1" m_timeline : "timeline\n(modern class)"
+rawData_Snirf        *-- "1" m_snirf    : snirfImg
+
+' ================================================================
+' LEGEND
+' ================================================================
+legend bottom left
+  |= Colour |= Meaning |
+  | <#Wheat> | Legacy class (src/oo/) |
+  | <#White> | Modern class stub (src/+icnna/) |
+  ..
+  Deprecation version shown per class.
+  All oo/ classes deleted at v1.8.0.
+  .mat load-compat adapters retained
+  past v1.8.0; final removal at v2.0.0.
+end legend
+
+@enduml

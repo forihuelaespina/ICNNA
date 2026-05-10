@@ -1,33 +1,102 @@
 @startuml ICNNA_v2_0_0_spine_classes
 ' ============================================================
 ' ICNNA v2.0.0 — Projected spine class diagram
-' Scope: +icnna.data.core/  (flat, ID-referenced)
-' Phase 3b.2 deliverable
-' Date: 2026-04-15
-' Source: Phase3_minute.tex (P5 flat architecture, v1.4.7
-'         experimental-model generalisation), Phase2c v2.0.0
-'         endpoint, D.* decisions.
+' Scope: +icnna/+data/+core  (flat, ID-referenced)
+' Companion diagrams (planned): snirf, ops, qc, io/devices
+' Phase 3b deliverable
+' ============================================================
+' Log:
+'   2026-04-15: FOE/Claude — File created from roadmap.
+'   2026-04-21: FOE/Claude — Major revision per FOE review:
+'       + Three-tier certainty styling (existing/planned/speculative)
+'       + Added document class (speculative, D.new.5)
+'       + Added experiment class (speculative, from package notes)
+'       + Added structuredData class (planned, central 3D tensor)
+'       + Added device class (speculative, replaces legacy dataSource)
+'       + Added level class (planned, from Cantor hub_level)
+'       + Added treatment class (speculative, from Cantor hub_treatment)
+'       + Added mechanism class (speculative, from Cantor hub_mechanism)
+'       + Added sessionDefinition class (speculative, template pattern)
+'       + Added deviceDefinition class (speculative, template pattern;
+'         renamed from dataSourceDefinition per FOE)
+'       + Upgraded session to planned tier (D.new.6)
+'       + Enriched factor with factorType from Cantor
+'       + qcCriterion marked abstract (concrete subclasses to +qc)
+'       + experiment gains unitIDs (within/between determination)
+'       + document gains bundleIDs, pipelineIDs
+'       + experimentBundle gains experimentIDs (provenance)
+'       + session gains deviceIDs
+'       + metaEntry aggregation to identifiableObject added
+'       + Note on ternary relation concern (experiment-group-unit)
+'       + Scoped to +data/+core only (Option B split)
+'   2026-04-21 (r2): FOE/Claude — Second revision:
+'       + Added structuredData (planned, central 3D tensor)
+'       + Added device (speculative, replaces legacy dataSource)
+'       + Renamed dataSourceDefinition -> deviceDefinition
+'       + Updated ID references and notes
+'       + 31 classes total (20 existing + 5 planned + 6 speculative)
+'   2026-05-04: FOE/Claude — Fresh-eyes review corrections:
+'       + experiment promoted from speculative to planned
+'       + rawData and montage restored to abstract
+'       + factorIDs added to experimentBundle class body
+'       + run class added (speculative, from Cantor hub_run)
+'       + experimentDesign class added (speculative, extracted
+'         from experiment.designType struct)
+'       + experiment gains bundleIDs (bidirectional link with
+'         experimentBundle)
+'       + session gains runIDs
+'       + subject inheritance fixed: subject --|> experimentalUnit
+'       + identifiableObject retains name alongside description
+'       + 34 classes total (20 existing + 6 planned + 8 speculative)
+'       + N-ary relation concern elevated to pre-Phase-4 task
+' ============================================================
+' Source: Phase3_minute.tex roadmap, Phase2c v2.0.0 endpoint,
+'         D.* decisions, Cantor cantor.sql schema,
+'         legacy oo/@structuredData, legacy oo/@dataSource,
+'         20-Apr-2026 package diagram, 21-Apr-2026 FOE review,
+'         04-May-2026 fresh-eyes review.
 ' ============================================================
 ' Conventions:
 '   - "Flat + ID-referenced" (P5): entities hold IDs of related
 '     entities, not nested object references.
-'   - Multiplicities reflect the *generalised* experimental model
-'     (event-related, multifactorial, within-group allocation).
-'   - SPECULATIVE — to be revised at v1.4.7a memo.
+'   - Three-tier certainty:
+'       Normal border     = exists in v1.4.1-beta
+'       <<planned>>       = committed in roadmap (bold blue)
+'       <<speculative>>   = likely but not committed (dashed gray)
+'   - SPECULATIVE classes to be revised at implementation memos.
 ' ============================================================
 
 skinparam classAttributeIconSize 0
 skinparam linetype ortho
+skinparam nodesep 30
+skinparam ranksep 30
+
+' --- Tier styling via stereotypes ---
+skinparam class<<planned>> {
+  BorderColor DarkBlue
+  BorderThickness 2
+  FontStyle bold
+}
+skinparam class<<speculative>> {
+  BorderColor Gray
+  BorderStyle dashed
+  FontStyle italic
+}
+
+title ICNNA v2.0.0 — Projected Core Spine Classes (+data/+core)\n34 classes: 20 existing | 6 planned | 8 speculative\nExisting (normal) | Planned (bold blue) | Speculative (dashed gray)
 
 package "+icnna.data.core (v2.0.0)" as core {
 
+  ' ================================================================
+  ' ROOT
+  ' ================================================================
   abstract class identifiableObject {
     +id : char
+    +name : char
     +description : char
     +created : datetime
     +modified : datetime
     +classVersion : char
-    +meta : metaEntry[*]
   }
 
   class metaEntry {
@@ -35,17 +104,43 @@ package "+icnna.data.core (v2.0.0)" as core {
     +value : any
   }
 
-  ' ---- Subject layer ----
-  class subject {
-    +demographics : struct
+  ' ================================================================
+  ' TOP-LEVEL CONTAINER
+  ' ================================================================
+  class document <<speculative>> {
+    +experimentIDs : char[*]
+    +bundleIDs : char[*]
+    +pipelineIDs : char[*]
   }
 
-  ' ---- Experimental design (generalised at v1.4.7) ----
+  ' ================================================================
+  ' EXPERIMENT AND DESIGN
+  ' ================================================================
+  class experiment <<planned>> {
+    +groupIDs : char[*]
+    +unitIDs : char[*]
+    +bundleIDs : char[*]
+    +sessionDefinitionIDs : char[*]
+    +deviceDefinitionIDs : char[*]
+    +factorIDs : char[*]
+    +mechanismIDs : char[*]
+    +experimentDesignID : char
+  }
+
+  class experimentDesign <<speculative>> {
+    +experimentType : enum
+    +temporalDesign : enum
+    +subjectDesign : enum
+    +factorialType : enum
+    +replicationStrategy : char
+  }
+
   class experimentBundle {
     +name : char
     +groupIDs : char[*]
+    +experimentIDs : char[*]
+    +factorIDs : char[*]
     +designKind : enum
-    note: designKind ∈ {block, eventRelated, mixed}
   }
 
   class experimentalGroup {
@@ -54,17 +149,96 @@ package "+icnna.data.core (v2.0.0)" as core {
   }
 
   class experimentalUnit {
-    +subjectID : char
     +sessionIDs : char[*]
     +rawDataIDs : char[*]
     +conditionIDs : char[*]
     +timelineID : char
+    +treatmentIDs : char[*]
   }
 
-  class session {
+  class subject {
+    +demographics : struct
+  }
+
+  ' ================================================================
+  ' SESSION LAYER
+  ' ================================================================
+  class session <<planned>> {
     +date : datetime
-    +rawDataIDs : char[*]
+    +deviceIDs : char[*]
+    +runIDs : char[*]
     +timelineID : char
+    +sessionDefinitionID : char
+  }
+
+  class sessionDefinition <<speculative>> {
+    +expectedConditionIDs : char[*]
+    +expectedDeviceDefIDs : char[*]
+    +protocol : char
+  }
+
+  class run <<speculative>> {
+    +runNumber : int
+    +timelineID : char
+  }
+
+  ' ================================================================
+  ' DEVICE LAYER (replaces legacy dataSource / dataSourceDefinition)
+  ' ================================================================
+  class device <<speculative>> {
+    +rawDataID : char
+    +structuredDataIDs : char[*]
+    +deviceDefinitionID : char
+    +deviceNumber : int
+  }
+
+  class deviceDefinition <<speculative>> {
+    +deviceKind : char
+    +expectedSignalSetID : char
+    +expectedMontageID : char
+  }
+
+  ' ================================================================
+  ' DATA LAYER
+  ' ================================================================
+  class structuredData <<planned>> {
+    +timelineID : char
+    +signalSetID : char
+    +data : double[3D]
+    +qcID : char
+    +montageID : char
+    +signalTags : cell
+  }
+
+  abstract class rawData {
+    +deviceKind : char
+    +signalSetID : char
+  }
+
+  ' ================================================================
+  ' EXPERIMENTAL DESIGN FACTORS
+  ' ================================================================
+  class factor <<planned>> {
+    +name : char
+    +levelIDs : char[*]
+    +kind : enum
+    +factorType : enum
+  }
+
+  class level <<planned>> {
+    +label : char
+    +factorID : char
+    +ordinal : int
+  }
+
+  class treatment <<speculative>> {
+    +levelIDs : char[*]
+    +description : char
+  }
+
+  class mechanism <<speculative>> {
+    +mechanismType : enum
+    +description : char
   }
 
   class condition {
@@ -72,77 +246,82 @@ package "+icnna.data.core (v2.0.0)" as core {
     +factorLevels : map
   }
 
-  class factor {
-    +name : char
-    +levels : char[*]
-    +kind : enum
-    note: kind ∈ {within, between, mixed}
-  }
-
-  ' ---- Timeline / events ----
+  ' ================================================================
+  ' TIMELINE / EVENTS
+  ' ================================================================
   class timeline {
     +tStart : datetime
     +nominalFs : double
     +eventIDs : char[*]
   }
-  class event {
+
+  class event <<planned>> {
     +tOnset : double
     +tDuration : double
     +conditionID : char
   }
 
-  ' ---- Signal layer ----
-  class rawData {
-    +deviceKind : char
-    +signalSetID : char
-  }
+  ' ================================================================
+  ' SIGNAL DESCRIPTION
+  ' ================================================================
   class signalSet {
     +descriptorIDs : char[*]
   }
+
   class signalDescriptor {
     +modality : enum
     +unit : char
   }
 
-  ' ---- Optical hardware ----
-  class montage
+  ' ================================================================
+  ' OPTICAL HARDWARE
+  ' ================================================================
+  abstract class montage
+
   class nirsMontage {
     +optodeIDs : char[*]
     +referenceLocationIDs : char[*]
   }
+
   class optode {
     +position : double[3]
   }
+
   class lightSource
+
   class lightDetector
+
   class referenceLocation {
     +label : char
     +position : double[3]
   }
+
   class opticalCoefficient
 
-  ' ---- Quality control ----
+  ' ================================================================
+  ' QUALITY CONTROL (abstract contracts; concrete subclasses in +qc)
+  ' ================================================================
   class qc {
     +criterionIDs : char[*]
     +targetID : char
   }
-  class qcCriterion {
+
+  abstract class qcCriterion {
     +tier : enum
     +parameters : struct
-    note: tier ∈ {survival, enhancement}
   }
 }
 
-' --- Inheritance ---
-subject              --|> identifiableObject
+' ================================================================
+' INHERITANCE
+' ================================================================
+' --- Existing classes ---
 experimentBundle     --|> identifiableObject
 experimentalGroup    --|> identifiableObject
 experimentalUnit     --|> identifiableObject
-session              --|> identifiableObject
+subject              --|> experimentalUnit
 condition            --|> identifiableObject
-factor               --|> identifiableObject
 timeline             --|> identifiableObject
-event                --|> identifiableObject
 rawData              --|> identifiableObject
 signalSet            --|> identifiableObject
 signalDescriptor     --|> identifiableObject
@@ -156,42 +335,288 @@ opticalCoefficient   --|> identifiableObject
 qc                   --|> identifiableObject
 qcCriterion          --|> identifiableObject
 
-' --- ID references (P5 flat-architecture; dashed = ID-by-value) ---
+' --- Planned classes ---
+session              --|> identifiableObject
+structuredData       --|> identifiableObject
+factor               --|> identifiableObject
+level                --|> identifiableObject
+event                --|> identifiableObject
+experiment           --|> identifiableObject
+
+' --- Speculative classes ---
+document             --|> identifiableObject
+experimentDesign     --|> identifiableObject
+sessionDefinition    --|> identifiableObject
+run                  --|> identifiableObject
+deviceDefinition     --|> identifiableObject
+device               --|> identifiableObject
+treatment            --|> identifiableObject
+mechanism            --|> identifiableObject
+
+' ================================================================
+' AGGREGATION (composition / aggregation arrows)
+' ================================================================
+identifiableObject   o-- "0..*" metaEntry : meta
+
+' ================================================================
+' ID REFERENCES (P5 flat-architecture; dashed = ID-by-value)
+' ================================================================
+' --- Document layer ---
+document            ..> experiment         : experimentIDs
+document            ..> experimentBundle   : bundleIDs
+
+' --- Experiment layer ---
+experiment          ..> experimentalGroup  : groupIDs
+experiment          ..> experimentalUnit   : unitIDs
+experiment          ..> sessionDefinition  : sessionDefinitionIDs
+experiment          ..> deviceDefinition   : deviceDefinitionIDs
+experiment          ..> factor             : factorIDs
+experiment          ..> mechanism          : mechanismIDs
+experiment          ..> experimentBundle  : bundleIDs
+experiment          ..> experimentDesign  : experimentDesignID
+
+' --- Bundle (analytical layer; can span 1+ experiments) ---
 experimentBundle    ..> experimentalGroup  : groupIDs
 experimentBundle    ..> factor             : factorIDs
+experimentBundle    ..> experiment         : experimentIDs
+
+' --- Group / Unit layer ---
 experimentalGroup   ..> experimentalUnit   : unitIDs
-experimentalUnit    ..> subject            : subjectID
 experimentalUnit    ..> session            : sessionIDs
 experimentalUnit    ..> rawData            : rawDataIDs
 experimentalUnit    ..> condition          : conditionIDs
 experimentalUnit    ..> timeline           : timelineID
-session             ..> rawData            : rawDataIDs
+experimentalUnit    ..> treatment          : treatmentIDs
+
+' --- Session / Device layer ---
+session             ..> device             : deviceIDs
+session             ..> run               : runIDs
 session             ..> timeline           : timelineID
+session             ..> sessionDefinition  : sessionDefinitionID
+
+run                 ..> timeline           : timelineID
+
+device              ..> rawData            : rawDataID
+device              ..> structuredData     : structuredDataIDs
+device              ..> deviceDefinition   : deviceDefinitionID
+
+' --- Definition layer ---
+sessionDefinition   ..> deviceDefinition   : expectedDeviceDefIDs
+
+' --- Structured data layer ---
+structuredData      ..> timeline           : timelineID
+structuredData      ..> signalSet          : signalSetID
+structuredData      ..> qc                 : qcID
+structuredData      ..> montage            : montageID
+
+' --- Design layer ---
+factor              ..> level              : levelIDs
+level               ..> factor             : factorID
+treatment           ..> level              : levelIDs
 condition           ..> factor             : factorLevels
+
+' --- Timeline ---
 timeline            ..> event              : eventIDs
 event               ..> condition          : conditionID
+
+' --- Signal ---
 rawData             ..> signalSet          : signalSetID
 signalSet           ..> signalDescriptor   : descriptorIDs
+
+' --- Hardware ---
 nirsMontage         ..> optode             : optodeIDs
 nirsMontage         ..> referenceLocation  : referenceLocationIDs
+
+' --- QC ---
 qc                  ..> qcCriterion        : criterionIDs
 qc                  ..> identifiableObject : targetID  (any spine entity)
 
-note top of experimentBundle
+' ================================================================
+' NOTES
+' ================================================================
+
+note top of document
+  **SPECULATIVE** — Top-level container.
+  v2.0.0: single experiment.
+  Post-v2.0.0: multi-experiment
+  (meta-analysis).
+  Also hosts bundles (analytical
+  dataframes) and pipelines.
+end note
+
+note top of experiment
+  **PLANNED** — Expanded from legacy
+  @experiment. Directly manages groups,
+  units, bundles, sessions (via definitions),
+  devices, and experimental design
+  (a la Cantor).
+  ..
+  unitIDs enables within/between-subject
+  design determination.
+  ..
+  bundleIDs: bidirectional link with
+  experimentBundle (fork hierarchy,
+  not linear containment).
+  ..
+  experimentDesignID references a
+  separate experimentDesign class
+  (speculative; was designType struct).
+end note
+
+note bottom of experimentDesign
+  **SPECULATIVE** — Extracted from
+  experiment.designType struct.
+  Captures experimental design taxonomy:
+    experimentType (experiment /
+      pseudo / quasi),
+    temporalDesign (cross-sectional /
+      longitudinal),
+    subjectDesign (within / between / mixed),
+    factorialType (full / nested / incomplete),
+    replicationStrategy.
+  ..
+  Likely to become its own class when
+  validation logic is needed.
+end note
+
+note right of experimentBundle
   GENERALISED at v1.4.7:
   - block, event-related, mixed designs
   - within-group allocation (factor)
   - multifactorial designs (factor[*])
+  ..
+  Analytical dataframe: can span 1+
+  experiments. Units can participate
+  across experiments (covariance effects
+  in meta-analysis).
+  ..
+  experimentIDs tracks data provenance.
+  ..
   Replaces oo/@experiment containment model.
 end note
 
+note right of structuredData
+  **PLANNED** — Central data container.
+  3D tensor: samples x channels x signals.
+  Replaces legacy oo/@structuredData.
+  ..
+  Subclasses (in companion diagrams):
+  neuroimage, ecg, physiologicalMeasurement,
+  etc.
+  ..
+  Lazy-proxy candidate (D.new.7):
+  data array loaded on demand.
+end note
+
+note bottom of device
+  **SPECULATIVE** — Replaces legacy
+  oo/@dataSource. Intermediary between
+  session and raw/structured data.
+  Each device instance corresponds to
+  one data acquisition device in a session.
+end note
+
+note bottom of run
+  **SPECULATIVE** — From Cantor hub_run.
+  A run is a temporal subdivision of a
+  session (e.g. multiple recordings within
+  a single session visit). Each run has
+  its own timeline.
+  ..
+  Device association and relation to other
+  entities will be managed by the n-ary
+  relation solution (see note).
+end note
+
+note bottom of sessionDefinition
+  **Naming TBD**: "*Definition" follows
+  legacy convention. Alternatives:
+  *Template, *Spec, *Contract.
+  ..
+  Pattern: Definition = template/contract;
+  session / device = instance. Enables
+  compliance checking and filtering.
+  deviceDefinition follows same pattern.
+end note
+
+note right of treatment
+  From Cantor schema (hub_treatment).
+  A treatment is a specific combination
+  of factor levels applied to units.
+  treatment <-> level (M:N via IDs),
+  experimentalUnit <-> treatment (M:N).
+end note
+
+note bottom of mechanism
+  From Cantor schema (hub_mechanism).
+  Experimental design mechanisms:
+  blinding, blocking, randomization.
+  Linked per experiment.
+end note
+
+note right of factor
+  kind: allocation (within / between / mixed).
+  factorType: role (treatment / cofactor /
+  confounder) — from Cantor hub_factor.
+end note
+
+note as naryNote #FFFFCC
+  **OPEN — N-ary relation management**
+  (FOE, 21-Apr / 04-May-2026):
+  ..
+  Multiple n-ary relations exist in the
+  experimental model: experiment-group-unit,
+  session-device-structuredData,
+  experiment-bundle (bidirectional), etc.
+  ..
+  Current approach: redundant ID storage
+  (e.g. experimentalUnit.rawDataIDs alongside
+  session->device->rawData chain). This risks
+  inconsistencies.
+  ..
+  Vision: a "data vault" style mechanism
+  (a la Cantor) where relations are managed
+  transparently — each entity knows its links
+  without redundant storage causing drift.
+  ..
+  **Must be solved before Phase 4.**
+  Candidate approaches under consideration:
+  in-memory registry/broker, observer pattern,
+  dedicated relation classes, or hybrid.
+  ..
+  **Not a limitation to accept — a problem
+  to solve.**
+end note
+
 note bottom of core
-  P5 flat-architecture: dashed arrows are ID
-  references resolved by an in-memory registry
-  (or persisted bundle). No nested object
-  composition across spine entities.
-  Method-level surface deferred to v1.4.7b
-  implementation memo.
+  **P5 flat-architecture**: dashed arrows are
+  ID references resolved by an in-memory
+  registry (or persisted bundle). No nested
+  object composition across spine entities.
+  ..
+  **Lazy-proxy pattern** (<<planned>>,
+  cross-cutting, D.new.7):
+  Data containers load arrays on demand,
+  not at construction time. Applies to:
+  structuredData, rawData, signalSet,
+  timeline, dataBlock, etc.
+  ..
+  **QC migration** (D.new.8):
+  Abstract qc / qcCriterion contracts stay
+  in +core. Concrete subclasses move to +qc:
+  _Saturation, _Mirroring, _ChannelIntegrity
+  (v1.5.4 survival tier);
+  _SCI, _CV (v1.6.4 enhancement tier).
+  See companion +qc diagram.
+  ..
+  **Companion diagrams** (Option B):
+  - +data/+snirf (8 classes, largely unchanged)
+  - +op/* classes (proc, stats, pipeline)
+  - +qc concrete subclasses
+  - +io/+devices importers (rawData_NIRx etc.)
+  ..
+  Method-level surface deferred to
+  implementation memos (v1.4.7b onward).
 end note
 
 @enduml
