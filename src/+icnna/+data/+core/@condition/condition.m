@@ -70,6 +70,16 @@ classdef condition < icnna.data.core.identifiableObject
 %       The class version of the object
 %       This is separate from the superclass' own |classVersion|.
 %
+%       
+%   .flagSRInitialized - logical. Private, Transient. Default false.
+%       Guards |set.nominalSamplingRate| against spuriously rescaling
+%       event onset and duration values during MATLAB deserialization.
+%       See @icnna.data.core.timeline.flagSRInitialized for the full
+%       background and mechanism - both classes carry this flag for the
+%       same reason.
+%       This property has no public getter or setter and
+%       is not visible to users of the class.
+%      
 %   -- Inherited properties
 %   .id - uint32. default is 1.
 %       A numerical identifier.
@@ -238,10 +248,40 @@ classdef condition < icnna.data.core.identifiableObject
 %	+ Bug fixed; Method set.nominalSamplingRate was still using the tabular
 %   syntax for cevents from object version 1.1.
 %
+% 22-May-2026: FOE
+%   + Enhanced performance for set.timeUnitMultiplier
+%   + Enhanced performance for set.nominalSamplingRate
+%
+% 25-May-2026: FOE
+%   + Bug fixed: Enforced positive integers onsets and non-negative
+%   durations of events when unit is 'samples' and non-negative onsets
+%   non-negative durations of events when unit is 'seconds'.
+%   + Enhanced performance for set.unit
+%
+%       
+% 31-May-2026: FOE
+%   + Bug fixed: Added private transient flag |flagSRInitialized| and
+%     updated |set.nominalSamplingRate| to guard against spurious
+%     rescaling of event onset/duration values during MATLAB
+%     deserialization. See @icnna.data.core.timeline log entry of the
+%     same date for the full background. The fix is symmetric across
+%     both classes: @condition and @timeline each carry their own
+%     |flagSRInitialized| flag for the same reason.
+%      
 
     properties (Constant, Access=private)
         classVersion = '1.2'; %Read-only. Object's class version.
     end
+
+    properties (Access=private, Transient)
+        % This flag guards set.nominalSamplingRate against spuriously
+        % rescaling condition events during MATLAB deserialization.
+        % It is Transient so it is never written to or read from .mat
+        % files - it resets to false on every construction and every
+        % load from disk. See the Private properties section of the
+        % class header and set.nominalSamplingRate for full rationale.
+        flagSRInitialized(1,1) logical = false;
+    end    
 
     properties
         % The cevents struct array holds the event data for the condition.
@@ -456,20 +496,37 @@ classdef condition < icnna.data.core.identifiableObject
                      %Convert from seconds to samples
                     tmpOnsets = round([obj.cevents.onsets] * ...
                         obj.nominalSamplingRate * 10^tmpMultiplier);
+                    tmpOnsets = max(1, tmpOnsets); %Ensure all onsets are
+                                                   %positive integers.
+                                                   % Samples are 1-based; onset=0 is invalid.
                     tmpDurations = round([obj.cevents.durations] * ...
                         obj.nominalSamplingRate * 10^tmpMultiplier);
-                     
+                    tmpDurations = max(0, tmpDurations); %Ensure all
+                                                   %durations are
+                                                   %non-negative integers.
+
                 else %Convert from samples to seconds
                     tmpOnsets = [obj.cevents.onsets] ./ ...
                         (obj.nominalSamplingRate * 10^tmpMultiplier);
+                    tmpOnsets = max(0, tmpOnsets); %Ensure all onsets are
+                                                    %non-negative.
                     tmpDurations = [obj.cevents.durations] ./ ...
                         (obj.nominalSamplingRate * 10^tmpMultiplier);
-                     
+                    tmpDurations = max(0, tmpDurations); %Ensure all
+                                                   %durations are
+                                                   %non-negative.
+
                 end
-                for iEv = 1:numel(obj.cevents)
-                    obj.cevents(iEv).onsets    = tmpOnsets(iEv);
-                    obj.cevents(iEv).durations = tmpDurations(iEv);
-                end
+                %23-May-2026: FOE
+                % DEPRECATED CODE
+                % for iEv = 1:numel(obj.cevents)
+                %     obj.cevents(iEv).onsets    = tmpOnsets(iEv);
+                %     obj.cevents(iEv).durations = tmpDurations(iEv);
+                % end
+                c = num2cell(tmpOnsets);
+                [obj.cevents.onsets] = c{:};
+                c = num2cell(tmpDurations);
+                [obj.cevents.durations] = c{:};
             end
         end
 
@@ -516,15 +573,20 @@ classdef condition < icnna.data.core.identifiableObject
             obj.timeUnitMultiplier = val; % Assign the new multiplier value
             %If the unit is 'seconds' and the multiplier changes, adjust
             % the onsets and durations
-            if strcmp(obj.unit,'seconds')
-                for iEv = 1:numel(obj.cevents)
-                    % If the multiplier is changing, adjust onsets and
-                    % durations by the difference in powers of 10
-                    obj.cevents(iEv).onsets = obj.cevents(iEv).onsets * ...
-                        10^double(currentMultiplier - obj.timeUnitMultiplier);
-                    obj.cevents(iEv).durations = obj.cevents(iEv).durations * ...
-                        10^double(currentMultiplier - obj.timeUnitMultiplier);
-                end
+            if strcmp(obj.unit,'seconds') && obj.timeUnitMultiplier ~= currentMultiplier
+                % for iEv = 1:numel(obj.cevents)
+                %     % If the multiplier is changing, adjust onsets and
+                %     % durations by the difference in powers of 10
+                %     obj.cevents(iEv).onsets = obj.cevents(iEv).onsets * ...
+                %         10^double(currentMultiplier - obj.timeUnitMultiplier);
+                %     obj.cevents(iEv).durations = obj.cevents(iEv).durations * ...
+                %         10^double(currentMultiplier - obj.timeUnitMultiplier);
+                % end
+                scale = 10^double(currentMultiplier - obj.timeUnitMultiplier);
+                newOnsets    = num2cell([obj.cevents.onsets]    * scale);
+                newDurations = num2cell([obj.cevents.durations] * scale);
+                [obj.cevents.onsets]    = deal(newOnsets{:});
+                [obj.cevents.durations] = deal(newDurations{:});               
             end
         end
 
@@ -554,6 +616,16 @@ classdef condition < icnna.data.core.identifiableObject
             % Usage:
             %   obj.nominalSamplingRate = 2;  % Set the new sampling rate to 2 Hz
             %
+            %% Remarks
+            %
+            % Rescaling of events is skipped on the first invocation
+            % after object construction or after loading from disk,
+            % controlled by the private transient flag
+            % |flagSRInitialized| (see class header). This prevents
+            % MATLAB's deserialization mechanism from applying the
+            % rescaling spuriously when restoring a saved object from
+            % a .mat file.
+            %
             %% Input parameters
             %
             % val - double
@@ -575,16 +647,27 @@ classdef condition < icnna.data.core.identifiableObject
             obj.nominalSamplingRate = val; % Assign the new sampling rate value
             % If the unit is 'samples', adjust onsets and durations
             % based on the sampling rate ratio
-            if strcmp(obj.unit,'samples')
+            % Rescale events only if the rate was previously established.
+            % On the first call (flagSRInitialized==false) no rescaling
+            % is appropriate — see class header for full rationale.
+            if strcmp(obj.unit,'samples') && val ~= currentSR ...
+                                          && obj.flagSRInitialized
                 % Adjust onsets and durations by the ratio of the new
                 % sampling rate to the old one
-                for iEv = 1:numel(obj.cevents)
-                    obj.cevents(iEv).onsets = round([obj.cevents(iEv).onsets] * ...
-                                        (obj.nominalSamplingRate / currentSR));
-                    obj.cevents(iEv).durations = round([obj.cevents(iEv).durations] * ...
-                                        (obj.nominalSamplingRate / currentSR));
-                end
+                % for iEv = 1:numel(obj.cevents)
+                %     obj.cevents(iEv).onsets = round([obj.cevents(iEv).onsets] * ...
+                %                         (obj.nominalSamplingRate / currentSR));
+                %     obj.cevents(iEv).durations = round([obj.cevents(iEv).durations] * ...
+                %                         (obj.nominalSamplingRate / currentSR));
+                % end
+                scale        = obj.nominalSamplingRate / currentSR;
+                newOnsets    = num2cell(round([obj.cevents.onsets]    * scale));
+                newDurations = num2cell(round([obj.cevents.durations] * scale));
+                [obj.cevents.onsets]    = deal(newOnsets{:});
+                [obj.cevents.durations] = deal(newDurations{:});
+                
             end
+            obj.flagSRInitialized = true;
         end
 
 

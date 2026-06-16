@@ -34,7 +34,7 @@ classdef rawData < icnna.data.core.identifiableObject
 %       dataSource objects will be faster, compensating for the
 %       higher cost of the new |import|.       
 %   * This class does NOT assume that the data is un-reconstructed
-%   (and hence, no |cenvert|) nor un-processed.
+%   (and hence, no |convert|) nor un-processed.
 %   * The abstract method |convert| originally intended to perform
 %   reconstruction, is no longer available. Instead, alternative
 %   polymorphic methods (icnna.op.*) are available for reconstruction
@@ -44,7 +44,7 @@ classdef rawData < icnna.data.core.identifiableObject
 %   be readily acceptable as rawData. Right now, this is more like a
 %   NIRx session folder where there are several files, rather than a
 %   BIDS structure. BIDS structure will have its own full support.
-%   * Abstract method |import| no longer reutrn a rawData (it returns
+%   * Abstract method |import| no longer returns a rawData (it returns
 %   a structuredData data instead) nor it requires a parameter for the
 %   location of the data and instead now relies on new property .path.
 %
@@ -113,7 +113,7 @@ classdef rawData < icnna.data.core.identifiableObject
 %       The files containing the raw data. Each struct refers to a single
 %       file, and has the following fields.
 %       .filename - char[]. Default is empty.
-%           The name of the file contaning the data.
+%           The name of the file containing the data.
 %           The filenames are relative to the |path| and contain the
 %           extension.
 %           The class ensure that if any filename further contains some
@@ -193,6 +193,12 @@ classdef rawData < icnna.data.core.identifiableObject
 %   + No need to further update the class version, as this
 %   has already been updated for ICNNA v1.4.0.
 %	+ Improved some comments
+%
+% -- ICNNA v1.4.1
+%
+% 22-May-2026: FOE
+%   + Bug fixed: set.dataFiles was not storing the new val correctly.
+%
 %
 
     properties (Constant, Access=private)
@@ -463,7 +469,7 @@ classdef rawData < icnna.data.core.identifiableObject
             end
 
             %Finally, store the value.
-            obj.dataFiles = newVal;
+            obj.dataFiles = val;
 
       end
 

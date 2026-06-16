@@ -60,6 +60,35 @@ classdef timeline < icnna.data.core.identifiableObject
 %   .classVersion - Char array. (Read only. Constant)
 %       The class version of the object
 %       This is separate from the superclass' own |classVersion|.
+%       
+%   .flagSRInitialized - logical. Private, Transient. Default false.    
+%       Guards |set.nominalSamplingRate| against spuriously rescaling   
+%       condition onset and duration values during MATLAB deserialization.      
+%       
+%       Background: MATLAB invokes property setters when loading a value
+%       class from a .mat file, in exactly the same way as an explicit  
+%       runtime assignment, even when no |loadobj| override is defined. 
+%       The |set.nominalSamplingRate| setter rescales all condition events      
+%       by the ratio (newRate / currentRate) when |unit| is 'samples'.  
+%       Without a guard, loading a saved timeline triggers this rescaling       
+%       with currentRate equal to the constructor default (1 Hz), so all
+%       onset and duration values are multiplied by (savedRate / 1).    
+%       In a pipeline that also loads the individual @condition objects 
+%       from the same file, this rescaling fires once per @condition and
+%       once for the @timeline, yielding a net corruption factor of     
+%       savedRate^2 rather than 1.      
+%       
+%       Mechanism: the flag starts as |false| on every object construction
+%       and on every load from disk (Transient properties are never saved
+%       to or restored from .mat files). The first invocation of
+%       |set.nominalSamplingRate| - whether it is deserialization
+%       restoring the saved rate, or a genuine first user assignment -
+%       skips the rescaling block and then sets the flag to |true|. All
+%       subsequent calls with the flag already |true| rescale normally.
+%       
+%       This property has no public getter or setter and is not visible  
+%       to users of the class.
+%      
 %
 %   -- Inherited properties
 %   .id - uint32. Default is 1.
@@ -95,6 +124,7 @@ classdef timeline < icnna.data.core.identifiableObject
 %         If the condition |unit| is in seconds, changing the
 %       |nominalSamplingRate| does NOT affect the |cevents| onsets
 %       and durations.
+%
 %
 %   .unit - (Since v1.3.1) Char array. 'samples' (Default) or 'seconds'.
 %       In switching between 'samples' and 'seconds' or the other
@@ -177,7 +207,7 @@ classdef timeline < icnna.data.core.identifiableObject
 % Type methods('icnna.data.core.timeline') for a list of methods
 % 
 %
-% Copyright 2025
+% Copyright 2025-26
 % @author: Felipe Orihuela-Espina
 %
 % See also assertInvariant
@@ -287,10 +317,44 @@ classdef timeline < icnna.data.core.identifiableObject
 %   + Property |conditions| is now column array instead of row array.
 %   + Method findConditions is now public.
 %
+%       
+% -- ICNNA v1.4.1       
+%       
+% 31-May-2026: FOE
+%   + Bug fixed: Added private transient flag |flagSRInitialized| and
+%     updated |set.nominalSamplingRate| to guard against spurious
+%     rescaling of condition onset/duration values during deserialization.
+%       Background: MATLAB calls property setters when loading value
+%     classes from .mat files (no |loadobj| defined in ICNNA). The
+%     |set.nominalSamplingRate| setter rescales condition events by
+%     (newRate/currentRate) when unit='samples'. On load, currentRate
+%     equals the constructor default (1 Hz), so all events were silently
+%     multiplied by savedRate. 
+%       Fix: |flagSRInitialized| (Transient, private, no getter/setter)
+%     starts as |false| after every construction or load. The setter now
+%     rescales only when the flag is |true|, then sets it. First
+%     assignment (initialisation or deserialization) is therefore always
+%     treated as initialisation, not a rate change.
+%   + Bug fixed (latent): The rescaling loop inside |set.nominalSamplingRate|
+%     was incorrectly attempting to set the read-only dependent properties
+%     |onsets| and |durations| of @icnna.data.core.condition. Corrected
+%     to modify |cevents| directly, consistent with how
+%     @icnna.data.core.condition.set.nominalSamplingRate does it.
+%
 
     properties (Constant, Access=private)
         classVersion = '1.2'; %Read-only. Object's class version.
     end
+
+    properties (Access=private, Transient)
+        % This flag guards set.nominalSamplingRate against spuriously
+        % rescaling condition events during MATLAB deserialization.
+        % It is Transient so it is never written to or read from .mat
+        % files - it resets to false on every construction and every
+        % load from disk. See the Private properties section of the
+        % class header and set.nominalSamplingRate for full rationale.
+        flagSRInitialized(1,1) logical = false;
+    end    
 
     properties %(SetAccess=private, GetAccess=private)
         startTime(1,1) datetime = datetime('now'); % Absolute start time
@@ -440,6 +504,18 @@ classdef timeline < icnna.data.core.identifiableObject
             % Usage:
             %   obj.nominalSamplingRate = 3;  % Set the nominal sampling rate to 3 Hz
             %
+            %% Remarks    
+            %     
+            % Rescaling of condition events is skipped on the first
+            % invocation after object construction or after loading
+            % from disk. This is controlled by the private transient
+            % flag |flagSRInitialized| (see class header).
+            % The guard is necessary because MATLAB calls property
+            % setters during deserialization of value classes,
+            % indistinguishably from a runtime assignment. Without it,
+            % every load from a .mat file would spuriously rescale
+            % all condition events.
+            %
             %% Input parameters
             %
             % val - double
@@ -458,16 +534,35 @@ classdef timeline < icnna.data.core.identifiableObject
             end
             currentSR = obj.nominalSamplingRate;
             obj.nominalSamplingRate = val;
-            if strcmp(obj.unit,'samples')
+            % Rescale events only if the rate was previously established.
+            % On the first call (flagSRInitialized==false), this is either
+            % a first user assignment or deserialization restoring the
+            % saved rate - rescaling is not appropriate in either case.
+            if strcmp(obj.unit,'samples') && obj.flagSRInitialized
+                % 31-May-2026: FOE
+                % Bug fixed: the onsets and durations in a condition
+                % are read only properties.
+                %
+                % Previous code:
+                % for iCond = 1:obj.nConditions
+                %     obj.conditions(iCond).onsets = round(...
+                %         obj.conditions(iCond).onsets * ...
+                %         (obj.nominalSamplingRate / currentSR));
+                %     obj.conditions(iCond).durations = round(...
+                %         obj.conditions(iCond).durations * ...
+                %         (obj.nominalSamplingRate / currentSR));
+                % end
+                scale= obj.nominalSamplingRate / currentSR;
                 for iCond = 1:obj.nConditions
-                    obj.conditions(iCond).onsets = round(...
-                        obj.conditions(iCond).onsets * ...
-                        (obj.nominalSamplingRate / currentSR));
-                    obj.conditions(iCond).durations = round(...
-                        obj.conditions(iCond).durations * ...
-                        (obj.nominalSamplingRate / currentSR));
+                    tmpCond = obj.conditions(iCond);
+                	newOnsets    = num2cell(round([tmpCond.cevents.onsets] * scale));
+                	newDurations = num2cell(round([tmpCond.cevents.durations] * scale));
+                	[tmpCond.cevents.onsets]    = deal(newOnsets{:});
+                	[tmpCond.cevents.durations] = deal(newDurations{:});
+                    obj.conditions(iCond) = tmpCond;
                 end
             end
+            obj.flagSRInitialized = true;
       end
 
 

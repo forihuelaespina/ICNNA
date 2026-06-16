@@ -89,12 +89,21 @@ classdef structuredData
 %
 %% Properties
 %
-%   .id - A numerical identifier.
-%   .description - A short description
-%   .timeline - A timeline with its length attached to the data length.
-%   .data - The data itself.
-%   .integrity - Per channel integrity values.
-%   .signalTags - A cell array of signals tags.
+%   .id - double
+%       A numerical identifier.
+%   .name - char[]
+%       A name tag
+%   .description - char[]
+%       A short description
+%   .timeline - icnna.data.core.timeline
+%       A timeline with its length attached to the data length.
+%   .data - double[nSamples x nChannels x nSignals]
+%       The data itself.
+%   .integrity - integrityStatus
+%       Per channel integrity values.
+%   .signalTags - cell
+%       A cell array of signals tags.
+%
 %
 %% Known subclasses
 %
@@ -143,11 +152,18 @@ classdef structuredData
 %
 % -- v1.4.1
 %
-% 5-Mar-2026:
+% 5-Mar-2026: FOE
 %   + Bug fixed: After updating the timeline to @icnna.data.core.timeline,
 %   when using the constructor with size parameters, the constructor was
 %   still trying to write the length (as per the old @timeline class). But
 %   for @icnna.data.core.timeline the length is a read only property.
+%
+% 21-Mar-2026: FOE
+%   + Improved comments.
+%   * Added documentation of property .name
+%   that was missing
+%   * Added the documentation of types for the properties that were
+%   all missing.
 %
 
 

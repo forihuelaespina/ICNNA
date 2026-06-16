@@ -9,6 +9,29 @@
 = * beta release on 17-Mar-2026 for Overprocessing paper.
 ====================================
 
++ New methods
+* analysis:classVersion - Retrieves the class version
+* channelLocationMap:classVersion - Retrieves the class version
+* cluster:classVersion - Retrieves the class version
+* dataSource:classVersion - Retrieves the class version
+* dataSourceDefinition:classVersion - Retrieves the class version
+* ecg:classVersion - Retrieves the class version
+* experiment:classVersion - Retrieves the class version
+* integrityStatus:classVersion - Retrieves the class version
+* neuroimage:classVersion - Retrieves the class version
+* nirs_neuroimage:classVersion - Retrieves the class version
+* rawData:classVersion - Retrieves the class version
+* rawData_ETG4000:classVersion - Retrieves the class version
+* rawData_LSL:classVersion - Retrieves the class version
+* rawData_NIRScout:classVersion - Retrieves the class version
+* rawData_snirf:classVersion - Retrieves the class version
+* session:classVersion - Retrieves the class version
+* sessionDefinition:classVersion - Retrieves the class version
+* subject:classVersion - Retrieves the class version
+* structuredData:classVersion - Retrieves the class version
+* timeline:classVersion - Retrieves the class version
+
+
 + New functions
 * icnna.op.snirf.snirfProbe2channelLocationMap - Convert SNIRF probe (and channel pairing) to a @channelLocationMap.
 * icnna.op.snirf.snirfNirs2timeline - Extract a timeline from a SNIRF dataset
@@ -18,6 +41,29 @@
     Computes the activity matrix / Conduct Task-Baseline analysis.
 * icnna.io.exportActivityMatrix - Saves the activity matrix results to
     Excel or CSV files
+* icnna.util.icnna_version - Reports the current ICNNA version running.
+    IMP: This function is automatically generated/overwritten at release
+    time (see icnna_releaseVersion)
+    -Added AFTER release of beta subversion.
+* icnna.data.misc.rawData_NIRx/import:resolveChannelKey - Resolve
+    NIRx channel ordering from .hdr content. Supports both the old
+    S-D-Key format (NIRStar <= 14.x; [DataStructure]->S-D-Key,
+    "Si-Dj:colIdx,...") and the modern Channel indices format
+    (NIRStar 15+ / Aurora; "Si-Dj,...", 0-based indices). Returns
+    a standard [nChannels x 3] triplet [source, detector, colIdx],
+    1-based throughout.
+* icnna.data.misc.rawData_NIRx/import:parseKey_SDKey - Parse the
+    old-format S-D-Key string into the standard channel table.
+    Called by resolveChannelKey.
+* icnna.data.misc.rawData_NIRx/import:parseKey_ChannelIndices - Parse
+    the modern Channel indices string (0-based Si-Dj pairs) into
+    the standard channel table. Called by resolveChannelKey.
+* icnna.data.misc.rawData_NIRx/import:resolveWavelengths - Resolve
+    measurement wavelengths for the .wl data path via a three-tier
+    fallback: (1) broad .hdr scan (all sections, case-insensitive
+    key match for Wavelengths); (2) companion .snirf file
+    probe.wavelengths; (3) hardcoded default [760, 850] nm with
+    warning (justified by NIRScout/NIRSport device prevalence).
 
 
 Bugs fixed:
@@ -38,10 +84,111 @@ Bugs fixed:
     these are now explicit.
 + @condition.set.nominalSamplingRate: It was still using the tabular
     syntax for cevents from object version 1.1.
++ @icnna.data.core.rawData.set.dataFiles: The method was not saving
+    the new value.
++ @rawData_snirf.export: The method was still calling the "old" static
+    save method that was deprecated in Aug-2023 (see icnna.data.snirf.snirf
+    class log).
++ @icnna.data.misc.rawData_NIRx/import:findFile - Constructing the full
+    path as [obj.path filesep filename] produced a double separator because
+    set.path already guarantees obj.path ends with filesep. Fixed by using
+    fullfile(obj.path, filename).
++ @icnna.data.misc.rawData_NIRx/import:importFileHdr - Three bugs: (a) crash
+    when a hash-delimited continuation row (no '=') arrived while tmpValue
+    was non-empty (tline(idx+1) accessed on empty idx); (b) single-line quoted
+    values (e.g. FileName="...") incorrectly opened multiline read; (c)
+    hash-delimited tables (Gains, Events, S-D-Mask) not recognised as
+    multiline and therefore parsed incorrectly.
++ @icnna.data.core.condition.set.timeUnitMultiplier - Loop over cevents
+    replaced with vectorised [s.field]/num2cell/deal pattern; eliminates
+    extreme slowdown for conditions with large event counts (e.g. 18k events).
++ @icnna.data.core.condition.set.nominalSamplingRate - Same vectorisation
+    applied as above (round preserved on onset/duration values).
++ @icnna.data.misc.rawData_NIRx/import:aux_getTimeline - Events with onset
+    or extent beyond timestamps(end) caused addCondition to assert-fail.
+    Such events are now cropped: onset clamped to timestamps(end) for Case (a)
+    (onset itself beyond end; duration forced to 0); duration clipped to
+    timestamps(end)-onset for Case (b) (onset within range but duration
+    overruns). Warning issued in either case; events are never silently removed.
++ @rawData_Snirf/nirs_neuroimage2snirf: Raw intensity
+    nirs_neuroimages (e.g. from rawData_NIRx/import via .wl1/.wl2 files)
+    were incorrectly encoded as processed data (dataType=99999 with
+    HbO/HbR labels). Fixed by detecting signal type via nimg.signalTags
+    (convention: raw tags start with 'I(') and branching:
+        Raw intensity -> dataType=1 (CW amplitude), wavelengthIndex=signalID
+        Processed Hb  -> dataType=99999 (existing logic, unchanged)
++ @rawData_Snirf/nirs_neuroimage2snirf: signalID was computed as
+    mod(chIdx,nSignals) where chIdx=ceil(iML/nSignals). Because two
+    consecutive measurements share the same chIdx, both received the
+    same signalID, causing signals to be swapped for even-numbered
+    channels. Fixed to signalID = mod(iML-1, nSignals) + 1. Affects
+    both raw intensity and processed Hb export paths.
++ @rawData_Snirf/nirs_neuroimage2snirf: probe.wavelengths was assigned
+    [0 0] (1x2 row vector), violating the (:,1) column-vector constraint
+    of probe.wavelengths. For raw intensity, wavelengths are now
+    populated from wavelengthsFromTags (extracted from nimg.signalTags
+    in the detection block). For processed Hb, replaced with
+    zeros(nSignals,1).
++ @rawData_Snirf/nirs_neuroimage2snirf: dataTypeLabel was left empty
+    for raw intensity measurements. Now it is set to 'raw-DC' to
+    match the expected CW amplitude label.
++ @icnna.data.core.timeline/findConditions: The method
+    was returning condition |id| values instead of struct-array indices.
+    When condition ids are non-contiguous or include values larger than
+    the number of conditions (e.g. 26 conditions whose ids contain
+    values > 26), the returned indices were incorrect and out of range.
++ @icnna.data.core.condition/set.unit: Enforced positive integers
+    onsets and non-negative durations of events when unit is 'samples'
+    and non-negative onsets non-negative durations of events when unit
+    is 'seconds'.
++ @icnna.data.core.timeline/set.nominalSamplingRate: Latent bug in the
+    event rescaling loop (never triggered because in all prior uses the
+    sampling rate was always set before any conditions were added).
+    Two errors: (a) the loop assigned to the read-only Dependent
+    properties |onsets| and |durations| of @icnna.data.core.condition,
+    both of which have a getter but no setter — any runtime execution
+    would have errored immediately; (b) for value-class arrays, modifying
+    a subscripted element without writing it back to the parent array
+    leaves the parent unchanged, so even if (a) had been worked around the
+    rescaling would have been silently discarded.
+    Fixed: the loop now follows the copy–modify–write-back pattern
+    (tmpCond = obj.conditions(iCond); ... obj.conditions(iCond) = tmpCond)
+    operating on |cevents| directly via the num2cell/deal vectorised idiom
+    already used by @icnna.data.core.condition/set.nominalSamplingRate.
++ @icnna.data.core.timeline/set.nominalSamplingRate and
+    @icnna.data.core.condition/set.nominalSamplingRate: MATLAB calls
+    property setters when loading value classes from .mat files - there
+    is no |loadobj| override defined in ICNNA - treating deserialization
+    identically to an explicit runtime assignment. The rescaling block in
+    both setters therefore fired spuriously on every load, scaling all
+    event onset and duration values by (savedRate / constructorDefault),
+    where constructorDefault = 1 Hz.
+    Fix: a private Transient boolean flag |flagSRInitialized| (default
+    false) is added to each class. Because it is declared Transient, it
+    is never written to or restored from .mat files, so it always starts
+    as false after any construction or load from disk. Both setters now
+    condition the rescaling block on this flag, then set it to true. The
+    first setter invocation after construction or load - whether from
+    deserialization restoring the saved rate or from a genuine first user
+    assignment - is therefore treated as initialisation (no rescaling),
+    while all subsequent calls with the flag already true rescale
+    normally.
+    
+
+
+
 
 Misc
 + miscellaneous/getActivityMatrix - Deprecated
 
+
+Behaviour change:
++ Method @icnna.data.misc.rawData_NIRx:import - The import
+    now conforms to the new behaviour of @icnna.data.core.rawData
+    whereby the rawData object does no longer stores information
+    but reads it on demand when the user call import,
+    and the import method returns a @nirs_neuroimage rather
+    than a @icnna.data.misc.rawData_NIRx.
 
 
 ====================================

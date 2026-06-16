@@ -116,6 +116,18 @@ function [idx] = findConditions(obj,tags,options)
 %    Legacy behaviour is still provided using option
 %    'legacy'.
 %
+% -- ICNNA v1.4.1
+%
+% 24-May-2026: FOE
+%   + Bug fix: output was incorrectly returning condition |id| values
+%   instead of struct-array indices. When condition ids are non-contiguous
+%   or exceed the number of conditions (e.g. 26 conditions whose ids
+%   include values > 26), the returned indices were wrong.
+%   Root cause: line `idx(tf) = condIds(loc(tf))` mapped struct positions
+%   back through the id array, yielding id values rather than positions.
+%   Fix: replaced with `idx(tf) = loc(tf)` so that the struct-array
+%   index returned by |ismember| is used directly.
+%
 
 
 %% Deal with options
@@ -152,7 +164,8 @@ end
 
 %Prepare the output
 idx     = nan(numel(tags),1);
-idx(tf) = condIds(loc(tf)); % Convert location -> ID values, missing -> NaN
+idx(tf) = loc(tf); % Store struct array indices; unmatched
+                   % entries remain NaN
 
 if ~isempty(opt.legacy)
     switch(opt.legacy)

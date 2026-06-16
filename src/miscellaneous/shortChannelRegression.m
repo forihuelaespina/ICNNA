@@ -1,4 +1,4 @@
-function [nimg,XX] = shortChannelRegression(nimg,options)
+function [nimg,XX,shortChNeighbours] = shortChannelRegression(nimg,options)
 %Apply a short channel regression to a nirs_neuroimage
 %
 %   [nimg,X] = shortChannelRegression(nimg) - 
@@ -349,6 +349,8 @@ for iCh = 1:clm.nChannels
     end
 end
 
+shortChNeighbours = shortChannelNeighbours;
+
 
 
 %% Drift regressors (polynomial)
@@ -410,10 +412,24 @@ for iCh = 1:clm.nChannels
 
             XX(iCh,iSig) = {X};
 
+                % === DIAGNOSTIC B ===
+                Rraw = regressors{iCh,iSig};   % original short channel average, pre-drift append
+                Ydm  = Yorig - mean(Yorig);    % demeaned long channel
+                Rdm  = Rraw  - mean(Rraw);     % demeaned short channel average
+                if std(Rdm) > 1e-10
+                    rho = corr(Rdm, Ydm);
+                else
+                    rho = NaN;
+                end
+                fprintf('Ch %d Sig %d | std(Rraw)=%.4f  std(Rdm)=%.4f  corr(Rdm,Ydm)=%.4f\n', ...
+                    iCh, iSig, std(Rraw), std(Rdm), rho);
+                % ====================
+
             %Solve the regression using the AR(p) adjusted X and Y
             if opt.ridgeLambda > 0
                 beta = pinv(X'*X + opt.ridgeLambda*eye(size(X,2))) * (X'*Y);
             else
+
                 beta = pinv(X)*Y;
             end
 

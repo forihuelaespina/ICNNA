@@ -1,5 +1,5 @@
 function obj=export(obj,filename)
-%RAWDATA_SNIRF/EXPORT Reads the raw light intensities 
+%RAWDATA_SNIRF/EXPORT Writes out to an .snirf file.
 %
 % obj=export(obj,filename) Writes an .snirf file. The content of the
 %   file depends on the content of the attribute .snirfImg which can
@@ -41,6 +41,13 @@ function obj=export(obj,filename)
 % 29-Aug-2023: FOE
 %   + File created
 %
+% -- ICNNA v1.4.1
+%
+% 22-May-2026: FOE
+%   + Bug fixed: The method was still calling the "old" static save
+%   method that was deprecated in Aug-2023 (see icnna.data.snirf.snirf
+%   class log).
+%
 
 
 
@@ -54,7 +61,8 @@ end
 
 
 %This is easy peasy given that this is only a wrapper.
-res = icnna.data.snirf.snirf.save(filename,obj.snirfImg);
+%res = icnna.data.snirf.snirf.save(filename,obj.snirfImg);
+res = obj.snirfImg.save(filename);
 if ~res
     error('ICNNA:rawData_Snirf:export:FileNotWritten',...
         ['Unable to write file ' filename '.']);

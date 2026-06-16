@@ -15,6 +15,47 @@ classdef nirs_neuroimage < neuroimage
 %
 %% Properties
 %
+%   -- Private properties
+%   .classVersion - Char array. (Read only. Constant)
+%       The class version of the object
+%       This is separate from the superclass' own |classVersion|.
+%
+%   -- Inherited properties
+%   .id - double
+%       A numerical identifier.
+%   .name - char[]
+%       A name tag
+%   .description - char[]
+%       A short description
+%   .timeline - icnna.data.core.timeline
+%       A timeline with its length attached to the data length.
+%   .data - double[nSamples x nChannels x nSignals]
+%       The data itself.
+%   .integrity - integrityStatus
+%       Per channel integrity values.
+%   .signalTags - cell
+%       A cell array of signals tags.
+%
+%   NOTE 1: Signal label convention (introduced ICNNA v1.4.1):
+%       Labels are produced by methods such as
+%   rawData_NIRx/import.m -> buildSignalLabel and others (or maybe
+%   even the user), ergo some standardization is convenient.
+%   The format depends on the physical nature of the signal:
+%
+%     Raw intensity (all non-processed SNIRF dataTypes):
+%       'I(lambda=<wl>nm)'  e.g. 'I(lambda=760nm)', 'I(lambda=850nm)'
+%       Fallback if wavelength unresolvable: 'I(wl<n>)' (no nm suffix)
+%
+%     Processed / reconstructed (SNIRF dataType 99999):
+%       dataTypeLabel verbatim, e.g. 'HbO', 'HbR', 'HbT', 'mua'
+%       Fallback if dataTypeLabel empty: 'proc:<dataTypeIndex>'
+%
+%   NOTE 2: for non-CW raw modalities (FD-Phase, DCS-g2, etc.) the
+%   'I(lambda=...)' label is physically approximate. Type-specific
+%   prefixes are deferred to a future version.
+%
+%
+%   -- Public properties
 % .probeMode - DEPRECATED. The optode array distribution. By default is set
 %   to '3x3'. See superclass neuroimage channelLocationMap
 %
@@ -28,7 +69,7 @@ classdef nirs_neuroimage < neuroimage
 %
 % Type methods('nirs_neuroimage') for a list of methods
 % 
-% Copyright 2008-23
+% Copyright 2008-26
 % @author: Felipe Orihuela-Espina
 %
 % See also neuroimage
@@ -50,6 +91,12 @@ classdef nirs_neuroimage < neuroimage
 % 30-Aug-2023: FOE
 %   + Activated the constant for CYTOCHROME (Kept classVersion to '1.0'
 %       because ICNNA version has not yet been released).
+%
+% -- ICNNA v1.4.1
+%
+% 21-May-2026: FOE
+%   + Improved some comments specially about the inherited properties.
+%   that was absent.
 %
 
     properties (Constant, Access=private)

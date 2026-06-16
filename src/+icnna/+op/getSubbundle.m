@@ -10,7 +10,7 @@ function [S]=getSubbundle(S,w,c)
 %   + The projection
 %
 % In addition, the filtering can be done by case (row based) or
-%by condition (column base)-see paramter c
+%by condition (column base)-see parameter c
 %
 %% Filtering the base space
 %

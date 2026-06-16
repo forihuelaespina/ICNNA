@@ -15,10 +15,7 @@ function obj=addCondition(obj,id,name,cevents,varargin)
 %   events.
 %
 % obj = addCondition(...,exclusoryState) Add a experimental condition
-%    to the @icnna.data.core.timeline. If exclusoryState is equal to 1 then
-%    the condition is exclusory with every other existent condition.
-%    If exclusoryState is equal to 0 then the condition is
-%    non exclusory with every other existent condition.
+%    to the @icnna.data.core.timeline. 
 %
 %
 %% Error handling
@@ -82,8 +79,14 @@ function obj=addCondition(obj,id,name,cevents,varargin)
 %   elements in eventsInfo ought to match the number of rows of parameter
 %   events.
 %
+% exclusoryState - int. Default is 1 (exclusory behaviour)
+%   The exclusory behaviour. If exclusoryState is equal to 1 then
+%    the condition is exclusory with every other existent condition.
+%    If exclusoryState is equal to 0 then the condition is
+%    non exclusory with every other existent condition.
 %
-% Copyright 2025
+%
+% Copyright 2025-26
 % @author Felipe Orihuela-Espina
 %
 % See also addConditions
@@ -97,6 +100,11 @@ function obj=addCondition(obj,id,name,cevents,varargin)
 %
 % 15-Dec-2025: FOE
 %   + Method created (from timeline.addCondition)
+%
+% -- ICNNA v1.4.1
+%
+% 22-May-2026: FOE
+%   + Added comments to document the exclusoryState inputParameter.
 %
 
 
@@ -137,7 +145,10 @@ if isempty(id)
         end
     end
 else
-    if ~isinteger(id)
+    if ~(id == fix(id)) %Check that id is an integer.
+                        %Note that isinteger(id) checks the class, not
+                        %the value.
+
         error('icnna:data:core:timeline:addCondition:InvalidParameter',...
                 'Parameter id must be an int.');
     end
