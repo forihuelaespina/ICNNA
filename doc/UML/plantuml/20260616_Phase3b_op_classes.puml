@@ -1,0 +1,203 @@
+@startuml ICNNA_op_classes
+' ============================================================
+' ICNNA — Operations & Analysis class diagram
+' Scope: +icnna.op (modern functions)
+'        +icnna.plot (modern plotting)
+'        oo/@analysis, @experimentSpace, @cluster (legacy)
+' Companion to the core spine class diagram
+' Phase 3b deliverable — Item F
+' ============================================================
+' Log:
+'   2026-06-16: FOE/Claude — File created. Current snapshot of
+'       operations function library + legacy analysis classes +
+'       v2.0.0 projection notes.
+' ============================================================
+' Source: src/+icnna/+op/*.m, src/+icnna/+op/+snirf/*.m,
+'         src/+icnna/+plot/*.m,
+'         src/oo/@analysis, @experimentSpace, @cluster
+' ============================================================
+
+skinparam classAttributeIconSize 0
+skinparam nodesep 40
+skinparam ranksep 40
+
+skinparam class<<deprecated>> {
+  BorderColor Gray
+  BorderStyle dashed
+  FontStyle italic
+}
+
+title ICNNA — Operations, Analysis & Plotting\nModern function libraries + Legacy analysis classes\nLegacy classes (dashed gray)
+
+' ================================================================
+' MODERN FUNCTION LIBRARIES (+icnna)
+' ================================================================
+
+package "+icnna.op" as oppkg {
+
+  package "Signal Processing" as sigproc {
+    class "intensity2deltaOD()" as f_i2dOD << (F,#88CC88) >>
+    class "deltaOD2deltaConcentrations()" as f_dOD2dC << (F,#88CC88) >>
+    class "invertMBLL()" as f_MBLL << (F,#88CC88) >>
+    class "optodeMovement_TDDR()" as f_TDDR << (F,#88CC88) >>
+  }
+
+  package "Data Extraction" as dataext {
+    class "getTrialData()" as f_trial << (F,#88CC88) >>
+    class "getActivityMatrix()" as f_actMat << (F,#88CC88) >>
+    class "getSubbundle()" as f_subbundle << (F,#88CC88) >>
+    class "computeExperimentBundle()" as f_compBundle << (F,#88CC88) >>
+    class "generateDB()" as f_genDB << (F,#88CC88) >>
+  }
+
+  package "+snirf bridge" as snirfbridge {
+    class "snirf2nirsNeuroimage()" as f_s2n << (F,#88CC88) >>
+    class "snirfNirs2timeline()" as f_sn2t << (F,#88CC88) >>
+    class "snirfProbe2channelLocationMap()" as f_sp2clm << (F,#88CC88) >>
+    class "channelList()" as f_chList << (F,#88CC88) >>
+    class "unfoldMeasurementList()" as f_unfold << (F,#88CC88) >>
+    class "getTimelineFromSnirf()" as f_getTl << (F,#88CC88) >>
+    class "writeTimelineToSnirf()" as f_writeTl << (F,#88CC88) >>
+  }
+
+}
+
+package "+icnna.plot" as plotpkg {
+  class "plotActivityMatrix()" as p_actMat << (F,#AACCFF) >>
+  class "plotBundle_FamilyOfSpaces()" as p_bundle << (F,#AACCFF) >>
+  class "plotStructuredData()" as p_sdata << (F,#AACCFF) >>
+  class "plotTimeline()" as p_tl << (F,#AACCFF) >>
+  class "seriesBundle_AllSites()" as p_serAll << (F,#AACCFF) >>
+  class "seriesBundle_SingleSite()" as p_serOne << (F,#AACCFF) >>
+}
+
+
+' ================================================================
+' LEGACY ANALYSIS CLASSES (oo/)
+' ================================================================
+package "oo/ — MENA analysis (legacy)" as menapkg {
+
+  class analysis <<deprecated>> {
+    +id : int
+    +name : char
+    +experimentSpace : experimentSpace
+    +projectionDimensionality : int
+    +metric : char
+    +embedding : char
+    -clusters : cell
+    ==
+    +run()
+    +getFeatureSpace()
+    +addCluster() / removeCluster()
+    +kmeans() / emd() / mena_*()
+  }
+
+  class experimentSpace <<deprecated>> {
+    -vectors : double[N x M]
+    ==
+    +compute()
+    +normalize()
+    +getSubset()
+  }
+
+  class cluster <<deprecated>> {
+    +id : int
+    +centroid : double[]
+    +members : int[]
+  }
+}
+
+' ================================================================
+' RELATIONSHIPS
+' ================================================================
+analysis     o-- "1" experimentSpace : experimentSpace
+analysis     o-- "0..*" cluster : clusters
+
+' ================================================================
+' NOTES
+' ================================================================
+
+note top of oppkg
+  **Modern operations library** (all functions).
+  ..
+  **Signal processing chain:**
+  intensity2deltaOD → deltaOD2deltaConcentrations
+  (Modified Beer-Lambert Law pipeline).
+  optodeMovement_TDDR: motion correction.
+  invertMBLL: inverse MBLL conversion.
+  ..
+  **Data extraction:**
+  Trial-level data extraction, activity
+  matrices, experiment bundle computation,
+  sub-bundle filtering, database generation.
+  ..
+  **SNIRF bridge:**
+  Conversion between +data/+snirf objects
+  and ICNNA domain entities. These functions
+  are the primary interface between the
+  file format layer and the core model.
+end note
+
+note bottom of plotpkg
+  **Visualization functions.**
+  Plotting for structuredData, timelines,
+  activity matrices, and experiment bundles.
+  Not affected by relationsManager (they
+  receive data objects as arguments).
+end note
+
+note top of menapkg
+  **Legacy MENA** (Manifold Embedding
+  Neuroimage Analysis).
+  ..
+  analysis defines a Feature Space H
+  and embeds it into a Projection Space Y.
+  Linked to a single data source
+  (constraint to be relaxed in v2.0.0).
+  ..
+  experimentSpace holds the N x M data
+  matrix (N patterns, M features).
+  ..
+  Supported metrics: Euclidean, JSM.
+  Supported embeddings: Isomap, LLE, etc.
+  MENA-specific: geodesic distances,
+  Earth Mover's Distance.
+end note
+
+note as v200note #FFFFCC
+  **v2.0.0 projection — relationsManager impact:**
+  ..
+  **analysis class migration:**
+  Legacy analysis holds dataSourceIDs,
+  subjectIDs, sessionIDs to filter the
+  experiment space. In v2.0.0, these
+  become relationsManager queries:
+  analysis links to experimentBundle
+  via manager; bundle queries subjects,
+  sessions, devices via manager.
+  ..
+  **Function library stays functional:**
+  The +op/ functions accept domain objects
+  as arguments and return results. They are
+  not structurally changed by the manager.
+  However, functions that currently receive
+  ID parameters (e.g. getSubbundle with
+  subject/session filtering) will instead
+  query the manager for entity resolution.
+  ..
+  **Pipeline concept (future, v1.4.8+):**
+  A class-based processing pipeline is
+  anticipated but not yet designed.
+  Design memo scheduled for v1.4.8
+  (spine cleanup). Will formalize the
+  chain: import → convert → process →
+  analyse → export.
+  ..
+  **SNIRF bridge simplification:**
+  snirf2nirsNeuroimage and related
+  functions will register entity
+  relations via manager instead of
+  returning objects with wired IDs.
+end note
+
+@enduml

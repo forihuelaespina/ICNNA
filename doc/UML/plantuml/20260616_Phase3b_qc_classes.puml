@@ -1,0 +1,242 @@
+@startuml ICNNA_qc_classes
+' ============================================================
+' ICNNA — Quality Control class diagram
+' Scope: +icnna.data.core (qc, qcCriterion) — existing
+'        +icnna.qc (projected concrete subclasses)
+'        oo/@integrityStatus (legacy)
+' Companion to the core spine class diagram
+' Phase 3b deliverable — Item F
+' ============================================================
+' Log:
+'   2026-06-16: FOE/Claude — File created. Current snapshot of
+'       qc/qcCriterion + legacy integrityStatus + v2.0.0
+'       projection for concrete QC subclasses.
+' ============================================================
+' Source: src/+icnna/+data/+core/@qc/qc.m,
+'         src/+icnna/+data/+core/@qcCriterion/qcCriterion.m,
+'         src/oo/@integrityStatus/integrityStatus.m,
+'         spine diagram notes (D.new.8)
+' ============================================================
+
+skinparam classAttributeIconSize 0
+skinparam nodesep 40
+skinparam ranksep 40
+
+skinparam class<<planned>> {
+  BorderColor DarkBlue
+  BorderThickness 2
+  FontStyle bold
+}
+skinparam class<<deprecated>> {
+  BorderColor Gray
+  BorderStyle dashed
+  FontStyle italic
+}
+skinparam class<<projected>> {
+  BorderColor DarkGreen
+  BorderStyle dashed
+  FontStyle italic
+}
+
+title ICNNA — Quality Control classes\nExisting (normal) | Planned (bold blue) | Projected (dashed green) | Legacy (dashed gray)\nAbstract contracts in +data/+core; concrete subclasses projected for +qc
+
+' ================================================================
+' EXISTING ABSTRACT CONTRACTS (+data/+core, in spine)
+' ================================================================
+package "+icnna.data.core" as corepkg {
+
+  abstract class identifiableObject {
+    +id : char
+    +name : char
+    +description : char
+    +relationsManagerID : char
+  }
+
+  class qc {
+    -criteria : struct
+    ==
+    +addCriteria(criterion)
+    +removeCriteria(id)
+    +getCriteria(id) : qcCriterion
+    +findCriteria(name) : int
+    +getCriteriaList() : table
+    +clearCriteria()
+    +assertInvariants()
+  }
+
+  abstract class qcCriterion {
+    +tier : enum
+    +parameters : struct
+    +layer : int8[3D]
+    +qcOperator : handle
+    +verified : logical
+    +codes : struct
+    ==
+    +assertInvariants()
+  }
+
+  class "structuredData\n(<<planned>>)" as structuredData <<planned>> {
+    +data : double[3D]
+  }
+}
+
+' ================================================================
+' LEGACY (oo/)
+' ================================================================
+package "oo/ (legacy)" as oopkg {
+  class integrityStatus <<deprecated>> {
+    -elements : double[]
+    ..codes (Constant)..
+    UNCHECK = -1
+    FINE = 0
+    MISSING = 1
+    NOISE = 2
+    OTHER = 3
+    MIRRORING = 11
+    NONRECORDINGS = 12
+    NEGATIVERECORDINGS = 13
+    OPTODEMOVEMENT = 14
+    HEADMOTION = 15
+    COEFFICIENTOFVARIATION = 16
+  }
+}
+
+' ================================================================
+' PROJECTED CONCRETE SUBCLASSES (+qc, v2.0.0)
+' ================================================================
+package "+icnna.qc (v2.0.0)" as qcpkg {
+
+  class "qcCriterion_Saturation\n(survival, v1.5.4)" as qc_Saturation <<projected>> {
+    +threshold : double
+  }
+
+  class "qcCriterion_Mirroring\n(survival, v1.5.4)" as qc_Mirroring <<projected>> {
+    +correlationThreshold : double
+  }
+
+  class "qcCriterion_ChannelIntegrity\n(survival, v1.5.4)" as qc_ChannelIntegrity <<projected>> {
+    +snrThreshold : double
+  }
+
+  class "qcCriterion_SCI\n(enhancement, v1.6.4)" as qc_SCI <<projected>> {
+    +sciThreshold : double
+    +windowSize : double
+  }
+
+  class "qcCriterion_CV\n(enhancement, v1.6.4)" as qc_CV <<projected>> {
+    +cvThreshold : double
+  }
+
+  class "«extensible»\nAdditional criteria\n(user/project-defined)" as qc_ext <<projected>> {
+    ~~
+  }
+}
+
+' ================================================================
+' INHERITANCE
+' ================================================================
+qc                  --|> identifiableObject
+qcCriterion         --|> identifiableObject
+structuredData      --|> identifiableObject
+
+qc_Saturation       --|> qcCriterion
+qc_Mirroring        --|> qcCriterion
+qc_ChannelIntegrity --|> qcCriterion
+qc_SCI              --|> qcCriterion
+qc_CV               --|> qcCriterion
+qc_ext              --|> qcCriterion
+
+' ================================================================
+' COMPOSITION / ASSOCIATION
+' ================================================================
+qc  o-- "0..*" qcCriterion : criteria
+
+' ================================================================
+' v2.0.0 RELATIONSMANAGER LINK
+' ================================================================
+structuredData ..> qc : "composition via\nrelationsManager"
+
+' ================================================================
+' MIGRATION
+' ================================================================
+integrityStatus ..> qcCriterion : "superseded by"
+
+' ================================================================
+' NOTES
+' ================================================================
+
+note top of corepkg
+  **Abstract QC contracts** (existing).
+  ..
+  **qc** — Light-weight manager:
+  collects qcCriterion objects, ensures
+  unique ids/names, same layer size.
+  Reports inter-criteria compliance.
+  ..
+  **qcCriterion** — Single criterion:
+  3D int8 layer (samples x channels x signals)
+  with enumerated codes (UNCHECK/OK/FAIL
+  + user-defined). Decouples criterion
+  definition from operationalization
+  (qcOperator handle).
+  ..
+  Both inherit from identifiableObject
+  (IDs, metadata, relationsManagerID).
+end note
+
+note top of qcpkg
+  **Projected concrete subclasses** (D.new.8).
+  ..
+  **Survival tier (v1.5.4):**
+  Saturation, Mirroring, ChannelIntegrity
+  — minimum QC for reliable fNIRS data.
+  ..
+  **Enhancement tier (v1.6.4):**
+  SCI (Scalp Coupling Index),
+  CV (Coefficient of Variation)
+  — advanced signal quality metrics.
+  ..
+  Each subclass provides a specific
+  qcOperator implementation. Properties
+  shown are illustrative; actual
+  parameters TBD at implementation memo.
+  ..
+  **Extensible by design:**
+  qcCriterion is abstract; additional
+  criteria (user- or project-defined)
+  can be added at any time by subclassing.
+  The 5 listed here are the initial set.
+end note
+
+note as rmnote #FFFFCC
+  **v2.0.0 — relationsManager impact:**
+  ..
+  **structuredData → qc binding:**
+  Currently (v1.4.x), qc is stored as a
+  property within structuredData. In v2.0.0,
+  this becomes a composition relation in
+  the relationsManager. structuredData
+  provides a derived property get.qc()
+  that queries the manager.
+  ..
+  **qc → qcCriterion binding:**
+  Internal to qc (criteria struct).
+  Not affected by relationsManager
+  (qc owns its criteria directly).
+  ..
+  **integrityStatus → qcCriterion:**
+  Legacy integrityStatus with hardcoded
+  codes is superseded by the flexible
+  qcCriterion approach (user-defined
+  codes, per-criterion 3D layers).
+end note
+
+note right of integrityStatus
+  **Legacy** — single flat vector of
+  hardcoded integrity codes. Applied
+  per-channel. No 3D layer, no
+  per-criterion separation.
+  Superseded by qc/qcCriterion.
+end note
+
+@enduml

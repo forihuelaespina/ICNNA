@@ -1,7 +1,7 @@
 @startuml ICNNA_v2_0_0_spine_classes
 ' ============================================================
 ' ICNNA v2.0.0 — Projected spine class diagram
-' Scope: +icnna/+data/+core  (flat, ID-referenced)
+' Scope: +icnna/+data/+core  (flat, relationsManager-mediated)
 ' Companion diagrams (planned): snirf, ops, qc, io/devices
 ' Phase 3b deliverable
 ' ============================================================
@@ -49,16 +49,38 @@
 '       + identifiableObject retains name alongside description
 '       + 34 classes total (20 existing + 6 planned + 8 speculative)
 '       + N-ary relation concern elevated to pre-Phase-4 task
+'   2026-06-16: FOE/Claude — relationsManager architecture
+'       (Phase 3b continuation 6, Item E resolution):
+'       + Added relationsManager class (planned) — singleton
+'         value class implementing a typed, role-labeled
+'         hypergraph for all entity relations.
+'       + identifiableObject gains relationsManagerID property.
+'       + ALL *IDs reference properties removed from entity
+'         classes (~40 properties eliminated). Entity classes
+'         now hold only intrinsic attributes.
+'       + ALL inter-entity ID-reference arrows removed.
+'         Relations managed exclusively via the hypergraph.
+'       + 1:1 compositional references (e.g. structuredData
+'         to timeline) become derived properties that query
+'         the manager — transparent to the user.
+'       + Centralised ID uniqueness enforcement in the manager.
+'       + N-ary relation concern (Item E) RESOLVED.
+'       + 35 classes total (20 existing + 7 planned +
+'         8 speculative).
 ' ============================================================
 ' Source: Phase3_minute.tex roadmap, Phase2c v2.0.0 endpoint,
 '         D.* decisions, Cantor cantor.sql schema,
 '         legacy oo/@structuredData, legacy oo/@dataSource,
 '         20-Apr-2026 package diagram, 21-Apr-2026 FOE review,
-'         04-May-2026 fresh-eyes review.
+'         04-May-2026 fresh-eyes review,
+'         16-Jun-2026 relationsManager decision (Item E).
 ' ============================================================
 ' Conventions:
-'   - "Flat + ID-referenced" (P5): entities hold IDs of related
-'     entities, not nested object references.
+'   - "Flat + relationsManager-mediated" (P5 evolved):
+'     entities hold only intrinsic attributes; all
+'     inter-entity relations live in the relationsManager's
+'     typed hypergraph. Entities access related entities via
+'     derived properties that query the manager.
 '   - Three-tier certainty:
 '       Normal border     = exists in v1.4.1-beta
 '       <<planned>>       = committed in roadmap (bold blue)
@@ -83,7 +105,7 @@ skinparam class<<speculative>> {
   FontStyle italic
 }
 
-title ICNNA v2.0.0 — Projected Core Spine Classes (+data/+core)\n34 classes: 20 existing | 6 planned | 8 speculative\nExisting (normal) | Planned (bold blue) | Speculative (dashed gray)
+title ICNNA v2.0.0 — Projected Core Spine Classes (+data/+core)\n35 classes: 20 existing | 7 planned | 8 speculative\nExisting (normal) | Planned (bold blue) | Speculative (dashed gray)\nAll inter-entity relations managed by relationsManager (hypergraph)
 
 package "+icnna.data.core (v2.0.0)" as core {
 
@@ -97,6 +119,7 @@ package "+icnna.data.core (v2.0.0)" as core {
     +created : datetime
     +modified : datetime
     +classVersion : char
+    +relationsManagerID : char
   }
 
   class metaEntry {
@@ -105,26 +128,23 @@ package "+icnna.data.core (v2.0.0)" as core {
   }
 
   ' ================================================================
+  ' RELATIONS MANAGER (Phase 3b cont. 6, Item E)
+  ' ================================================================
+  class relationsManager <<planned>> {
+    +typeRegistry : containers.Map
+    +tuples : cell
+  }
+
+  ' ================================================================
   ' TOP-LEVEL CONTAINER
   ' ================================================================
   class document <<speculative>> {
-    +experimentIDs : char[*]
-    +bundleIDs : char[*]
-    +pipelineIDs : char[*]
   }
 
   ' ================================================================
   ' EXPERIMENT AND DESIGN
   ' ================================================================
   class experiment <<planned>> {
-    +groupIDs : char[*]
-    +unitIDs : char[*]
-    +bundleIDs : char[*]
-    +sessionDefinitionIDs : char[*]
-    +deviceDefinitionIDs : char[*]
-    +factorIDs : char[*]
-    +mechanismIDs : char[*]
-    +experimentDesignID : char
   }
 
   class experimentDesign <<speculative>> {
@@ -136,24 +156,13 @@ package "+icnna.data.core (v2.0.0)" as core {
   }
 
   class experimentBundle {
-    +name : char
-    +groupIDs : char[*]
-    +experimentIDs : char[*]
-    +factorIDs : char[*]
     +designKind : enum
   }
 
   class experimentalGroup {
-    +unitIDs : char[*]
-    +factorAssignments : table
   }
 
   class experimentalUnit {
-    +sessionIDs : char[*]
-    +rawDataIDs : char[*]
-    +conditionIDs : char[*]
-    +timelineID : char
-    +treatmentIDs : char[*]
   }
 
   class subject {
@@ -165,85 +174,61 @@ package "+icnna.data.core (v2.0.0)" as core {
   ' ================================================================
   class session <<planned>> {
     +date : datetime
-    +deviceIDs : char[*]
-    +runIDs : char[*]
-    +timelineID : char
-    +sessionDefinitionID : char
   }
 
   class sessionDefinition <<speculative>> {
-    +expectedConditionIDs : char[*]
-    +expectedDeviceDefIDs : char[*]
     +protocol : char
   }
 
   class run <<speculative>> {
     +runNumber : int
-    +timelineID : char
   }
 
   ' ================================================================
   ' DEVICE LAYER (replaces legacy dataSource / dataSourceDefinition)
   ' ================================================================
   class device <<speculative>> {
-    +rawDataID : char
-    +structuredDataIDs : char[*]
-    +deviceDefinitionID : char
     +deviceNumber : int
   }
 
   class deviceDefinition <<speculative>> {
     +deviceKind : char
-    +expectedSignalSetID : char
-    +expectedMontageID : char
   }
 
   ' ================================================================
   ' DATA LAYER
   ' ================================================================
   class structuredData <<planned>> {
-    +timelineID : char
-    +signalSetID : char
     +data : double[3D]
-    +qcID : char
-    +montageID : char
     +signalTags : cell
   }
 
   abstract class rawData {
     +deviceKind : char
-    +signalSetID : char
   }
 
   ' ================================================================
   ' EXPERIMENTAL DESIGN FACTORS
   ' ================================================================
   class factor <<planned>> {
-    +name : char
-    +levelIDs : char[*]
     +kind : enum
     +factorType : enum
   }
 
   class level <<planned>> {
     +label : char
-    +factorID : char
     +ordinal : int
   }
 
   class treatment <<speculative>> {
-    +levelIDs : char[*]
-    +description : char
   }
 
   class mechanism <<speculative>> {
     +mechanismType : enum
-    +description : char
   }
 
   class condition {
     +label : char
-    +factorLevels : map
   }
 
   ' ================================================================
@@ -252,20 +237,17 @@ package "+icnna.data.core (v2.0.0)" as core {
   class timeline {
     +tStart : datetime
     +nominalFs : double
-    +eventIDs : char[*]
   }
 
   class event <<planned>> {
     +tOnset : double
     +tDuration : double
-    +conditionID : char
   }
 
   ' ================================================================
   ' SIGNAL DESCRIPTION
   ' ================================================================
   class signalSet {
-    +descriptorIDs : char[*]
   }
 
   class signalDescriptor {
@@ -279,8 +261,6 @@ package "+icnna.data.core (v2.0.0)" as core {
   abstract class montage
 
   class nirsMontage {
-    +optodeIDs : char[*]
-    +referenceLocationIDs : char[*]
   }
 
   class optode {
@@ -302,8 +282,6 @@ package "+icnna.data.core (v2.0.0)" as core {
   ' QUALITY CONTROL (abstract contracts; concrete subclasses in +qc)
   ' ================================================================
   class qc {
-    +criterionIDs : char[*]
-    +targetID : char
   }
 
   abstract class qcCriterion {
@@ -342,6 +320,7 @@ factor               --|> identifiableObject
 level                --|> identifiableObject
 event                --|> identifiableObject
 experiment           --|> identifiableObject
+relationsManager     --|> identifiableObject
 
 ' --- Speculative classes ---
 document             --|> identifiableObject
@@ -354,113 +333,78 @@ treatment            --|> identifiableObject
 mechanism            --|> identifiableObject
 
 ' ================================================================
-' AGGREGATION (composition / aggregation arrows)
+' AGGREGATION
 ' ================================================================
 identifiableObject   o-- "0..*" metaEntry : meta
 
 ' ================================================================
-' ID REFERENCES (P5 flat-architecture; dashed = ID-by-value)
+' RELATIONS MANAGER LINK
 ' ================================================================
-' --- Document layer ---
-document            ..> experiment         : experimentIDs
-document            ..> experimentBundle   : bundleIDs
-
-' --- Experiment layer ---
-experiment          ..> experimentalGroup  : groupIDs
-experiment          ..> experimentalUnit   : unitIDs
-experiment          ..> sessionDefinition  : sessionDefinitionIDs
-experiment          ..> deviceDefinition   : deviceDefinitionIDs
-experiment          ..> factor             : factorIDs
-experiment          ..> mechanism          : mechanismIDs
-experiment          ..> experimentBundle  : bundleIDs
-experiment          ..> experimentDesign  : experimentDesignID
-
-' --- Bundle (analytical layer; can span 1+ experiments) ---
-experimentBundle    ..> experimentalGroup  : groupIDs
-experimentBundle    ..> factor             : factorIDs
-experimentBundle    ..> experiment         : experimentIDs
-
-' --- Group / Unit layer ---
-experimentalGroup   ..> experimentalUnit   : unitIDs
-experimentalUnit    ..> session            : sessionIDs
-experimentalUnit    ..> rawData            : rawDataIDs
-experimentalUnit    ..> condition          : conditionIDs
-experimentalUnit    ..> timeline           : timelineID
-experimentalUnit    ..> treatment          : treatmentIDs
-
-' --- Session / Device layer ---
-session             ..> device             : deviceIDs
-session             ..> run               : runIDs
-session             ..> timeline           : timelineID
-session             ..> sessionDefinition  : sessionDefinitionID
-
-run                 ..> timeline           : timelineID
-
-device              ..> rawData            : rawDataID
-device              ..> structuredData     : structuredDataIDs
-device              ..> deviceDefinition   : deviceDefinitionID
-
-' --- Definition layer ---
-sessionDefinition   ..> deviceDefinition   : expectedDeviceDefIDs
-
-' --- Structured data layer ---
-structuredData      ..> timeline           : timelineID
-structuredData      ..> signalSet          : signalSetID
-structuredData      ..> qc                 : qcID
-structuredData      ..> montage            : montageID
-
-' --- Design layer ---
-factor              ..> level              : levelIDs
-level               ..> factor             : factorID
-treatment           ..> level              : levelIDs
-condition           ..> factor             : factorLevels
-
-' --- Timeline ---
-timeline            ..> event              : eventIDs
-event               ..> condition          : conditionID
-
-' --- Signal ---
-rawData             ..> signalSet          : signalSetID
-signalSet           ..> signalDescriptor   : descriptorIDs
-
-' --- Hardware ---
-nirsMontage         ..> optode             : optodeIDs
-nirsMontage         ..> referenceLocation  : referenceLocationIDs
-
-' --- QC ---
-qc                  ..> qcCriterion        : criterionIDs
-qc                  ..> identifiableObject : targetID  (any spine entity)
+identifiableObject   ..> relationsManager : relationsManagerID
 
 ' ================================================================
 ' NOTES
 ' ================================================================
+
+note top of relationsManager
+  **PLANNED** — Singleton value class.
+  Typed, role-labeled hypergraph.
+  ..
+  All inter-entity relations stored as
+  generic tuples: (type, {role->ID, ...}).
+  Entities hold no relationship state;
+  derived properties query the manager.
+  ..
+  **Registered relation categories:**
+  Experimental design: membership,
+    factorAllocation, conditionMapping,
+    treatmentAssignment, mechanism, design.
+  Data acquisition: unitSession,
+    acquisition, production, runs, timelines.
+  Composition (~15): 1:1 bindings surfaced
+    as derived properties on entities.
+  Template/Definition links.
+  Analysis/Bundle provenance.
+  Document-level containment.
+  ~35 types. Open-ended by design.
+  ..
+  **Centralised services:**
+  ID uniqueness enforcement (per type).
+  Schema validation (assertInvariants).
+  Cascade removal (removeEntity).
+  ..
+  Singleton via persistent variable
+  (value class, no handles).
+  Pure value data; serialises natively.
+end note
 
 note top of document
   **SPECULATIVE** — Top-level container.
   v2.0.0: single experiment.
   Post-v2.0.0: multi-experiment
   (meta-analysis).
-  Also hosts bundles (analytical
-  dataframes) and pipelines.
+  Hosts experiments, bundles, and
+  pipelines via relationsManager.
 end note
 
 note top of experiment
   **PLANNED** — Expanded from legacy
-  @experiment. Directly manages groups,
-  units, bundles, sessions (via definitions),
+  @experiment. Participates in relations
+  for groups, units, bundles, sessions,
   devices, and experimental design
-  (a la Cantor).
+  — all via relationsManager.
   ..
-  unitIDs enables within/between-subject
-  design determination.
+  Within/between-subject determination
+  via manager query on membership
+  relation (experiment, group, unit).
   ..
-  bundleIDs: bidirectional link with
-  experimentBundle (fork hierarchy,
-  not linear containment).
+  Bidirectional experiment-bundle link
+  stored as hypergraph tuples (both
+  directions are queries, not storage).
   ..
-  experimentDesignID references a
-  separate experimentDesign class
-  (speculative; was designType struct).
+  All former *IDs properties removed;
+  accessed via derived properties
+  that query the relationsManager.
 end note
 
 note bottom of experimentDesign
@@ -486,19 +430,19 @@ note right of experimentBundle
   - multifactorial designs (factor[*])
   ..
   Analytical dataframe: can span 1+
-  experiments. Units can participate
-  across experiments (covariance effects
-  in meta-analysis).
-  ..
-  experimentIDs tracks data provenance.
-  ..
-  Replaces oo/@experiment containment model.
+  experiments. Relations to experiments,
+  groups, and factors managed via the
+  relationsManager.
 end note
 
 note right of structuredData
   **PLANNED** — Central data container.
   3D tensor: samples x channels x signals.
   Replaces legacy oo/@structuredData.
+  ..
+  Compositional links (timeline, signalSet,
+  qc, montage) are derived properties
+  querying the relationsManager.
   ..
   Subclasses (in companion diagrams):
   neuroimage, ecg, physiologicalMeasurement,
@@ -514,6 +458,7 @@ note bottom of device
   session and raw/structured data.
   Each device instance corresponds to
   one data acquisition device in a session.
+  Relations managed via relationsManager.
 end note
 
 note bottom of run
@@ -521,11 +466,7 @@ note bottom of run
   A run is a temporal subdivision of a
   session (e.g. multiple recordings within
   a single session visit). Each run has
-  its own timeline.
-  ..
-  Device association and relation to other
-  entities will be managed by the n-ary
-  relation solution (see note).
+  its own timeline (via relationsManager).
 end note
 
 note bottom of sessionDefinition
@@ -543,15 +484,15 @@ note right of treatment
   From Cantor schema (hub_treatment).
   A treatment is a specific combination
   of factor levels applied to units.
-  treatment <-> level (M:N via IDs),
-  experimentalUnit <-> treatment (M:N).
+  Relations (treatment-level, unit-treatment)
+  managed via relationsManager.
 end note
 
 note bottom of mechanism
   From Cantor schema (hub_mechanism).
   Experimental design mechanisms:
   blinding, blocking, randomization.
-  Linked per experiment.
+  Linked per experiment via relationsManager.
 end note
 
 note right of factor
@@ -560,39 +501,39 @@ note right of factor
   confounder) — from Cantor hub_factor.
 end note
 
-note as naryNote #FFFFCC
-  **OPEN — N-ary relation management**
-  (FOE, 21-Apr / 04-May-2026):
+note as resolvedNote #CCFFCC
+  **RESOLVED — N-ary relation management**
+  (FOE, 16-Jun-2026, Item E):
   ..
-  Multiple n-ary relations exist in the
-  experimental model: experiment-group-unit,
-  session-device-structuredData,
-  experiment-bundle (bidirectional), etc.
+  Architecture: typed, role-labeled
+  hypergraph (generic tuples) wrapped
+  in a schema-validating singleton
+  value class (assertInvariants pattern).
   ..
-  Current approach: redundant ID storage
-  (e.g. experimentalUnit.rawDataIDs alongside
-  session->device->rawData chain). This risks
-  inconsistencies.
+  Key outcomes:
+  - ~40 *IDs properties eliminated
+    from entity classes.
+  - Entities hold only intrinsic attributes.
+  - 1:1 compositions surfaced as derived
+    properties (transparent to user).
+  - Centralised ID uniqueness and
+    schema validation.
+  - Singleton value class (no handles).
+  - Open-ended: new relation types
+    registered, not hard-coded.
   ..
-  Vision: a "data vault" style mechanism
-  (a la Cantor) where relations are managed
-  transparently — each entity knows its links
-  without redundant storage causing drift.
-  ..
-  **Must be solved before Phase 4.**
-  Candidate approaches under consideration:
-  in-memory registry/broker, observer pattern,
-  dedicated relation classes, or hybrid.
-  ..
-  **Not a limitation to accept — a problem
-  to solve.**
+  **Item E closed.**
 end note
 
 note bottom of core
-  **P5 flat-architecture**: dashed arrows are
-  ID references resolved by an in-memory
-  registry (or persisted bundle). No nested
-  object composition across spine entities.
+  **Flat + relationsManager-mediated**
+  (P5 evolved, 16-Jun-2026):
+  Entities hold only intrinsic attributes.
+  All inter-entity relations (n-ary,
+  bidirectional, compositional) live in
+  the relationsManager hypergraph.
+  Derived properties on entities provide
+  transparent access to related entities.
   ..
   **Lazy-proxy pattern** (<<planned>>,
   cross-cutting, D.new.7):

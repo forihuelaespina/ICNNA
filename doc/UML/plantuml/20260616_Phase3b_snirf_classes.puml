@@ -1,0 +1,189 @@
+@startuml ICNNA_snirf_classes
+' ============================================================
+' ICNNA — +icnna.data.snirf class diagram
+' Scope: +icnna/+data/+snirf (SNIRF file format adapter)
+' Companion to the core spine class diagram
+' Phase 3b deliverable — Item F
+' ============================================================
+' Log:
+'   2026-06-16: FOE/Claude — File created. Current snapshot of
+'       all 8 snirf classes + v2.0.0 projection notes for
+'       relationsManager-mediated bridge to core.
+' ============================================================
+' Source: src/+icnna/+data/+snirf/@*/*.m (v1.4.1-beta)
+' ============================================================
+' Conventions:
+'   - These classes do NOT inherit from identifiableObject.
+'   - They follow the SNIRF specification directly.
+'   - All are value classes (no handles).
+'   - Only key properties shown; optional properties omitted
+'     for clarity (see source files for full list).
+' ============================================================
+
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam nodesep 30
+skinparam ranksep 30
+
+title ICNNA — +icnna.data.snirf classes\n8 classes (all existing at v1.4.1-beta)\nSNIRF file format adapter layer
+
+package "+icnna.data.snirf" as snirfpkg {
+
+  class snirf {
+    +formatVersion : char
+    +nirs : nirsDataset[]
+    --
+    +nNirsDatasets : int {Dependent}
+    ==
+    +load(filename) : snirf {Static}
+    +save(filename)
+    +readHD5file(filename) {Static}
+  }
+
+  class nirsDataset {
+    +metaDataTags : metaDataTags
+    +data : dataBlock[]
+    +stim : stim[]
+    +probe : probe
+    +aux : auxBlock[]
+  }
+
+  class dataBlock {
+    +dataTimeSeries : double[M x N]
+    +time : double[M x 1]
+    +measurementList : measurement[]
+  }
+
+  class measurement {
+    +sourceIndex : int
+    +detectorIndex : int
+    +wavelengthIndex : int
+    +dataType : int
+    +dataTypeIndex : int
+    ..optional (flagVisible)..
+    +wavelengthActual : double
+    +dataUnit : char
+    +dataTypeLabel : char
+    +sourcePower : double
+    +detectorGain : double
+    +moduleIndex : int
+  }
+
+  class probe {
+    +wavelengths : double[]
+    +sourcePos2D : double[S x 2]
+    +sourcePos3D : double[S x 3]
+    +detectorPos2D : double[D x 2]
+    +detectorPos3D : double[D x 3]
+    ..optional (flagVisible)..
+    +wavelengthsEmission : double[]
+    +sourceLabels : string[]
+    +detectorLabels : string[]
+    +landmarkPos2D/3D : double[]
+    +landmarkLabels : string[]
+    +useLocalIndex : double
+  }
+
+  class stim {
+    +name : char
+    +data : double[M x 3]
+    ..optional (flagVisible)..
+    +dataLabels : string[]
+  }
+
+  class auxBlock {
+    +name : char
+    +dataTimeSeries : double[M x N]
+    +time : double[M x 1]
+    ..optional (flagVisible)..
+    +dataUnit : char
+    +timeOffset : double[]
+  }
+
+  class metaDataTags {
+    +subjectID : char
+    +measurementDate : datetime
+    +measurementTime : datetime
+    +lengthUnit : char
+    +timeUnit : char
+    +frequencyUnit : char
+    -additional : struct
+    ==
+    +setField(name, value)
+    +getField(name) : any
+    +removeField(name)
+    +hasField(name) : bool
+  }
+
+}
+
+' ================================================================
+' COMPOSITION (SNIRF hierarchy)
+' ================================================================
+snirf         *-- "0..*" nirsDataset : nirs
+nirsDataset   *-- "1"    metaDataTags : metaDataTags
+nirsDataset   *-- "0..*" dataBlock : data
+nirsDataset   *-- "0..*" stim : stim
+nirsDataset   *-- "1"    probe : probe
+nirsDataset   *-- "0..*" auxBlock : aux
+dataBlock     *-- "0..*" measurement : measurementList
+
+' ================================================================
+' NOTES
+' ================================================================
+
+note top of snirfpkg
+  **SNIRF file format adapter layer.**
+  These 8 classes mirror the Shared Near
+  Infrared Spectroscopy Format (SNIRF)
+  specification 1:1.
+  ..
+  **NOT part of the core domain model.**
+  None inherit from identifiableObject.
+  They are independent value classes that
+  faithfully represent .snirf file content.
+  ..
+  **Bridge to +data/+core:**
+  Conversion functions in +op/+snirf/
+  translate between snirf objects and
+  ICNNA's domain entities (structuredData,
+  timeline, condition, nirsMontage, etc.).
+  ..
+  **Optional property pattern:**
+  measurement, probe, stim, auxBlock use
+  a flagVisible struct to track which
+  optional SNIRF fields are present.
+  Methods: isproperty(), rmproperty().
+end note
+
+note as v200note #FFFFCC
+  **v2.0.0 projection — relationsManager impact:**
+  ..
+  The snirf classes themselves remain largely
+  unchanged (they mirror an external spec).
+  ..
+  The conversion bridge (+op/+snirf/) simplifies:
+  - snirf2nirsNeuroimage creates core entities
+    and registers relations via relationsManager
+    instead of manually wiring *IDs.
+  - Timeline/condition/montage bindings become
+    relationsManager.add() calls.
+  - Device linkage via manager (device relation
+    registered, not stored as IDs on entities).
+  ..
+  **Legacy adapter (@rawData_Snirf in oo/):**
+  Retained during transition. At v1.8.0
+  (legacy removal), its import/export/convert
+  logic migrates to +op/+snirf/ or +io/.
+end note
+
+note bottom of metaDataTags
+  Dynamic field system: additional
+  user-defined metadata stored as
+  struct fields. subsref/subsasgn
+  overloaded for dot-syntax access.
+  Replaces earlier dictionary-based
+  implementation (v1.1).
+end note
+
+@enduml

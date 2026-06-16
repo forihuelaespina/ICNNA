@@ -1,0 +1,264 @@
+@startuml ICNNA_io_devices_classes
+' ============================================================
+' ICNNA — Device importers and IO class diagram
+' Scope: oo/@rawData_* (legacy) + +icnna.data.misc (modern)
+'        + oo/@dataSource, @dataSourceDefinition (legacy)
+'        + +icnna.io (modern IO functions)
+' Companion to the core spine class diagram
+' Phase 3b deliverable — Item F
+' ============================================================
+' Log:
+'   2026-06-16: FOE/Claude — File created. Current snapshot of
+'       legacy device importers + modern rawData_NIRx +
+'       v2.0.0 projection notes for device/deviceDefinition
+'       and relationsManager-mediated linkage.
+' ============================================================
+' Source: src/oo/@rawData_* (legacy), src/oo/@dataSource,
+'         src/oo/@dataSourceDefinition,
+'         src/+icnna/+data/+core/@rawData,
+'         src/+icnna/+data/+misc/@rawData_NIRx,
+'         src/+icnna/+io/
+' ============================================================
+
+skinparam classAttributeIconSize 0
+skinparam nodesep 40
+skinparam ranksep 40
+
+skinparam class<<modern>> {
+  BorderColor DarkBlue
+  BorderThickness 2
+  FontStyle bold
+}
+skinparam class<<deprecated>> {
+  BorderColor Gray
+  BorderStyle dashed
+  FontStyle italic
+}
+skinparam class<<v200>> {
+  BorderColor DarkGreen
+  BorderStyle dashed
+  FontStyle italic
+}
+
+title ICNNA — Device importers & IO classes\nLegacy (oo/) + Modern (+icnna) + v2.0.0 projection\nLegacy (dashed gray) | Modern (bold blue) | v2.0.0 (dashed green)
+
+' ================================================================
+' LEGACY RAW DATA HIERARCHY (oo/)
+' ================================================================
+package "oo/ (legacy, to be removed at v1.8.0)" as oopkg {
+
+  abstract class "rawData\n(oo/)" as oo_rawData <<deprecated>> {
+    +id : int
+    +description : char
+    +date : char
+    ==
+    {abstract} +import(filename)
+    {abstract} +convert() : structuredData
+  }
+
+  class rawData_ETG4000 <<deprecated>> {
+    +lightRawData : double[3D]
+    +probesInfo : struct
+    +wavelengths : double[2]
+  }
+
+  class rawData_NIRScout <<deprecated>> {
+    +lightRawData : double[3D]
+    +wavelengths : double[2]
+    +accelerometer : double[]
+  }
+
+  class rawData_BioHarnessECG <<deprecated>> {
+    +ecgData : double[]
+    +breathingData : double[]
+  }
+
+  class rawData_LSL <<deprecated>> {
+    +streams : cell
+  }
+
+  class rawData_ShimadzuLabnirs <<deprecated>> {
+    +lightRawData : double[3D]
+    +wavelengths : double[3]
+  }
+
+  class "rawData_Snirf\n(oo/)" as oo_rawData_Snirf <<deprecated>> {
+    +snirf : icnna.data.snirf.snirf
+    ==
+    +export(filename)
+    +nirs_neuroimage2snirf()
+  }
+
+  class rawData_UCLWireless <<deprecated>> {
+    +lightRawData : double[3D]
+    +wavelengths : double[2]
+  }
+
+  ' --- Session-device wrappers ---
+  class dataSource <<deprecated>> {
+    +id : int
+    +name : char
+    +deviceNumber : int
+    +rawData : rawData
+    +lock : bool
+    +activeStructured : int
+    +structured : cell
+  }
+
+  class dataSourceDefinition <<deprecated>> {
+    +id : int
+    +name : char
+    +deviceNumber : int
+  }
+}
+
+' ================================================================
+' MODERN CLASSES (+icnna)
+' ================================================================
+package "+icnna.data.core" as corepkg {
+  abstract class "rawData\n(+data/+core)" as core_rawData <<modern>> {
+    +deviceKind : char
+    ..inherited from identifiableObject..
+    +id : char
+    +name : char
+    +description : char
+    ==
+    {abstract} +import(folder)
+    {abstract} +convert() : structuredData
+  }
+}
+
+package "+icnna.data.misc" as miscpkg {
+  class rawData_NIRx <<modern>> {
+    +filename : char
+    +device : char
+    +source : char
+    +nSources : int
+    +nDetectors : int
+    +nChannels : int
+    +samplingRate : double
+    +wavelengths : double[]
+    ==
+    +import(folder)
+  }
+}
+
+package "+icnna.io" as iopkg {
+  class "rawdata_nirx2snirf()" as nirx2snirf <<modern>> {
+  }
+  class "exportActivityMatrix()" as exportAM <<modern>> {
+  }
+}
+
+' ================================================================
+' v2.0.0 PROJECTED CLASSES (from spine diagram)
+' ================================================================
+package "+icnna.data.core (v2.0.0)" as v200pkg {
+  class device <<v200>> {
+    +deviceNumber : int
+  }
+
+  class deviceDefinition <<v200>> {
+    +deviceKind : char
+  }
+}
+
+' ================================================================
+' INHERITANCE
+' ================================================================
+rawData_ETG4000       --|> oo_rawData
+rawData_NIRScout      --|> oo_rawData
+rawData_BioHarnessECG --|> oo_rawData
+rawData_LSL           --|> oo_rawData
+rawData_ShimadzuLabnirs --|> oo_rawData
+oo_rawData_Snirf      --|> oo_rawData
+rawData_UCLWireless   --|> oo_rawData
+
+rawData_NIRx          --|> core_rawData
+
+' ================================================================
+' ASSOCIATIONS (current)
+' ================================================================
+dataSource         o-- "1" oo_rawData : rawData
+dataSource         o-- "0..*" oo_rawData : structured (cell)
+dataSourceDefinition ..> dataSource : template for
+
+' ================================================================
+' MIGRATION ARROWS
+' ================================================================
+rawData_NIRScout ..> rawData_NIRx : "superseded by"
+dataSource       ..> device : "replaced by (v2.0.0)"
+dataSourceDefinition ..> deviceDefinition : "replaced by (v2.0.0)"
+
+' ================================================================
+' NOTES
+' ================================================================
+
+note top of oopkg
+  **Legacy device layer (oo/).**
+  To be removed at v1.8.0.
+  ..
+  rawData is the abstract root.
+  Each subclass knows how to:
+  1) **import()** from its proprietary format
+  2) **convert()** to structuredData
+  ..
+  dataSource wraps rawData + structuredData[]
+  within a session context. Enforces type
+  consistency across structuredData instances.
+  ..
+  7 concrete rawData subclasses covering
+  fNIRS (ETG4000, NIRScout, ShimadzuLabnirs,
+  UCLWireless, Snirf), ECG (BioHarness),
+  and generic (LSL).
+end note
+
+note bottom of rawData_NIRx
+  **First modern device importer.**
+  Supersedes legacy rawData_NIRScout.
+  No longer stores raw data in memory;
+  reads on the fly from folder.
+  Tested with 30-subject ARSLA pilot
+  (23-May-2026).
+end note
+
+note as v200note #FFFFCC
+  **v2.0.0 projection — relationsManager impact:**
+  ..
+  **dataSource → device (speculative):**
+  The dataSource wrapper is replaced by a
+  simpler device entity. The rawData-to-
+  structuredData binding moves to the
+  relationsManager (production relation).
+  No more internal structured[] cell array.
+  ..
+  **deviceDefinition → deviceDefinition:**
+  Template/instance pattern preserved but
+  the definition-to-device link is a
+  relationsManager relation, not an ID.
+  ..
+  **convert() output:**
+  Instead of returning a structuredData
+  with manually wired IDs, convert()
+  creates entities and registers relations
+  (device-data, data-timeline, etc.) via
+  the relationsManager.
+  ..
+  **Migration pattern (T.9):**
+  Legacy rawData_* subclasses migrate to
+  +data/+misc/ during Arc B. rawData_NIRx
+  serves as the template. Legacy classes
+  retained in oo/ until v1.8.0.
+end note
+
+note bottom of iopkg
+  **Modern IO functions.**
+  rawdata_nirx2snirf: NIRx → SNIRF conversion.
+  exportActivityMatrix: experiment bundle → CSV.
+  ..
+  v2.0.0: +io/ grows with additional format
+  converters and the SNIRF export logic
+  currently in oo/@rawData_Snirf.
+end note
+
+@enduml
