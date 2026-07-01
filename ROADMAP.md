@@ -40,6 +40,9 @@ counterparts (soft cut, Rule 1). Bridging goes through `+icnna.compat/`
 6. **Examples gallery / cookbook** — grows organically from v1.4.2 seed.
 7. **Bug-tracking discipline** — GitHub Issues with labels from v1.4.3.2; durable known limitations mirrored into User Guide appendix.
 8. **Fixture provenance** — source, license, IP owner declared whenever a new test fixture lands; feeds `doc/ip_ledger.tex`.
+9. **relationsManager migration** — existing v1.4.x classes gain `relationsManager` awareness during Arc B; legacy `*ID` fields kept for backward compatibility; full transition at the v1.8.0 `oo/` removal.
+10. **Storage migration** — Arc B classes built with `storageAdapter`-aware persistence; legacy `.mat` retained during v1.x; clean cut at v2.0.0 with a frozen `migrateICNNA()` utility.
+11. **Test-coverage ledger** — a living `doc/test_coverage.tex` enumerating every ICNNA class against test-unit status (none / partial / complete), updated each sub-release. Complements P2 (which binds only *newly modernised* classes) by guaranteeing pre-existing classes are not silently skipped. Enforced by the exit criteria at v1.8.0 and v2.0.0.
 
 ---
 
@@ -123,7 +126,7 @@ Per entry: **goals / tasks highlights / session estimate / primary risk**. Full 
 ### Arc D — Endpoint
 
 - **v1.8.0 — `oo/` removal sweep** *(1–2 sessions)*
-  Legacy `oo/` deleted; `+icnna.compat/load*` adapters retained for user archives.
+  Legacy `oo/` deleted; `+icnna.compat/load*` adapters retained for user archives. **Exit criterion:** the test-coverage ledger (thread 11) shows no `oo/`-derived class at status "none" before its deletion.
 
 - **v1.8.1 — Handover preparation** *(2 sessions)*
   Feature-parity checklist (D.5); migration guide (D.6); handover announcement draft (D.9) — may stay open.
@@ -139,7 +142,7 @@ Per entry: **goals / tasks highlights / session estimate / primary risk**. Full 
   Registration subsumed into unified GUI (no separate entry point).
 
 - **v2.0.0 — Release** *(3–4 sessions)*
-  `+icnna.compat/` deleted; final UML refresh; User Guide LaTeX polish replaces `.docx` lineage; release notes; stable zip.
+  `+icnna.compat/` deleted; final UML refresh; User Guide LaTeX polish replaces `.docx` lineage; release notes; stable zip. **Exit criterion:** the test-coverage ledger (thread 11) shows zero classes at status "none" (final backstop).
 
 ---
 
