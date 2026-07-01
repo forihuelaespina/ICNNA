@@ -268,6 +268,51 @@ classdef condition < icnna.data.core.identifiableObject
 %     both classes: @condition and @timeline each carry their own
 %     |flagSRInitialized| flag for the same reason.
 %      
+%
+% -- ICNNA v1.4.2
+%
+% 19-Jun-2026: FOE
+%
+% + Improvement: Silent typecasting now yields warning.
+%
+% 23-Jun-2026: FOE
+%
+% + Improvement: Property |timeUnitMultiplier| is now verified to be non NaN.
+% + Improvement: Property |nominalSamplingRate| is now verified to be non NaN.
+%       HOWEVER watch out!! The validator 'mustBeNonNan' is NOT
+%       sufficient to do the job for integear types as the validator
+%       will be called only after any implicit type cast, e.g. int16(NaN), i.e.
+%       the real question the validator is asking is whether
+% 
+%           "Is the stored value NaN?"
+%
+%       Since in the particular case of uint32, this can never
+%       be the case, then the validator fails to do its job as
+%       by then it is too late because the input has already
+%       been converted to 0. This is not a problem for properties
+%       of type double though; In case of double, the typecasting
+%       double(NaN) still yields NaN. Moreover, even if one tries to check
+%       for isnan "manually" in the set_id method, than will still
+%       occur AFTER the implicit typecasting, so again too late.
+%       So in order to verify that the input is not NaN (and hence
+%       no side effects e.g. setting the id to 0 inadvertently),
+%       I need to check for NaN in the intercepted subasgn method.
+%       Nevertheless, it is good to keep the validator (even if
+%       useless) for the sake of clarity.
+%
+% 1-Jul-2026: FOE
+%	+ Deprecated warning id changed from:
+%
+%       'icnna:data:core:condition:deprecatedProperty'
+%       
+%   to
+%
+%       'icnna:data:core:condition:tag:Deprecated'
+%
+%
+
+
+
 
     properties (Constant, Access=private)
         classVersion = '1.2'; %Read-only. Object's class version.
@@ -297,8 +342,8 @@ classdef condition < icnna.data.core.identifiableObject
             'info', {} );
 
         unit(1,:) char {mustBeMember(unit,{'samples','seconds'})} = 'samples'; % Unit of measure: 'samples' or 'seconds'
-        timeUnitMultiplier(1,1) int16 = 0; % Multiplier for time precision (e.g., milliseconds = -3, or microseconds = -6)
-        nominalSamplingRate(1,1) double = 1; %Nominal sampling rate in Hz (samples per second)
+        timeUnitMultiplier(1,1) int16 {mustBeNonNan} = 0; % Multiplier for time precision (e.g., milliseconds = -3, or microseconds = -6)
+        nominalSamplingRate(1,1) double {mustBeNonNan} = 1; %Nominal sampling rate in Hz (samples per second)
     end
     
     properties (Dependent)
@@ -359,7 +404,7 @@ classdef condition < icnna.data.core.identifiableObject
             %
             %% Output
             % res - struct[]
-            %   The list of events (ocurrences) of this condition.
+            %   The list of events (occurrences) of this condition.
             %   Each element of |cevents| contains data for a single event,
             %   with scalar fields:
             %   - onsets: double. Event onset time
@@ -795,7 +840,7 @@ classdef condition < icnna.data.core.identifiableObject
             % res - char[]
             %   The object |name|
             %
-            warning('icnna:data:core:condition:deprecatedProperty',...
+            warning('icnna:data:core:condition:tag:Deprecated',...
                     'The use of |tag| is now deprecated. Please use |name| instead.')
             res = obj.name;
         end
@@ -817,7 +862,7 @@ classdef condition < icnna.data.core.identifiableObject
             % obj - @icnna.data.core.condition
             %   The updated object
             %
-            warning('icnna:data:core:condition:deprecatedProperty',...
+            warning('icnna:data:core:condition:tag:Deprecated',...
                     'The use of |tag| is now deprecated. Please use |name| instead.')
             obj.name = val;
         end
@@ -825,7 +870,80 @@ classdef condition < icnna.data.core.identifiableObject
 
 
 
+        %Catch the silent typecastings by intercepting the assignment
+        function obj = subsasgn(obj, s, val)
+            % Intercept simple .property assignments to warn on implicit typecast
+            if numel(s) == 1 && strcmp(s.type, '.')
+                switch s.subs
+                    case 'flagSRInitialized'
+                        if ~islogical(val)
+                            warning('icnna:data:core:condition:set_flagSRInitialized:ImplicitTypecast', ...
+                                ['Value assigned to |' s.subs '| is not logical. ' ...
+                                'MATLAB will attempt implicit typecasting.']);
+                        end
+
+                    case 'cevents'
+                        if ~isstruct(val)
+                            warning('icnna:data:core:condition:set_cevents:ImplicitTypecast', ...
+                                ['Value assigned to |' s.subs '| is not struct. ' ...
+                                'MATLAB will attempt implicit typecasting.']);
+                        end
+
+                    case 'unit'
+                        if ~ischar(val)
+                            warning('icnna:data:core:condition:set_unit:ImplicitTypecast', ...
+                                ['Value assigned to |' s.subs '| is not char. ' ...
+                                'MATLAB will attempt implicit typecasting.']);
+                        end
+
+                    case 'timeUnitMultiplier'
+                        if isnumeric(val) && isscalar(val)
+                            % Safe to call numeric functions here
+                            if isnan(val)
+                                error('icnna:data:core:condition:set_timeUnitMultiplier:mustBeNonNan', ...
+                                    ['NaN is not a valid value for |' s.subs '|.']);
+                            elseif val ~= floor(val)
+                                warning('icnna:data:core:condition:set_timeUnitMultiplier:ImplicitTypecast', ... 
+                                    ['Value assigned to |' s.subs '| is not integer. ' ...
+                                    'MATLAB will attempt implicit typecasting.']);
+                            end
+                        else
+                            % Not numeric or not scalar
+                            warning('icnna:data:core:condition:set_timeUnitMultiplier:ImplicitTypecast', ... 
+                                ['Value assigned to |' s.subs '| is not numeric or not scalar. ' ...
+                                'MATLAB will attempt implicit typecasting.']);
+                        end
+
+                    case 'nominalSamplingRate'
+                        if ~(isnumeric(val) && isscalar(val))
+                            warning('icnna:data:core:condition:set_nominalSamplingRate:ImplicitTypecast', ... 
+                                ['Value assigned to |' s.subs '| is not numeric or not scalar. ' ...
+                                'MATLAB will attempt implicit typecasting.']);
+                        end
+
+
+                end
+            end
+
+            %Call the appropriate subsagn
+            tmp = metaclass(obj);
+            idx = find(ismember({tmp.PropertyList.Name}, s.subs), 1); %Only find first match
+            if ~isempty(idx)
+                classStr = tmp.PropertyList(idx).DefiningClass.Name;
+                if strcmp(classStr,class(obj))
+                    % Property defined here. Just pass it along
+                    obj = builtin('subsasgn', obj, s, val);
+                else
+                    % Property inherited. Call the superclass method for property assignment
+                    obj = eval(['subsasgn@' classStr '(obj, s, val)']);
+                end
+            else
+                obj = builtin('subsasgn', obj, s, val);
+            end
+        end
+
     end
+
 
 
 end

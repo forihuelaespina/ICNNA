@@ -24,6 +24,12 @@
 ##       artefacts archived here (OneDrive-only, not tracked).
 ##       Long-term plan: project-root /archive/ (Option A).
 ##
+## 1-Jul-2026 (v0.6): FOE/Claude
+##     + Added .claude/ (Claude Code harness folder, e.g.
+##       settings.local.json). Machine-local, not synced;
+##       distinct from the OneDrive-synced claude/ context
+##       folder above.
+##
 ##
 
 
@@ -55,6 +61,9 @@ claude/**
 ## When Option A (/archive/ at project root) is adopted, add:
 ## archive/**
 rubbish/**
+
+## Claude Code harness (machine-local; not the OneDrive claude/ folder)
+.claude/**
 
 ## Support
 CLAUDE.md

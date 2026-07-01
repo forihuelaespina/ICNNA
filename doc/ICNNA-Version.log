@@ -5,7 +5,67 @@
 ====================================
 
 ====================================
-= ICNNA v1.4.1
+= ICNNA v1.4.2 
+====================================
+
+
+
++ Behaviour change
+
+MATLAB does some silent typecasting. For instance;
+
+  obj.id = 'A'
+
+will work with no error or warning resulting in:
+
+  obj.id = 65
+
+...and viceversa:
+
+  obj.name = [65 67] => obj.name = 'AC'
+  obj.id = 'A' +'C'  => obj.id   = 132
+
+While there is no need for forbidding this behaviour, but
+silent typecasting is dangerous and can be difficult to
+debug. Hence, ICNNA now adds warnings for (known) silent
+typecasting in some of the classes and this will be
+progressively be implemented in all classes.
+
+* @icnna.data.core.identifiableObject: Improvement: Silent typecasting
+    now yields warning.
+* @icnna.data.core.condition: Improvement: Silent typecasting
+    now yields warning.
+
+
+* @icnna.data.core.identifiableObject: Improvement: Property |id| is now
+    verified to be non NaN.
+* @icnna.data.core.condition: Improvement:
+    ** Property |timeUnitMultiplier| is now verified to be non NaN.
+    ** Property |nominalSamplingRate| is now verified to be non NaN.
+
+* @icnna.data.core.condition: Deprecated warning id changed from:
+    'icnna:data:core:condition:deprecatedProperty'
+    to 'icnna:data:core:condition:tag:Deprecated'
+
+
+
+
+
+--- TEST for software verification.
+NOTE: TESTs for software verification are NOT part of the final software
+i.e. this is transparent for final users, e.g. they are conceptually
+separated from ICNNA and do not get packed in the version release, however
+they do get git synched.
+
++ New tests infrastructure ./test
+* Added test infrastructure for the first time.
+* Added class testIdentifiableObject.m with initial tests.
+* Added class testCondition.m with initial tests.
+
+
+====================================
+= ICNNA v1.4.1 (released 17-Jun-2026)
+= First with support of Claude.
 = * beta release on 17-Mar-2026 for Overprocessing paper.
 ====================================
 
