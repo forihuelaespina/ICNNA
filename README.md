@@ -9,6 +9,16 @@ ICNNA is not yet BIDS-NIRS compliant but we are working towards it.
 ICNNA was developed while the main developer Felipe Orihuela-Espina (FOE) was at Imperial College London. While Imperial College London retains the intellectual property, but a lot of features were added afterwards while (FOE) was later working at the Instituto Nacional de Astrofísica, Óptica y Electrónica (INAOE) in Mexico, and later at the University of Birmingham (UK).
 
 
+## Use of AI
+
+Since version 1.4.1, the development of ICNNA has been supported by
+Claude (Anthropic) as an assistive tool — for design discussion,
+documentation, and coding assistance. All architectural decisions,
+authorship, and final responsibility for the software remain with the
+human author(s); AI-generated suggestions were reviewed before adoption.
+AI is used here as a tool, not credited as an author.
+
+
 ## Installation
 Download the latest stable release and unzip.
 

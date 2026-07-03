@@ -30,6 +30,16 @@
 ##       distinct from the OneDrive-synced claude/ context
 ##       folder above.
 ##
+## 3-Jul-2026 (v0.7): FOE/Claude
+##     + Made the claude/ collaboration layer fully git-private:
+##       removed the tracked exceptions for claude/README.md and
+##       claude/.gitignore (the folder is OneDrive-synced, not
+##       published). AI assistance is now disclosed via a
+##       "## Use of AI" section in the main README.md instead of
+##       an in-repo signpost. claude/.gitignore deleted (vestigial;
+##       claude/** already excludes the folder); claude/README.md
+##       untracked but kept locally.
+##
 ##
 
 
@@ -55,8 +65,6 @@ doc/ICNNA-MENA*.pdf
 ## ICNNA 2.0
 src2/**
 claude/**
-!claude/README.md
-!claude/.gitignore
 ## Note: claude/archive/ is covered by claude/** above.
 ## When Option A (/archive/ at project root) is adopted, add:
 ## archive/**
