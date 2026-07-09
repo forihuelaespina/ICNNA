@@ -1,12 +1,30 @@
 function f=aboutRegistration()
-%About box for the Optode Positioning Registration tool
+%DEPRECATED. About box for the Optode Positioning Registration tool
 %
 %
-% Copyright 2009-12
-% @date: 1-Apr-2009
+% Copyright 2009-26
 % @author Felipe Orihuela-Espina
-% @date: 30-Dec-2012
 %
+
+
+%% Log
+%
+% File created: 1-Apr-2009
+% File last modified (before creation of this log): 30-Dec-2012
+%
+% -- ICNNA v1.4.2
+%
+% 7-Jul-2026: FOE/Claude.
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Deprecated as of ICNNA v1.4.2. A new unified GUI is planned for a future release.
+%
+
+
+%% Deprecation notice (ICNNA v1.4.2)
+warning('icnna:gui:aboutRegistration:Deprecated', ...
+    ['The ICNNA legacy GUI is deprecated as of v1.4.2 and will be ' ...
+     'removed in a future release. A new unified GUI is planned.']);
+
 
 %% Initialize the figure
 %...and hide the GUI as it is being constructed

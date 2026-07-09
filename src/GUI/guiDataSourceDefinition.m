@@ -1,18 +1,36 @@
 function s=guiDataSourceDefinition()
-%GUIDATASOURCEDEFINITION Small GUI to ask for a data source 
+%DEPRECATED. GUIDATASOURCEDEFINITION Small GUI to ask for a data source
 %definition to be defined in the sessionDefinition
 %
 % s=guiDataSourceDefinition() returns a valid dataSourceDefinition
 %   or an empty matrix if the action is cancelled.
 %
 %
-% Copyright 2008
-% @date: 10-Jul-2008
+% Copyright 2008-26
 % @author Felipe Orihuela-Espina
 %
 % See also guiSessionDefinition, dataSourceDefinition, sessionDefinition,
 %experiment
 %
+
+
+%% Log
+%
+% File created: 10-Jul-2008
+%
+% -- ICNNA v1.4.2
+%
+% 7-Jul-2026: FOE/Claude.
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Deprecated as of ICNNA v1.4.2. A new unified GUI is planned for a future release.
+%
+
+
+%% Deprecation notice (ICNNA v1.4.2)
+warning('icnna:gui:guiDataSourceDefinition:Deprecated', ...
+    ['The ICNNA legacy GUI is deprecated as of v1.4.2 and will be ' ...
+     'removed in a future release. A new unified GUI is planned.']);
+
 
 %% Initialize the figure
 %...and hide the GUI as it is being constructed

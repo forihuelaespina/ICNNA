@@ -1,17 +1,35 @@
 function element=guiVisualizeAnalysis(element)
-%guiVisualizeAnalysis GUI for visualizing the analysis
+%DEPRECATED. guiVisualizeAnalysis GUI for visualizing the analysis
 %
 % a=guiVisualizeAnalysis(a) Visualize analysis a.
 %
 % The analysis must have been run i.e. 'RunStatus' equals true.
 %
 %
-% Copyright 2008
-% @date: 28-Jul-2008
+% Copyright 2008-26
 % @author Felipe Orihuela-Espina
 %
 % See also guiAnalysis, analysis, cluster
 %
+
+
+%% Log
+%
+% File created: 28-Jul-2008
+%
+% -- ICNNA v1.4.2
+%
+% 7-Jul-2026: FOE/Claude.
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Deprecated as of ICNNA v1.4.2. A new unified GUI is planned for a future release.
+%
+
+
+%% Deprecation notice (ICNNA v1.4.2)
+warning('icnna:gui:guiVisualizeAnalysis:Deprecated', ...
+    ['The ICNNA legacy GUI is deprecated as of v1.4.2 and will be ' ...
+     'removed in a future release. A new unified GUI is planned.']);
+
 
 if ~get(element,'RunStatus')
     errordlg({'ICNA:guiVisualizationAnalysis:AnalysisNotRun',...

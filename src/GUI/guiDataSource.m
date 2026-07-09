@@ -1,5 +1,5 @@
 function element=guiDataSource(element,id)
-%guiAddDataSource GUI for adding or updating dataSources into a session
+%DEPRECATED. guiAddDataSource GUI for adding or updating dataSources into a session
 %
 % s=guiDataSource() displays a graphical user interface (GUI) for
 %   creating a new dataSource with the default ID. The function
@@ -15,7 +15,7 @@ function element=guiDataSource(element,id)
 %if the action is cancelled or the window close without saving.
 %
 %
-% Copyright 2008-23
+% Copyright 2008-26
 % @author Felipe Orihuela-Espina
 %
 % See also guiExperiment, guiSubject, guiSession, dataSource,
@@ -50,8 +50,17 @@ function element=guiDataSource(element,id)
 %   hence, in that case the informative text cannot report on the
 %   number of channels.
 %
+% -- ICNNA v1.4.2
+%
+% 7-Jul-2026: FOE/Claude.
+%   + Deprecated as of ICNNA v1.4.2. A new unified GUI is planned for a future release.
+%
 
 
+%% Deprecation notice (ICNNA v1.4.2)
+warning('icnna:gui:guiDataSource:Deprecated', ...
+    ['The ICNNA legacy GUI is deprecated as of v1.4.2 and will be ' ...
+     'removed in a future release. A new unified GUI is planned.']);
 
 
 %% Initialize the figure

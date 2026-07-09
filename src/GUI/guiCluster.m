@@ -1,5 +1,5 @@
 function [theAnalysis]=guiCluster(theAnalysis,id)
-%guiCluster GUI for creating or updating clusters
+%DEPRECATED. guiCluster GUI for creating or updating clusters
 %
 % theAnalysis=guiCluster(theAnalysis) displays a graphical user
 %   interface (GUI) for adding a new cluster with a default ID to
@@ -18,7 +18,7 @@ function [theAnalysis]=guiCluster(theAnalysis,id)
 %
 %
 %
-% Copyright 2008
+% Copyright 2008-26
 % @author Felipe Orihuela-Espina
 %
 % See also guiAnalysis, analysis, cluster
@@ -35,8 +35,17 @@ function [theAnalysis]=guiCluster(theAnalysis,id)
 %   + Added this log. Got rid of old label @date.
 %   + Started to update the get/set methods calls to struct like syntax
 %
+% -- ICNNA v1.4.2
+%
+% 7-Jul-2026: FOE/Claude.
+%   + Deprecated as of ICNNA v1.4.2. A new unified GUI is planned for a future release.
+%
 
 
+%% Deprecation notice (ICNNA v1.4.2)
+warning('icnna:gui:guiCluster:Deprecated', ...
+    ['The ICNNA legacy GUI is deprecated as of v1.4.2 and will be ' ...
+     'removed in a future release. A new unified GUI is planned.']);
 
 
 %% Initialize the figure

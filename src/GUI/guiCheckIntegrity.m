@@ -1,5 +1,5 @@
 function element=guiCheckIntegrity(element)
-%guiCheckIntegrity Graphical User Interface for integrity check
+%DEPRECATED. guiCheckIntegrity Graphical User Interface for integrity check
 %
 % element=guiCheckIntegrity(element) Allow selection of integrity
 %   checks and apply the selected integrity checks as appropriate
@@ -14,13 +14,31 @@ function element=guiCheckIntegrity(element)
 %   + structuredData
 %
 %
-% Copyright 2008-13
-% @date: 8-Jul-2008
+% Copyright 2008-26
 % @author Felipe Orihuela-Espina
-% @modified: 2-Jan-2013
 %
 % See also runIntegrity
 %
+
+
+%% Log
+%
+% File created: 8-Jul-2008
+% File last modified (before creation of this log): 2-Jan-2013
+%
+% -- ICNNA v1.4.2
+%
+% 7-Jul-2026: FOE/Claude.
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Deprecated as of ICNNA v1.4.2. A new unified GUI is planned for a future release.
+%
+
+
+%% Deprecation notice (ICNNA v1.4.2)
+warning('icnna:gui:guiCheckIntegrity:Deprecated', ...
+    ['The ICNNA legacy GUI is deprecated as of v1.4.2 and will be ' ...
+     'removed in a future release. A new unified GUI is planned.']);
+
 
 %% Initialize the figure
 %...and hide the GUI as it is being constructed

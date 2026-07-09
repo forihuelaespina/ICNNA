@@ -1,9 +1,9 @@
 function guiExperiment()
-%guiExperiment Graphical User Interface for experimental data storing
+%DEPRECATED. guiExperiment Graphical User Interface for experimental data storing
 %
 % guiExperiment
 %
-% Copyright 2008-23
+% Copyright 2008-26
 % @author Felipe Orihuela-Espina
 %
 % See also icnna, guiAnalysis, guiExperimentSpace
@@ -20,9 +20,21 @@ function guiExperiment()
 %   + Got rid of old labels @date and @modified.
 %   + I have now addressed the long standing issue with accessing
 %   the icons folder when the working directory is not that of ICNNA
-%   using function mfilename. 
+%   using function mfilename.
 %   + Started to update the get/set methods calls to struct like syntax
 %
+% -- ICNNA v1.4.2
+%
+% 7-Jul-2026: FOE/Claude.
+%   + Deprecated as of ICNNA v1.4.2. A new unified GUI is planned for a future release.
+%
+
+
+%% Deprecation notice (ICNNA v1.4.2)
+warning('icnna:gui:guiExperiment:Deprecated', ...
+    ['The ICNNA legacy GUI is deprecated as of v1.4.2 and will be ' ...
+     'removed in a future release. A new unified GUI is planned.']);
+
 
 %% Initialize the figure
 %...and hide the GUI as it is being constructed

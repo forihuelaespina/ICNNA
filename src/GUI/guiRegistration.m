@@ -1,5 +1,5 @@
 function guiRegistration(element)
-%GUIREGISTRATION A small GUI for visualizing the optode registration
+%DEPRECATED. GUIREGISTRATION A small GUI for visualizing the optode registration
 %
 %
 % Registration - A tiny tool to visualize the NIRS optode/channel
@@ -12,7 +12,7 @@ function guiRegistration(element)
 %
 %
 %
-% Copyright 2009-23
+% Copyright 2009-26
 % @author Felipe Orihuela-Espina
 %
 % See also channelLocationMap, import_ETG4000_3DChannelPosition,
@@ -41,10 +41,19 @@ function guiRegistration(element)
 %   + Got rid of old labels @date and @modified.
 %   + I have now addressed the long standing issue with accessing
 %   the icons folder when the working directory is not that of ICNNA
-%   using function mfilename. 
+%   using function mfilename.
+%
+% -- ICNNA v1.4.2
+%
+% 7-Jul-2026: FOE/Claude.
+%   + Deprecated as of ICNNA v1.4.2. A new unified GUI is planned for a future release.
 %
 
 
+%% Deprecation notice (ICNNA v1.4.2)
+warning('icnna:gui:guiRegistration:Deprecated', ...
+    ['The ICNNA legacy GUI is deprecated as of v1.4.2 and will be ' ...
+     'removed in a future release. A new unified GUI is planned.']);
 
 
 

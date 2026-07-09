@@ -1,7 +1,7 @@
 %A setup script...
 %
 %
-% Copyright 2007-2022
+% Copyright 2007-2026
 % @date: 1-Apr-2007
 % @author Felipe Orihuela-Espina
 %
@@ -26,8 +26,27 @@
 % 23-Dec-2025: FOE.
 %   + Added test for required toolboxes
 %
+% -- ICNNA v1.4.2
+%
+% 7-Jul-2026: FOE.
+%   + Fixed minimal MATLAB version for ICNNA to R2021a (v9.10)
+%
 
-%% Check tfor required toolboxes
+
+%% Check for required MATLAB version
+%  Since ICNNA v1.4.2, ICNNA requires MATLAB R2021a (v9.10)
+% or later.
+if verLessThan('matlab','9.10')
+    warning('icnna:icnna_startup:OldMatlabVersion', ...
+        ['Since ICNNA v1.4.2 MATLAB R2021a (v9.10) or ' ...
+        'later is required. ' ...
+        'You are running %s. Some ICNNA features may be ' ...
+        'unavailable or behave unexpectedly.'], version);
+end
+
+
+
+%% Check for required toolboxes
 requiredToolboxes = {'statistics_toolbox'};
     %See toolbox feature names here:
     % https://uk.mathworks.com/matlabcentral/answers/377731-how-do-features-from-license-correspond-to-names-from-ver#answer_300675

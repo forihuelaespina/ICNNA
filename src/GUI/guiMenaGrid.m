@@ -1,15 +1,32 @@
 function [theGrid]=guiMenaGrid(element)
-%GUI for generating or updating a Grid object
+%DEPRECATED. GUI for generating or updating a Grid object
 %
 % [theGrid]=guiMenaGrid(element) Generates or updates a Grid object
 %
 %
-% Copyright 2008
-% @date: 22-Sep-2008
+% Copyright 2008-26
 % @author Felipe Orihuela-Espina
 %
 % See also guiAnalysis, analysis, menaGrid
 %
+
+
+%% Log
+%
+% File created: 22-Sep-2008
+%
+% -- ICNNA v1.4.2
+%
+% 7-Jul-2026: FOE/Claude.
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Deprecated as of ICNNA v1.4.2. A new unified GUI is planned for a future release.
+%
+
+
+%% Deprecation notice (ICNNA v1.4.2)
+warning('icnna:gui:guiMenaGrid:Deprecated', ...
+    ['The ICNNA legacy GUI is deprecated as of v1.4.2 and will be ' ...
+     'removed in a future release. A new unified GUI is planned.']);
 
 
 %% Initialize the figure

@@ -1,5 +1,5 @@
 function [element,exitStatus]=guiSubject(element)
-%guiSubject GUI for creating or updating subjects
+%DEPRECATED. guiSubject GUI for creating or updating subjects
 %
 % s=guiSubject() displays a graphical user interface (GUI) for
 %   creating a new subject with the default ID. The function
@@ -24,7 +24,7 @@ function [element,exitStatus]=guiSubject(element)
 %   whether it has been modified or not.
 %   
 %
-% Copyright 2008-23
+% Copyright 2008-26
 % @author Felipe Orihuela-Espina
 %
 % See also guiICNA, subject
@@ -44,6 +44,17 @@ function [element,exitStatus]=guiSubject(element)
 %   using function mfilename. 
 %   + Started to update the get/set methods calls to struct like syntax
 %
+% -- ICNNA v1.4.2
+%
+% 7-Jul-2026: FOE/Claude.
+%   + Deprecated as of ICNNA v1.4.2. A new unified GUI is planned for a future release.
+%
+
+
+%% Deprecation notice (ICNNA v1.4.2)
+warning('icnna:gui:guiSubject:Deprecated', ...
+    ['The ICNNA legacy GUI is deprecated as of v1.4.2 and will be ' ...
+     'removed in a future release. A new unified GUI is planned.']);
 
 
 exitStatus=0;

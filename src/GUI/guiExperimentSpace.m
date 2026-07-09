@@ -1,5 +1,5 @@
 function element=guiExperimentSpace(varargin)
-%guiExperimentSpace GUI for computing an experimentSpace
+%DEPRECATED. guiExperimentSpace GUI for computing an experimentSpace
 %
 % a=guiExperimentSpace(a) displays a graphical user interface (GUI) for
 %   modifying parameters and running an experimentSpace
@@ -13,7 +13,7 @@ function element=guiExperimentSpace(varargin)
 % a=guiExperimentSpace(...,'OutputFilename',filename) where filename
 %   holds the name of the file onto which storing the experimentSpace.
 %
-% Copyright 2008-23
+% Copyright 2008-26
 % @author Felipe Orihuela-Espina
 %
 % See also guiExperiment, guiExperimentSpace, wizExperimentSpace
@@ -35,6 +35,18 @@ function element=guiExperimentSpace(varargin)
 %   yield an error for trying to access a property of the currentElement.
 %   I have added the check of being empty, and this is now corrected.
 %
+% -- ICNNA v1.4.2
+%
+% 7-Jul-2026: FOE/Claude.
+%   + Deprecated as of ICNNA v1.4.2. A new unified GUI is planned for a future release.
+%
+
+
+%% Deprecation notice (ICNNA v1.4.2)
+warning('icnna:gui:guiExperimentSpace:Deprecated', ...
+    ['The ICNNA legacy GUI is deprecated as of v1.4.2 and will be ' ...
+     'removed in a future release. A new unified GUI is planned.']);
+
 
 element=varargin{1};
 varargin(1)=[];

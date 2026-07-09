@@ -1,5 +1,5 @@
 function element=guiTimeline(varargin)
-%guiTimeline GUI for visualization and modification of a timeline
+%DEPRECATED. guiTimeline GUI for visualization and modification of a timeline
 %
 % t=guiTimeline displays a graphical user interface (GUI) for
 %   generating a new Timeline.
@@ -51,6 +51,17 @@ function element=guiTimeline(varargin)
 %   + Bug fixed. Initialization when input was of type
 %   icnna.data.core.timeline was incorrect.
 %
+% -- ICNNA v1.4.2
+%
+% 7-Jul-2026: FOE/Claude.
+%   + Deprecated as of ICNNA v1.4.2. A new unified GUI is planned for a future release.
+%
+
+
+%% Deprecation notice (ICNNA v1.4.2)
+warning('icnna:gui:guiTimeline:Deprecated', ...
+    ['The ICNNA legacy GUI is deprecated as of v1.4.2 and will be ' ...
+     'removed in a future release. A new unified GUI is planned.']);
 
 
 %% Deal with options

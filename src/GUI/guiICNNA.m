@@ -1,10 +1,10 @@
 function guiICNNA
-%ICNNA main menu
+%DEPRECATED. ICNNA main menu
 %
 % guiICNNA - Displays ICNNA's main menu
 %
 %
-% Copyright 2008-2023
+% Copyright 2008-2026
 % @author Felipe Orihuela-Espina
 %
 % See also guiAnalysis, guiExperiment, guiExperimentSpace
@@ -24,8 +24,17 @@ function guiICNNA
 %   + Renamed from icnna to guiICNNA to avoid conflict with new
 %   objects package +icnna
 %
+% -- ICNNA v1.4.2
+%
+% 7-Jul-2026: FOE/Claude.
+%   + Deprecated as of ICNNA v1.4.2. A new unified GUI is planned for a future release.
+%
 
 
+%% Deprecation notice (ICNNA v1.4.2)
+warning('icnna:gui:guiICNNA:Deprecated', ...
+    ['The ICNNA legacy GUI is deprecated as of v1.4.2 and will be ' ...
+     'removed in a future release. A new unified GUI is planned.']);
 
 
 

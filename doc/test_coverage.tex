@@ -1,0 +1,220 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{amsmath, amssymb}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+%% Status colour coding
+\newcommand{\statusNone}{\textcolor{red}{\textit{none}}}
+\newcommand{\statusPartial}{\textcolor{orange}{\textit{partial}}}
+\newcommand{\statusComplete}{\textcolor{green!60!black}{\textit{complete}}}
+
+\title{ICNNA Test Coverage Ledger\\[0.5ex]
+       \large Cross-cutting thread T.11}
+\author{Felipe Orihuela-Espina}
+\date{v1.0 --- 7 July 2026}
+
+\begin{document}
+\maketitle
+
+% ================================================================
+%% Document Log
+% ================================================================
+\noindent\textbf{Document Log:}
+\begin{itemize}[nosep]
+    \item 7-Jul-2026: FOE/Claude --- Document created (v1.0). Seeded
+          with the full class inventory at v1.4.2 (intermediate increment).
+          Two classes at \statusComplete: \texttt{identifiableObject},
+          \texttt{condition}. All others at \statusNone.
+\end{itemize}
+
+\bigskip
+
+% ================================================================
+\section*{Purpose}
+% ================================================================
+
+This document is the \textbf{test-coverage ledger} for ICNNA (cross-cutting
+thread~T.11, adopted at v1.4.2). It enumerates every ICNNA class against its
+unit-test status and is updated at each sub-release.
+
+The ledger provides \emph{visibility}: a single place to see what is covered
+and what is not. Coverage is enforced by two exit criteria:
+
+\begin{itemize}
+    \item \textbf{v1.8.0} (\texttt{oo/} removal sweep): no \texttt{oo/}-derived
+          class may be deleted while its modern replacement carries status
+          \statusNone.
+    \item \textbf{v2.0.0} (release): zero classes at status \statusNone.
+\end{itemize}
+
+The governing principle is P2: every class modernised from v1.4.2 onwards
+ships with tests. The ledger extends this guarantee to classes not yet
+scheduled for a modernisation sub-release.
+
+% ================================================================
+\section*{Status Legend}
+% ================================================================
+
+\begin{description}[leftmargin=3cm, labelwidth=2.5cm]
+    \item[\statusNone]    No unit-test file exists for this class.
+    \item[\statusPartial] A test file exists but coverage is incomplete
+                          (some properties, methods, or edge cases untested).
+    \item[\statusComplete]The test file covers all properties, key methods,
+                          and critical edge cases.
+\end{description}
+
+% ================================================================
+\section{Modern classes (\texttt{+icnna/})}
+% ================================================================
+
+Classes residing in the \texttt{+icnna} package tree. These are the primary
+tracking targets; all must reach \statusComplete{} by v2.0.0.
+
+\subsection{\texttt{+icnna.data.core}}
+
+\begin{longtable}{llll}
+\toprule
+\textbf{Class} & \textbf{Test file} & \textbf{Status} & \textbf{Notes} \\
+\midrule
+\endfirsthead
+\multicolumn{4}{l}{\small\itshape (continued)} \\
+\toprule
+\textbf{Class} & \textbf{Test file} & \textbf{Status} & \textbf{Notes} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\texttt{identifiableObject}  & \texttt{testIdentifiableObject.m} & \statusComplete & 6 tests; v1.4.2 \\
+\texttt{condition}           & \texttt{testCondition.m}          & \statusComplete & 21 tests; v1.4.2 \\
+\texttt{experimentBundle}    & ---                               & \statusNone & \\
+\texttt{experimentalGroup}   & ---                               & \statusNone & \\
+\texttt{experimentalUnit}    & ---                               & \statusNone & \\
+\texttt{lightDetector}       & ---                               & \statusNone & \\
+\texttt{lightSource}         & ---                               & \statusNone & \\
+\texttt{metaEntry}           & ---                               & \statusNone & \\
+\texttt{montage}             & ---                               & \statusNone & \\
+\texttt{nirsMontage}         & ---                               & \statusNone & \\
+\texttt{opticalCoefficient}  & ---                               & \statusNone & \\
+\texttt{optode}              & ---                               & \statusNone & \\
+\texttt{qc}                  & ---                               & \statusNone & \\
+\texttt{qcCriterion}         & ---                               & \statusNone & \\
+\texttt{rawData}             & ---                               & \statusNone & \\
+\texttt{referenceLocation}   & ---                               & \statusNone & \\
+\texttt{signalDescriptor}    & ---                               & \statusNone & \\
+\texttt{signalSet}           & ---                               & \statusNone & \\
+\texttt{subject}             & ---                               & \statusNone & \\
+\texttt{timeline}            & ---                               & \statusNone & \\
+\end{longtable}
+
+\subsection{\texttt{+icnna.data.snirf}}
+
+\begin{longtable}{llll}
+\toprule
+\textbf{Class} & \textbf{Test file} & \textbf{Status} & \textbf{Notes} \\
+\midrule
+\endfirsthead
+\multicolumn{4}{l}{\small\itshape (continued)} \\
+\toprule
+\textbf{Class} & \textbf{Test file} & \textbf{Status} & \textbf{Notes} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\texttt{auxBlock}     & --- & \statusNone & \\
+\texttt{dataBlock}    & --- & \statusNone & \\
+\texttt{measurement}  & --- & \statusNone & \\
+\texttt{metaDataTags} & --- & \statusNone & \\
+\texttt{nirsDataset}  & --- & \statusNone & \\
+\texttt{probe}        & --- & \statusNone & \\
+\texttt{snirf}        & --- & \statusNone & \\
+\texttt{stim}         & --- & \statusNone & \\
+\end{longtable}
+
+\subsection{\texttt{+icnna.data.misc}}
+
+\begin{longtable}{llll}
+\toprule
+\textbf{Class} & \textbf{Test file} & \textbf{Status} & \textbf{Notes} \\
+\midrule
+\endfirsthead
+\multicolumn{4}{l}{\small\itshape (continued)} \\
+\toprule
+\textbf{Class} & \textbf{Test file} & \textbf{Status} & \textbf{Notes} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\texttt{rawData\_NIRx} & --- & \statusNone & \\
+\end{longtable}
+
+% ================================================================
+\section{Legacy classes (\texttt{oo/})}
+% ================================================================
+
+Classes still residing in \texttt{oo/} awaiting modernisation into
+\texttt{+icnna/}. These will receive tests when their Arc~B/C modernisation
+sub-release is delivered. They must not be deleted at v1.8.0 while carrying
+\statusNone{} (exit criterion above).
+
+\begin{longtable}{lll}
+\toprule
+\textbf{Class} & \textbf{Status} & \textbf{Planned modernisation} \\
+\midrule
+\endfirsthead
+\multicolumn{3}{l}{\small\itshape (continued)} \\
+\toprule
+\textbf{Class} & \textbf{Status} & \textbf{Planned modernisation} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\texttt{signal}                   & \statusNone & v1.4.4 \\
+\texttt{structuredData}           & \statusNone & v1.4.4 \\
+\texttt{neuroimage}               & \statusNone & v1.4.4 \\
+\texttt{nirs\_neuroimage}         & \statusNone & v1.4.4 \\
+\texttt{dataSource}               & \statusNone & v1.4.5 \\
+\texttt{dataSourceDefinition}     & \statusNone & v1.4.5 \\
+\texttt{session}                  & \statusNone & v1.4.6 \\
+\texttt{sessionDefinition}        & \statusNone & v1.4.6 \\
+\texttt{experiment}               & \statusNone & v1.4.7b \\
+\texttt{experimentSpace}          & \statusNone & v1.5.5 \\
+\texttt{analysis}                 & \statusNone & v1.5.5 \\
+\texttt{integrityStatus}          & \statusNone & v1.5.5 \\
+\texttt{ecg}                      & \statusNone & v1.5.5 \\
+\texttt{rawData\_ETG4000}         & \statusNone & v1.5.0 \\
+\texttt{rawData\_NIRScout}        & \statusNone & v1.5.0 \\
+\texttt{rawData\_ShimadzuLabnirs} & \statusNone & v1.5.0 \\
+\texttt{rawData\_UCLWireless}     & \statusNone & v1.5.0 \\
+\texttt{rawData\_LSL}             & \statusNone & v1.5.0 \\
+\texttt{rawData\_BioHarnessECG}   & \statusNone & v1.5.0 \\
+\texttt{rawData\_Snirf}           & \statusNone & v1.4.5 (retire)$^{a}$ \\
+\texttt{channelLocationMap}       & \statusNone & v1.5.1 \\
+\texttt{roi}                      & \statusNone & v1.5.1 \\
+\texttt{cluster}                  & \statusNone & unscheduled$^{b}$ \\
+\texttt{menaGrid}                 & \statusNone & unscheduled$^{b}$ \\
+\texttt{logarithmicRadialGrid}    & \statusNone & unscheduled$^{b}$ \\
+\texttt{imagePartition}           & \statusNone & unscheduled$^{b}$ \\
+\end{longtable}
+
+\medskip
+\noindent\small
+$^{a}$~\texttt{rawData\_Snirf} is a legacy wrapper superseded by the
+\texttt{+icnna.data.snirf} package. It will be retired (not modernised) at
+v1.4.5 and requires no modern replacement of its own.
+
+\smallskip
+\noindent
+$^{b}$~These four classes implement manifold-embedding analysis
+(\texttt{cluster}, \texttt{menaGrid}, \texttt{logarithmicRadialGrid},
+\texttt{imagePartition}). Their modernisation will be scheduled once the
+manifold-embedding sub-release is scoped; they cannot be reasonably
+sequenced before that design decision is made.
+
+\end{document}

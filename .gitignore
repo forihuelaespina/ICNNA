@@ -40,6 +40,17 @@
 ##       claude/** already excludes the folder); claude/README.md
 ##       untracked but kept locally.
 ##
+## 7-Jul-2026 (v0.8): FOE/Claude
+##     + Activated project-root /archive/ as the long-term home for
+##       superseded source files (OneDrive-synced, not published to
+##       git). Previously only a short-term claude/archive/ existed
+##       for collaboration artefacts; /archive/ extends this to
+##       source code backups.
+##     + Added *.asv (MATLAB Editor autosave backups) and *.old
+##       (manual source backups) to exclusions. First use:
+##       guiExperimentSpace.m.old archived; guiManualIntegrity.asv
+##       deleted.
+##
 ##
 
 
@@ -66,9 +77,19 @@ doc/ICNNA-MENA*.pdf
 src2/**
 claude/**
 ## Note: claude/archive/ is covered by claude/** above.
-## When Option A (/archive/ at project root) is adopted, add:
-## archive/**
+archive/**
 rubbish/**
+
+## MATLAB editor and manual backup files
+*.asv
+*.old
+
+## LaTeX build artefacts (keep the .tex source and .pdf output tracked)
+## NOTE: scoped per-file, NOT *.log / doc/*.log, to avoid catching the
+## tracked doc/ICNNA-Version.log.
+doc/test_coverage.aux
+doc/test_coverage.log
+doc/test_coverage.out
 
 ## Claude Code harness (machine-local; not the OneDrive claude/ folder)
 .claude/**

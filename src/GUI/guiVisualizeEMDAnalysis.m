@@ -1,12 +1,12 @@
 function element=guiVisualizeEMDAnalysis(element)
-%guiVisualizeEMDAnalysis GUI for visualizing the analysis EMD
+%DEPRECATED. guiVisualizeEMDAnalysis GUI for visualizing the analysis EMD
 %
 % a=guiVisualizeEMDAnalysis(a) Visualize analysis' EMD.
 %
 % The analysis must have been run i.e. 'RunStatus' equals true.
 %
 %
-% Copyright 2008-22
+% Copyright 2008-26
 % @author Felipe Orihuela-Espina
 %
 % See also guiAnalysis, analysis, cluster, guiVisualizeAnalysis
@@ -23,7 +23,17 @@ function element=guiVisualizeEMDAnalysis(element)
 %   - Removed deprecated parameter 'v0' from uitab and uitabgroup calls.
 %   Backward compatibility may be affected.
 %
+% -- ICNNA v1.4.2
+%
+% 7-Jul-2026: FOE/Claude.
+%   + Deprecated as of ICNNA v1.4.2. A new unified GUI is planned for a future release.
+%
 
+
+%% Deprecation notice (ICNNA v1.4.2)
+warning('icnna:gui:guiVisualizeEMDAnalysis:Deprecated', ...
+    ['The ICNNA legacy GUI is deprecated as of v1.4.2 and will be ' ...
+     'removed in a future release. A new unified GUI is planned.']);
 
 
 if ~get(element,'RunStatus')

@@ -1,8 +1,8 @@
 function f=aboutICNNA()
-%Display the "About ICNNA" information window
+%DEPRECATED. Display the "About ICNNA" information window
 %
 %
-% Copyright 2008-18
+% Copyright 2008-26
 % @date: 20-Apr-2008
 % @author Felipe Orihuela-Espina
 %
@@ -21,10 +21,19 @@ function f=aboutICNNA()
 % 24-May-2023: FOE
 %   + I have now addressed the long standing issue with accessing
 %   the icons folder when the working directory is not that of ICNNA
-%   using function mfilename. 
+%   using function mfilename.
+%
+% -- ICNNA v1.4.2
+%
+% 7-Jul-2026: FOE/Claude.
+%   + Deprecated as of ICNNA v1.4.2. A new unified GUI is planned for a future release.
 %
 
 
+%% Deprecation notice (ICNNA v1.4.2)
+warning('icnna:gui:aboutICNNA:Deprecated', ...
+    ['The ICNNA legacy GUI is deprecated as of v1.4.2 and will be ' ...
+     'removed in a future release. A new unified GUI is planned.']);
 
 
 %% Initialize the figure
@@ -122,7 +131,7 @@ ackString={'Current version: 1.1.4',...
     'Dr. Dave James, Prof. Sir Ara Darzi and Prof. Guang-Zhong Yang'],...
     '', ...
     ['Beta testing: Dr. Felipe Orihuela-Espina, Mr. Marco Caproni, ' ...
-    'Dr. Dave James, Dr. Kunal Shetty and Dr. Samuel A. Montero-Hernández, ' ...
+    'Dr. Dave James, Dr. Kunal Shetty and Dr. Samuel A. Montero-Hernï¿½ndez, ' ...
     'Dr. Harsimrat Singh, Mrs. Michele Rojas Cisneros.'],...
     '', ...
     '=================================',...

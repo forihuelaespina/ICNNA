@@ -1,5 +1,5 @@
 function [element,exitStatus]=guiSession(element)
-%guiSession GUI for creating or updating sessions
+%DEPRECATED. guiSession GUI for creating or updating sessions
 %
 % s=guiSession() displays a graphical user interface (GUI) for
 %   creating a new session with the default ID. The function
@@ -23,7 +23,7 @@ function [element,exitStatus]=guiSession(element)
 %   whether it has been modified or not.
 %   
 %
-% Copyright 2008-23
+% Copyright 2008-26
 % @author Felipe Orihuela-Espina
 %
 % See also guiICNNA, session
@@ -40,9 +40,20 @@ function [element,exitStatus]=guiSession(element)
 %   + Got rid of old labels @date and @modified.
 %   + I have now addressed the long standing issue with accessing
 %   the icons folder when the working directory is not that of ICNNA
-%   using function mfilename. 
+%   using function mfilename.
 %   + Started to update the get/set methods calls to struct like syntax
 %
+% -- ICNNA v1.4.2
+%
+% 7-Jul-2026: FOE/Claude.
+%   + Deprecated as of ICNNA v1.4.2. A new unified GUI is planned for a future release.
+%
+
+
+%% Deprecation notice (ICNNA v1.4.2)
+warning('icnna:gui:guiSession:Deprecated', ...
+    ['The ICNNA legacy GUI is deprecated as of v1.4.2 and will be ' ...
+     'removed in a future release. A new unified GUI is planned.']);
 
 
 exitStatus=0;

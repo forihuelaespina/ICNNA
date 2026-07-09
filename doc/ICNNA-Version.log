@@ -5,10 +5,56 @@
 ====================================
 
 ====================================
-= ICNNA v1.4.2 
+= ICNNA v1.4.2
 ====================================
 
++ KNOWN ISSUES
 
+* Backward-compatibility of class versioning is currently non-functional
+  (data-integrity risk for legacy .mat files). This is a PRE-EXISTING defect
+  affecting all previous ICNNA versions; it is NOT a regression introduced in
+  v1.4.2.
+
+  Cause: the |classVersion| property is declared as a MATLAB |Constant| in
+  (almost) all classes. MATLAB does not serialize Constant properties, so an
+  object reloaded from a .mat file reports the CURRENT class version, not the
+  version under which it was saved. Consequently every runtime version branch
+  of the form compareVersions(classVersion(obj),...) always takes the
+  current-version path; the branches meant to handle objects saved under
+  earlier internal representations never execute.
+
+  Impact: files saved under earlier ICNNA versions still load, but the
+  version-dependent handling that should adapt changed internal
+  representations does not apply. MATLAB's default load is silent (dropped
+  fields discarded, changed-type fields coerced, changed-meaning fields
+  mis-read), so mis-handling can occur without any error or warning.
+
+  Status: SCHEDULED FOR v1.4.2.1. The fix stores the version in a serialized,
+  tamper-proof per-object property (an immutable instance property stamped
+  from the class constant) and audits all affected version-branch sites. A
+  separate facility to recover the version of pre-existing legacy files
+  (which never stored the tag) is planned.
+
+  Users with archives saved under earlier versions are advised to retain
+  their original files and defer bulk re-processing until v1.4.2.1.
+
++ New packages
+* icnna.compat - Backwards compatibility.
+    Transient package to resolve backward compatibility issues in
+    the roadmap to ICNNA v2.0.0
+
+
++ New functions
+* icnna.compat.toCoreTimeline - Converts any accepted timeline
+    representation to @icnna.data.core.timeline
+* icnna.compat.selectTimelineConversionStrategy - Selects the
+    (source -> icnna.data.core.timeline) converter.
+* icnna.compat.ooTimeline2CoreTimeline - Migrates a legacy oo/@timeline
+    into an @icnna.data.core.timeline
+
+
++ Fixed MATLAB R2021a as the minimum required version for
+running ICNNA.
 
 + Behaviour change
 
@@ -49,6 +95,29 @@ progressively be implemented in all classes.
 
 
 
++ Deprecated methods
+* icnna.data.core.timeline(@timeline aTimeline) - Typecasting constructor
+
+
+
+
++ Deprecation of legacy GUI (src/GUI/).
+
+The full ICNNA legacy GUI is deprecated as of v1.4.2. A
+warning('icnna:gui:<FunctionName>:Deprecated',...) is issued at startup
+for each of the 21 affected legacy GUI functions. A new unified GUI is
+planned for a future release.
+
+Affected files: aboutICNNA, aboutRegistration, guiAnalysis,
+guiBasicVisualization, guiCheckIntegrity, guiCluster, guiDataSource,
+guiDataSourceDefinition, guiExperiment, guiExperimentSpace, guiICNNA,
+guiManualIntegrity, guiMenaGrid, guiRegistration, guiRegistrationOptions,
+guiSession, guiSessionDefinition, guiSubject, guiTimeline,
+guiVisualizeAnalysis, guiVisualizeEMDAnalysis.
+
+Note: The HR tool (guiHR, guiHROptions, guiSplitECG, aboutHRTool and
+related utilities) has no current roadmap entry. Its GUI deprecation is
+deferred pending a dedicated roadmap scheduling decision.
 
 
 --- TEST for software verification.

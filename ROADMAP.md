@@ -10,7 +10,7 @@ with the clean-sheet successor project Cantor (C++23). ICNNA is not
 scheduled to die; v2.0.0 marks the end of this *modernisation plan*, not
 the end of ICNNA's journey.
 
-**Size.** ≈28 sub-releases across four arcs, ≈60–89 work sessions at
+**Size.** ≈35 sub-releases across four arcs, ≈72–108 work sessions at
 research pace over ≈2–3 years.
 
 **Conventions.** Sub-releases are scoped to 1–3 sessions each and each
@@ -25,7 +25,7 @@ counterparts (soft cut, Rule 1). Bridging goes through `+icnna.compat/`
 
 | Arc | Versions | Sessions | Theme |
 |-----|----------|---------:|-------|
-| A. Readiness | v1.4.2, v1.4.3.1–.3 | 6–8 | Code infrastructure + disclosure + conventions + docs scaffolding |
+| A. Readiness | v1.4.2, v1.4.2.1–.2, v1.4.3.1–.5 | 18–27 | Code infrastructure + versioning integrity + disclosure + conventions + docs scaffolding + relation infrastructure + HDF5 persistence |
 | B. Spine + experimental design | v1.4.4 → v1.4.8 | 12–17 | Core-class modernisation + `experiment` generalisation |
 | C. Peripheral + behaviour | v1.4.9 → v1.7.0 | 27–39 | rawData, spatial, registration, QC, analysis, signal processing, synthetic, BIDS |
 | D. Endpoint | v1.8.0 → v2.0.0 | 15–25 | `oo/` removal, handover, unified GUI, User Guide polish |
@@ -52,8 +52,14 @@ Per entry: **goals / tasks highlights / session estimate / primary risk**. Full 
 
 ### Arc A — Readiness
 
-- **v1.4.2 — "Modernisation Mode Begins"** *(1–2 sessions)*
-  Test infrastructure (`matlab.unittest`); `+icnna.compat.toModernTimeline` + γ-site migration; GUI deprecation; R2021a enforcement in `icnna_startup.m`; one CLI worked example. *Risk:* concentrated breakage.
+- **v1.4.2 — "Modernisation Mode Begins"** *(released 9-Jul-2026)*
+  Consolidates current progress: test infrastructure (`matlab.unittest`); the `+icnna.compat` timeline migration seam (`toCoreTimeline` + strategy registry); GUI deprecation; R2021a enforcement in `icnna_startup.m`; test-coverage ledger seed. Documents a newly-identified critical backward-compatibility defect (see v1.4.2.1) as a KNOWN ISSUE in `doc/ICNNA-Version.log` and updates this roadmap. γ-site seam adoption and the CLI worked example are deferred to v1.4.2.2. *Risk:* concentrated breakage.
+
+- **v1.4.2.1 — Class-versioning integrity** *(2–4 sessions)*
+  Fix the critical defect by which `classVersion`, declared as a MATLAB `Constant`, is not serialized — so every runtime `compareVersions(classVersion(obj),…)` guard is inert and legacy `.mat` files are silently mis-adapted on load. Replace the constant with a serialized, tamper-proof per-object version (an immutable instance property stamped from a private class constant) across all versioned classes; validate the mechanism in `oo/@dummy` before rollout; audit and repair all affected version-branch sites; handle unstamped legacy files (recovery of a lost version tag). *Priority: jumps the queue (data integrity).* *Risk:* touches ~40 classes incl. `identifiableObject` (root).
+
+- **v1.4.2.2 — Deferred migration tail** *(2–3 sessions)*
+  Resume the v1.4.2 tail: adopt the timeline seam at the γ-sites (collapse dead representation branches); fix the pre-existing `plotStructuredData` undefined-`t` crash as the migration of that site; introduce modern `icnna.plot.shadeTimeline` (seam-normalised) and deprecate the legacy `shadeTimeline`; one CLI worked example. *Risk:* plotting-path breakage.
 
 - **v1.4.3.1 — Disclosure artefacts** *(2 sessions)*
   `CHANGELOG.md` seeded from `doc/ICNNA-Version.log`; `doc/ip_ledger.tex` (collaborative); `CITATION.cff` using DOI `10.1117/1.NPh.5.1.011011`; retire standalone `ICNNA_Limitations.doc`. *Risk:* IP ledger blocked on consultation.
@@ -63,6 +69,19 @@ Per entry: **goals / tasks highlights / session estimate / primary risk**. Full 
 
 - **v1.4.3.3 — Documentation scaffolding** *(1–2 sessions)*
   Retire ArgoUML to `doc/UML/historical/`; adopt PlantUML; first `m2uml` snapshot of dual state; User Guide LaTeX skeleton with chapter stubs including Known Limitations and Migration appendices. *Risk:* LaTeX migration scope.
+
+- **v1.4.3.4 — `relationsManager`: relation infrastructure** *(4–6 sessions)*
+  Land the relation-management infrastructure so all Arc B classes can use it from day one.
+  `+icnna.data.core.relationsManager`, `+icnna.data.core.identifiableObject` (additive change),
+  `doc/designMemos/relationsManager.tex`, `tests/data/core/`. *Risk:* touches identifiableObject
+  (root class); change is additive (one new property with default).
+
+- **v1.4.3.5 — `storageAdapter`: HDF5 lazy-loading persistence** *(4–6 sessions)*
+  Replace monolithic `.mat` persistence with HDF5-based lazy loading via an abstraction layer,
+  supporting embedded and linked storage modes. `+icnna/+io/storageAdapter` (abstract),
+  `+icnna/+io/hdf5StorageAdapter`, `structuredData` + `rawData` integration,
+  `doc/designMemos/storageAdapter.tex`, `test/unit/`. *Risk:* touches data core classes;
+  changes are additive (new persistence path alongside existing `.mat`).
 
 ### Arc B — Data-model spine + experimental-design generalisation
 

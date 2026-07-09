@@ -341,7 +341,13 @@ classdef timeline < icnna.data.core.identifiableObject
 %     to modify |cevents| directly, consistent with how
 %     @icnna.data.core.condition.set.nominalSamplingRate does it.
 %
-
+%       
+% -- ICNNA v1.4.2       
+%       
+% 31-May-2026: FOE
+%   + Deprecated typecasting constructor from @timeline
+%   
+%
     properties (Constant, Access=private)
         classVersion = '1.2'; %Read-only. Object's class version.
     end
@@ -415,6 +421,13 @@ classdef timeline < icnna.data.core.identifiableObject
                 obj = varargin{1};
                 return;
             elseif isa(varargin{1},'timeline')
+                warning('icnna:data:core:timeline:timeline:Deprecated',...
+                    ['Deprecated typecasting constructor. Use ' ...
+                     'icnna.compat.toCoreTimeline instead.']);
+                    %This warning is silenced explicitly if the
+                    %constructor is call from
+                    %icnna.compat.ooTimeline2CoreTimeline.
+
                 t = varargin{1}; %typecasts the timeline
                 obj.unit = 'samples';
                 obj.timeUnitMultiplier  = 0;

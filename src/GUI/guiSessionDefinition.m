@@ -1,5 +1,5 @@
 function element=guiSessionDefinition(element)
-%guiSessionDefinition GUI for creating or updating sessionDefinitions
+%DEPRECATED. guiSessionDefinition GUI for creating or updating sessionDefinitions
 %
 % s=guiSessionDefinition() displays a graphical user interface (GUI) for
 %   creating a new SessionDefinition with the default ID. The function
@@ -12,13 +12,31 @@ function element=guiSessionDefinition(element)
 %   if the action is cancelled
 %   or the window closed without saving.
 %
-% Copyright 2008-12
-% @date: 10-Jul-2008
+% Copyright 2008-26
 % @author Felipe Orihuela-Espina
-% @modified: 30-Jan-2012
 %
 % See also guiExperiment, guiSource, sessionDefinition
 %
+
+
+%% Log
+%
+% File created: 10-Jul-2008
+% File last modified (before creation of this log): 30-Jan-2012
+%
+% -- ICNNA v1.4.2
+%
+% 7-Jul-2026: FOE/Claude.
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Deprecated as of ICNNA v1.4.2. A new unified GUI is planned for a future release.
+%
+
+
+%% Deprecation notice (ICNNA v1.4.2)
+warning('icnna:gui:guiSessionDefinition:Deprecated', ...
+    ['The ICNNA legacy GUI is deprecated as of v1.4.2 and will be ' ...
+     'removed in a future release. A new unified GUI is planned.']);
+
 
 %% Initialize the figure
 %...and hide the GUI as it is being constructed

@@ -1,5 +1,5 @@
 function appOptions=guiRegistrationOptions(appOptions)
-%A GUI for configuring the Registration application options
+%DEPRECATED. A GUI for configuring the Registration application options
 %
 % appOptions=guiRegistrationOptions; Updates the configuration
 %   options of the application, preloading the default options
@@ -10,7 +10,7 @@ function appOptions=guiRegistrationOptions(appOptions)
 % Registration - A tiny tool to visualize the NIRS optode/channel
 %registration to standard positioning systems.
 %
-% Copyright 2009-13
+% Copyright 2009-26
 % @date: 1-Apr-2009
 % @author Felipe Orihuela-Espina
 % @modified: 7-Sep-2013
@@ -24,6 +24,17 @@ function appOptions=guiRegistrationOptions(appOptions)
 % 7-Sep-2013: Update from optodeSpace struct to new channelLocationMap
 %       object. Option Probe no longer needed.
 %
+% -- ICNNA v1.4.2
+%
+% 7-Jul-2026: FOE/Claude.
+%   + Deprecated as of ICNNA v1.4.2. A new unified GUI is planned for a future release.
+%
+
+
+%% Deprecation notice (ICNNA v1.4.2)
+warning('icnna:gui:guiRegistrationOptions:Deprecated', ...
+    ['The ICNNA legacy GUI is deprecated as of v1.4.2 and will be ' ...
+     'removed in a future release. A new unified GUI is planned.']);
 
 
 if (~exist('appOptions','var'))

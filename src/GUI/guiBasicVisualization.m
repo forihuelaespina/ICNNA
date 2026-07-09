@@ -1,5 +1,5 @@
 function guiBasicVisualization(elem)
-%guiBasicVisualization GUI for generation of basic plots
+%DEPRECATED. guiBasicVisualization GUI for generation of basic plots
 %
 % t=guiBasicVisualization(elem) displays a graphical user
 %   interface (GUI) for generation of basic plots.
@@ -10,10 +10,8 @@ function guiBasicVisualization(elem)
 %
 % elem - An experiment.
 %
-% Copyright 2010-16
-% @date: 15-Jun-2010
+% Copyright 2010-26
 % @author Felipe Orihuela-Espina
-% @modified: 15-May-2016
 %
 % See also guiExperiment, batchBasicVisualization, experiment
 %
@@ -23,11 +21,33 @@ function guiBasicVisualization(elem)
 
 %% Log
 %
+% File created: 15-Jun-2010
+% File last modified: 15-May-2016 (at the time of removing
+%   the @modified label)
+%
+%
+%   Unfortunately I missed to document when I did created this
+%   log (likely on 15-May-2026), but it seems apparent that I
+%   did modified the @modified label then without documenting
+%   the previous last change. So that I'm afraid is lost.
+%   
+%
 % 15-May-2016 (FOE): Abandon feature:
 %       batchBasicVisualization.m no longer permits choosing export formats.
 %       Consequently the tab for output formats has been removed.
 %
+% -- ICNNA v1.4.2
 %
+% 7-Jul-2026: FOE/Claude.
+%   + Got rid of old labels @date and @modified.
+%   + Deprecated as of ICNNA v1.4.2. A new unified GUI is planned for a future release.
+%
+
+
+%% Deprecation notice (ICNNA v1.4.2)
+warning('icnna:gui:guiBasicVisualization:Deprecated', ...
+    ['The ICNNA legacy GUI is deprecated as of v1.4.2 and will be ' ...
+     'removed in a future release. A new unified GUI is planned.']);
 
 
 if ~isa(elem,'experiment')

@@ -1,5 +1,5 @@
 function element=guiManualIntegrity(element)
-%guiManualIntegrity Graphical User Interface for manuak integrity
+%DEPRECATED. guiManualIntegrity Graphical User Interface for manuak integrity
 %manipulation
 %
 % element=guiManualIntegrity(element) Allow manual selection
@@ -13,13 +13,30 @@ function element=guiManualIntegrity(element)
 %
 %
 %
-% Copyright 2010
-% @date: 27-Jul-2010
+% Copyright 2010-26
 % @author Felipe Orihuela-Espina
-% @modified: 27-Jul-2010
 %
 % See also runIntegrity, guiCheckIntegrity, experiment, dataSource
 %
+
+
+%% Log
+%
+% File created: 27-Jul-2010
+% File last modified (before creation of this log): 27-Jul-2010
+%
+% -- ICNNA v1.4.2
+%
+% 7-Jul-2026: FOE/Claude.
+%   + Added this log. Got rid of old labels @date and @modified.
+%   + Deprecated as of ICNNA v1.4.2. A new unified GUI is planned for a future release.
+%
+
+
+%% Deprecation notice (ICNNA v1.4.2)
+warning('icnna:gui:guiManualIntegrity:Deprecated', ...
+    ['The ICNNA legacy GUI is deprecated as of v1.4.2 and will be ' ...
+     'removed in a future release. A new unified GUI is planned.']);
 
 
 if ~isa(element,'dataSource')
