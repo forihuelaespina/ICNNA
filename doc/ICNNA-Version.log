@@ -4,8 +4,51 @@
 = Author: Felipe Orihuela-Espina
 ====================================
 
+
 ====================================
-= ICNNA v1.4.2
+= ICNNA v1.4.2.1
+====================================
+
+
++ Data integrity (class versioning)
+
+* Class versioning is now backward-safe, resolving the KNOWN ISSUE
+  reported under v1.4.2. The |classVersion| property, previously a MATLAB
+  |Constant| (which MATLAB does not serialize), is now an immutable
+  instance property stamped from the class default. Reloaded objects
+  therefore recover their true saved version, so runtime version guards
+  operate correctly. The property remains read-only and tamper-proof.
+
+  Scope: 49 classes converted (Constant -> immutable instance property),
+  with matching per-file documentation and logs. The .classVersion()
+  accessor and all call sites are unchanged.
+
+  Version-branch audit: guard sites branching on classVersion were
+  reviewed. Because versioning is now serialized from each class's current
+  version, no object can self-report a version older than its class's
+  current one, so pre-current-version branches are structurally
+  unreachable; these were replaced by a loud assert (never silently
+  deleted), preserving traceability. Where a class's own-version self-guard
+  reflected a representation change that is itself a type change (e.g.
+  structuredData's timeline becoming icnna.data.core.timeline), the assert
+  checks the representation directly (isa) rather than through a version
+  proxy: it states the actual precondition and stays correct for
+  subclasses, which carry their own independent classVersion. Forward-
+  facing branches (guards anticipating future versions, e.g. the
+  signalDescriptor path in @rawData_NIRx/import) were deliberately retained.
+
+* Recovery of the version tag for pre-existing legacy files (saved before
+  this fix, which never stored the tag) remains a separate planned
+  facility.
+
+
+Bugs fixed:
++ icnna.data.core.condition.subasgn - Interception of subsasgn now
+    works for calls from nested structures e.g. myConds(k).unit.
+
+
+====================================
+= ICNNA v1.4.2 (released 9-Jul-2026)
 ====================================
 
 + KNOWN ISSUES

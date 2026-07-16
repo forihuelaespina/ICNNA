@@ -70,7 +70,14 @@ function [aSnirf] = writeTimelineToSnirf(aSnirf,t,options)
 %   + Bug fixed: When using icnna.data.core.timeline only the
 %   first event for each condition was being retrieved.
 %
-
+%
+%
+% -- ICNNA v1.4.2.1
+%
+% 9-Jul-2026: FOE
+%   + Bug fixed: Kill a dead branch related to handle era class version.
+%
+%
 
 
 %% Deal with options
@@ -201,11 +208,18 @@ else %icnna.data.core.timeline
 
     conds = getConditions(t); %Get all conditions
     for iCond = 1:t.nConditions
-        if icnna.util.compareVersions(classVersion(conds(iCond)),'1.1','<=')
-            theCond = copy(conds(iCond));
-        elseif icnna.util.compareVersions(classVersion(conds(iCond)),'1.2','>=')
-            theCond = conds(iCond);
-        end
+
+        %Version serialization begins at class version 1.2, so a condition
+        %necessarily reports >=1.2; The pre-1.2 handle era path is
+        %unreachable now (copy() no longer exists having been cleared in
+        %ICNNA version v1.4.0). The assert therefore provides an invariant
+        %check replacing the "old" class version check branching to
+        %dead code.
+        assert(icnna.util.compareVersions(classVersion(conds(iCond)),'1.2','>='),...
+                'icnna:op:writeTimelineToSnirf:UnexpectedLegacyVersion',...
+                ['Condition reports |classVersion| < 1.2 (handle era). This ' ...
+                 'is no longer supported.']);
+        theCond = conds(iCond);
         
         %Each condition is an iccna.data.core.condition
         tmpStim = icnna.data.snirf.stim();

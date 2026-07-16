@@ -136,6 +136,13 @@ function [trialData] = getTrialData(sd,condTag,options)
 %   + Added support for icnna.data.core.timeline class version 1.2
 %
 %
+%
+% -- ICNNA v1.4.2.1
+%
+% 9-Jul-2026: FOE
+%   + Bug fixed: Kill dead branches related to handle era class version.
+%
+%
 
 
 
@@ -337,103 +344,117 @@ if icnna.util.compareVersions(classVersion(t),'1.2','>=')
 
 
 else % classVersion(t) <= '1.1'
-    tmpEvents = t.condEvents(ismember([t.condEvents.id]',[tmpConds.id]),:);
+
+    %Version serialization begins at class version 1.2, so a timeline
+    %necessarily reports >=1.2; The pre-1.2 handle era path is
+    %unreachable now (having been cleared in
+    %ICNNA version v1.4.0). The assert therefore provides an invariant
+    %check replacing the "old" class version check branching to
+    %dead code.
+    assert(icnna.util.compareVersions(classVersion(t),'1.2','>='),...
+        'icnna:op:getTrialData:UnexpectedLegacyVersion',...
+        ['Timeline reports |classVersion| < 1.2 (handle era). This ' ...
+        'is no longer supported.']);
 
 
-    tmpCurrentConditionEvent = dictionary; %Cond.id -> Num of visited events
-    for iCond = 1:length(tmpConds)
-        theCond = tmpConds(iCond);
-        tmpCurrentConditionEvent = tmpCurrentConditionEvent.insert(theCond.id,0);
-    end
-    
-    
-    %Main loop: Visit every event
-    trialData = struct('condId',    {}, 'eventNumber', {}, ...
-                        'baseline', {}, 'breakDelay',  {}, ...
-                        'task',     {}, 'recovery',    {});
-    k = 1;
-    for iEv = 1:t.nTotalEvents
-        tmpCondId   = tmpEvents{iEv,'id'}; % Condition id.
-        tmpCurrentConditionEvent(tmpCondId) = tmpCurrentConditionEvent(tmpCondId) + 1;
-            %Increase the number of visited events for this condition.
-    
-        ev_onset    = tmpEvents{iEv,'onsets'};
-        ev_duration = tmpEvents{iEv,'durations'};
-        ev_end      = ev_onset + ev_duration;
-    
-        %Establish the interval periods
-        if flagTask %Absolute from breakDelay - Uses .task
-            wsBaselineOnset  = ev_onset-opt.baseline;
-            wsBaselineEnd    = ev_onset-tmpShift;
-            wsBreakOnset     = ev_onset;
-            wsBreakEnd       = ev_onset+opt.breakDelay-tmpShift;
-            wsTaskOnset      = ev_onset+opt.breakDelay;
-            wsTaskEnd        = ev_onset+opt.breakDelay+opt.task-tmpShift;
-            wsRecoveryOnset  = ev_onset+opt.breakDelay+opt.task;
-            wsRecoveryEnd    = ev_onset+opt.breakDelay+opt.task+opt.recovery-tmpShift;
-    
-        else %Relative (to stimulus' end) - Uses .taskExceed
-            wsBaselineOnset  = ev_onset-opt.baseline;
-            wsBaselineEnd    = ev_onset-tmpShift;
-            wsBreakOnset     = ev_onset;
-            wsBreakEnd       = ev_onset+opt.breakDelay-tmpShift;
-            wsTaskOnset      = ev_onset+opt.breakDelay;
-            wsTaskEnd        = ev_end+opt.taskExceed-tmpShift;
-            wsRecoveryOnset  = ev_end+opt.taskExceed;
-            wsRecoveryEnd    = ev_end+opt.taskExceed+opt.recovery-tmpShift;
-        end
-    
-        tmpIntervalPeriods = [wsBaselineOnset wsBaselineEnd; ...
-                              wsBreakOnset    wsBreakEnd; ...
-                              wsTaskOnset     wsTaskEnd; ...
-                              wsRecoveryOnset wsRecoveryEnd];
-    
-    
-        %Crop the intervals if needed.
-        if strcmpi(t.unit,'samples')
-            idx = find(tmpIntervalPeriods  < 1);
-            tmpIntervalPeriods(idx) = 1;
-    
-            idx = find(tmpIntervalPeriods  > t.length);
-            tmpIntervalPeriods(idx) = t.length;
-        else
-            idx = find(tmpIntervalPeriods  < 0);
-            tmpIntervalPeriods(idx) = 0;
-    
-            idx = find(tmpIntervalPeriods  > t.timestamps(end));
-            tmpIntervalPeriods(idx) = t.timestamps(end);
-    
-    
-            %Note that regardless if whether the chosen units are seconds
-            %instead of samples, for the extraction itself, the samples
-            %indexes rather than the time is what it is needed since
-            %MATLAB needs integer to index the tensor e.g. one
-            %can retrieve tmpData(k:k+n,:,:) with k and n being number of
-            %samples but cannot retrieve tmpData(k:k+n,:,:) with k and n
-            %being seconds.
-            tmpIntervalPeriods = round(tmpIntervalPeriods * ...
-                            theSamplingRate * 10^double(t.timeUnitMultiplier));
-        end
-    
-    
-        %Finally, extract the subtensors
-        tmpTrial.condId      = tmpCondId; % Condition id.
-    
-        nEv = tmpCurrentConditionEvent(tmpEvents{iEv,'id'});
-        tmpTrial.eventNumber = nEv; % The event or trial number within the condition
-    
-        tmpTrial.baseline    = tmpData(tmpIntervalPeriods(1,1):tmpIntervalPeriods(1,2),:,:);
-        % The baseline period subtensor
-        tmpTrial.breakDelay  = tmpData(tmpIntervalPeriods(2,1):tmpIntervalPeriods(2,2),:,:);
-        % The breakDelay period subtensor
-        tmpTrial.task        = tmpData(tmpIntervalPeriods(3,1):tmpIntervalPeriods(3,2),:,:);
-        % The trial main period subtensor
-        tmpTrial.recovery    = tmpData(tmpIntervalPeriods(4,1):tmpIntervalPeriods(4,2),:,:);
-        % The recovery period subtensor
-        trialData(k) = tmpTrial;
-        clear tmpTrial
-        k = k+1;
-    end
+
+    % tmpEvents = t.condEvents(ismember([t.condEvents.id]',[tmpConds.id]),:);
+    % 
+    % 
+    % tmpCurrentConditionEvent = dictionary; %Cond.id -> Num of visited events
+    % for iCond = 1:length(tmpConds)
+    %     theCond = tmpConds(iCond);
+    %     tmpCurrentConditionEvent = tmpCurrentConditionEvent.insert(theCond.id,0);
+    % end
+    % 
+    % 
+    % %Main loop: Visit every event
+    % trialData = struct('condId',    {}, 'eventNumber', {}, ...
+    %                     'baseline', {}, 'breakDelay',  {}, ...
+    %                     'task',     {}, 'recovery',    {});
+    % k = 1;
+    % for iEv = 1:t.nTotalEvents
+    %     tmpCondId   = tmpEvents{iEv,'id'}; % Condition id.
+    %     tmpCurrentConditionEvent(tmpCondId) = tmpCurrentConditionEvent(tmpCondId) + 1;
+    %         %Increase the number of visited events for this condition.
+    % 
+    %     ev_onset    = tmpEvents{iEv,'onsets'};
+    %     ev_duration = tmpEvents{iEv,'durations'};
+    %     ev_end      = ev_onset + ev_duration;
+    % 
+    %     %Establish the interval periods
+    %     if flagTask %Absolute from breakDelay - Uses .task
+    %         wsBaselineOnset  = ev_onset-opt.baseline;
+    %         wsBaselineEnd    = ev_onset-tmpShift;
+    %         wsBreakOnset     = ev_onset;
+    %         wsBreakEnd       = ev_onset+opt.breakDelay-tmpShift;
+    %         wsTaskOnset      = ev_onset+opt.breakDelay;
+    %         wsTaskEnd        = ev_onset+opt.breakDelay+opt.task-tmpShift;
+    %         wsRecoveryOnset  = ev_onset+opt.breakDelay+opt.task;
+    %         wsRecoveryEnd    = ev_onset+opt.breakDelay+opt.task+opt.recovery-tmpShift;
+    % 
+    %     else %Relative (to stimulus' end) - Uses .taskExceed
+    %         wsBaselineOnset  = ev_onset-opt.baseline;
+    %         wsBaselineEnd    = ev_onset-tmpShift;
+    %         wsBreakOnset     = ev_onset;
+    %         wsBreakEnd       = ev_onset+opt.breakDelay-tmpShift;
+    %         wsTaskOnset      = ev_onset+opt.breakDelay;
+    %         wsTaskEnd        = ev_end+opt.taskExceed-tmpShift;
+    %         wsRecoveryOnset  = ev_end+opt.taskExceed;
+    %         wsRecoveryEnd    = ev_end+opt.taskExceed+opt.recovery-tmpShift;
+    %     end
+    % 
+    %     tmpIntervalPeriods = [wsBaselineOnset wsBaselineEnd; ...
+    %                           wsBreakOnset    wsBreakEnd; ...
+    %                           wsTaskOnset     wsTaskEnd; ...
+    %                           wsRecoveryOnset wsRecoveryEnd];
+    % 
+    % 
+    %     %Crop the intervals if needed.
+    %     if strcmpi(t.unit,'samples')
+    %         idx = find(tmpIntervalPeriods  < 1);
+    %         tmpIntervalPeriods(idx) = 1;
+    % 
+    %         idx = find(tmpIntervalPeriods  > t.length);
+    %         tmpIntervalPeriods(idx) = t.length;
+    %     else
+    %         idx = find(tmpIntervalPeriods  < 0);
+    %         tmpIntervalPeriods(idx) = 0;
+    % 
+    %         idx = find(tmpIntervalPeriods  > t.timestamps(end));
+    %         tmpIntervalPeriods(idx) = t.timestamps(end);
+    % 
+    % 
+    %         %Note that regardless if whether the chosen units are seconds
+    %         %instead of samples, for the extraction itself, the samples
+    %         %indexes rather than the time is what it is needed since
+    %         %MATLAB needs integer to index the tensor e.g. one
+    %         %can retrieve tmpData(k:k+n,:,:) with k and n being number of
+    %         %samples but cannot retrieve tmpData(k:k+n,:,:) with k and n
+    %         %being seconds.
+    %         tmpIntervalPeriods = round(tmpIntervalPeriods * ...
+    %                         theSamplingRate * 10^double(t.timeUnitMultiplier));
+    %     end
+    % 
+    % 
+    %     %Finally, extract the subtensors
+    %     tmpTrial.condId      = tmpCondId; % Condition id.
+    % 
+    %     nEv = tmpCurrentConditionEvent(tmpEvents{iEv,'id'});
+    %     tmpTrial.eventNumber = nEv; % The event or trial number within the condition
+    % 
+    %     tmpTrial.baseline    = tmpData(tmpIntervalPeriods(1,1):tmpIntervalPeriods(1,2),:,:);
+    %     % The baseline period subtensor
+    %     tmpTrial.breakDelay  = tmpData(tmpIntervalPeriods(2,1):tmpIntervalPeriods(2,2),:,:);
+    %     % The breakDelay period subtensor
+    %     tmpTrial.task        = tmpData(tmpIntervalPeriods(3,1):tmpIntervalPeriods(3,2),:,:);
+    %     % The trial main period subtensor
+    %     tmpTrial.recovery    = tmpData(tmpIntervalPeriods(4,1):tmpIntervalPeriods(4,2),:,:);
+    %     % The recovery period subtensor
+    %     trialData(k) = tmpTrial;
+    %     clear tmpTrial
+    %     k = k+1;
+    % end
 
 end
 

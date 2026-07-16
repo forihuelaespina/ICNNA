@@ -24,6 +24,15 @@ function res=eq(obj,obj2)
 %   + Updated calls to get attributes using the struct like syntax
 %   + Added support for new property classVersion
 %
+%
+% -- ICNNA v1.4.2.1
+%
+% 9-Jul-2026: FOE
+%   + classVersion comparison now reads through the classVersion() accessor
+%   (was direct property access), for consistency with the other eq methods
+%   and the version guards after the classVersion Constant->immutable change.
+%   Behaviour unchanged.
+%
 
 
 res=true;
@@ -32,7 +41,7 @@ if ~isa(obj2,'session')
     return
 end
 
-res = res && (strcmp(obj.classVersion,obj2.classVersion));
+res = res && (strcmp(classVersion(obj),classVersion(obj2)));
 res = res && (obj.definition==obj2.definition);
 res = res && (strcmp(obj.date,obj2.date));
 if ~res

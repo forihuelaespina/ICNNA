@@ -2231,6 +2231,8 @@ end
 
 % Format output according to classVersion
 
+%NOTE: The >1.0 branch below is forward-facing (future signalDescriptor
+%representation), not a dead legacy branch. Retain! do not assert away.
 if icnna.util.compareVersions(nirsClassVersion, '1.0', '<=')
     signalTags = uniqueLabels;
 else

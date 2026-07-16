@@ -12,8 +12,10 @@ classdef identifiableObject
 %% Properties
 %
 %   -- Private properties
-%   .classVersion - Char array. (Read only. Constant)
+%   .classVersion - Char array. (Read only. Immutable instance property)
 %       The class version of the object
+%       Taken from the property default and stamped per object at the
+%       object's construction time, but carried out through serialization.
 %       It is strongly recommended that subclasses implement
 %       their own classVersion and do not rely on the inherited
 %       value of this attribute. This permits subclasses to
@@ -37,7 +39,7 @@ classdef identifiableObject
 %
 % Type methods('icnna.data.core.identifiableObject') for a list of methods
 % 
-% Copyright 2025
+% Copyright 2025-26
 % @author: Felipe Orihuela-Espina
 %
 % See also 
@@ -107,9 +109,28 @@ classdef identifiableObject
 %       useless) for the sake of clarity.
 % 
 %
+% -- ICNNA v1.4.2.1
+%
+% 9-Jul-2026: FOE
+%   + Data integrity fix: |classVersion| changed from Constant
+%   (non-serializable) to immutable (serializable, but still
+%   read-only). The .classVersion() accessor method and all call
+%   site remain unchanged. Class version also remains 1.1.
+%
+%   NOTE: MATLAB does NOT serialize Constant properties, so on reload
+%     an old file, a loaded (not freshly created) object would
+%     not recovered the value of such property when the object was saved
+%     but instead, will load the current class default, e.g. the
+%     current class version. This silently defeats runtime versions
+%     guards and can potentially lead to inconsistencies and ultimately
+%     errors. Instead, immutable properties ARE serialized yet they
+%     remain read-only, hence they will recover properly upon loading
+%     and still remain safe against tampering and forging attempts.
+%
+% 
 %
 
-    properties (Constant, Access=private)
+    properties (SetAccess = immutable, GetAccess = private)
         classVersion(1,:) char = '1.1'; %Read-only. Object's class version.
     end
 

@@ -21,6 +21,16 @@ function res=eq(obj,obj2)
 %
 %   + Method created.
 %
+%
+% -- ICNNA v1.4.2.1
+%
+% 9-Jul-2026: FOE
+%   + classVersion comparison changed from '==' on the property to strcmp on
+%   the classVersion() accessor. classVersion is now an immutable per-object
+%   property, so '==' on version strings can error on unequal lengths and
+%   yields a non-scalar operand for && ; strcmp gives scalar, length-tolerant
+%   string equality, and the accessor is the sanctioned (polymorphic) read.
+%
 
 res=true;
 if ~isa(obj2,'subject')
@@ -28,7 +38,7 @@ if ~isa(obj2,'subject')
     return
 end
 
-res = res && (obj.classVersion==obj2.classVersion);
+res = res && strcmp(classVersion(obj),classVersion(obj2));
 res = res && (strcmp(obj.name,obj2.name));
 res = res && (obj.age==obj2.age);
 res = res && (obj.sex==obj2.sex);

@@ -41,6 +41,15 @@ function res=eq(obj,obj2)
 % 13-Dec-2025: FOE
 %   + Added support for new (inherited) property |name|
 %
+%
+% -- ICNNA v1.4.2.1
+%
+% 9-Jul-2026: FOE
+%   + classVersion comparison now reads through the classVersion() accessor
+%   (was direct property access), for consistency with the other eq methods
+%   and the version guards after the classVersion Constant->immutable change.
+%   Behaviour unchanged.
+%
 
 res=true;
 if ~isa(obj2,'rawData')
@@ -48,7 +57,7 @@ if ~isa(obj2,'rawData')
     return
 end
 
-res = res && (strcmp(obj.classVersion,obj2.classVersion));
+res = res && (strcmp(classVersion(obj),classVersion(obj2)));
 res = res && (obj.id==obj2.id);
 res = res && (strcmp(obj.name,obj2.name));
 res = res && (strcmp(obj.description,obj2.description));

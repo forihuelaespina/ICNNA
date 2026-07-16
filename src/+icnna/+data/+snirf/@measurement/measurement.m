@@ -73,8 +73,22 @@ classdef measurement
 %       loses control on what other attributes could be defined beyond
 %       those acceptable for snirf.
 %
+%
+% -- ICNNA v1.4.2.1
+%
+% 9-Jul-2026: FOE
+%   + Data integrity fix: |classVersion| changed from Constant
+%   (non-serializable) to immutable (serializable, but still read-only).
+%   MATLAB does NOT serialize Constant properties, so on reload a loaded
+%   (not freshly created) object would take the current class default
+%   instead of the value saved with the object, silently defeating the
+%   runtime version guards. Immutable instance properties ARE serialized
+%   yet remain read-only, so they recover properly on load and stay safe
+%   against tampering. The classVersion() accessor, all call sites, and
+%   the class version number remain unchanged.
+%
 
-    properties (Constant, Access=private)
+    properties (SetAccess = immutable, GetAccess = private)
         classVersion = '1.0.1'; %Read-only. Object's class version.
     end
 

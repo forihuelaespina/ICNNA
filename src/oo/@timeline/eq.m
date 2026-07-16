@@ -24,6 +24,15 @@ function res=eq(obj,obj2)
 %   + Removed some old commented code no longer in use.
 %   + Added support for new property classVersion
 %
+%
+% -- ICNNA v1.4.2.1
+%
+% 9-Jul-2026: FOE
+%   + classVersion comparison now reads through the classVersion() accessor
+%   (was direct property access), for consistency with the other eq methods
+%   and the version guards after the classVersion Constant->immutable change.
+%   Behaviour unchanged.
+%
 
 res=true;
 if ~isa(obj2,'timeline')
@@ -31,7 +40,7 @@ if ~isa(obj2,'timeline')
     return
 end
 
-res = res && (strcmp(obj.classVersion,obj2.classVersion));
+res = res && (strcmp(classVersion(obj),classVersion(obj2)));
 res = res && (obj.length==obj2.length);
 res = res && (obj.startTime==obj2.startTime);
 res = res && all(obj.timestamps==obj2.timestamps);

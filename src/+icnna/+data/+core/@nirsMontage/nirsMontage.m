@@ -77,7 +77,7 @@ classdef nirsMontage < icnna.data.core.montage
 %
 %
 %   -- Private properties
-%   .classVersion - Char array. (Read only. Constant)
+%   .classVersion - Char array. (Read only. Immutable instance property)
 %       The class version of the object
 %       This is separate from the superclass' own |classVersion|.
 %
@@ -346,8 +346,22 @@ classdef nirsMontage < icnna.data.core.montage
 %   + Refined the implementation (UNFINISHED).
 %   + Improved comments.
 %
+%
+% -- ICNNA v1.4.2.1
+%
+% 9-Jul-2026: FOE
+%   + Data integrity fix: |classVersion| changed from Constant
+%   (non-serializable) to immutable (serializable, but still read-only).
+%   MATLAB does NOT serialize Constant properties, so on reload a loaded
+%   (not freshly created) object would take the current class default
+%   instead of the value saved with the object, silently defeating the
+%   runtime version guards. Immutable instance properties ARE serialized
+%   yet remain read-only, so they recover properly on load and stay safe
+%   against tampering. The classVersion() accessor, all call sites, and
+%   the class version number remain unchanged.
+%
 
-    properties (Constant, Access=private)
+    properties (SetAccess = immutable, GetAccess = private)
         classVersion = '1.0'; %Read-only. Object's class version.
     end
 

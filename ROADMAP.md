@@ -109,9 +109,11 @@ Per entry: **goals / tasks highlights / session estimate / primary risk**. Full 
 
 - **v1.5.0 — rawData subtype family** *(3–4 sessions, may split)*
   `rawData_ETG4000`, `_NIRScout`, `_Shimadzu`, `_UCLWireless`, `_LSL`, `_BioHarnessECG`.
+  *Also fix latent `eq` self-comparison defects surfaced 9-Jul-2026 (v1.4.2.1 sweep): `rawData_NIRx` returns `false` for `obj==obj`; `rawData_ETG4000`/`_NIRScout` error (`noSuchMethodOrField`).*
 
 - **v1.5.1 — Spatial/ROI layer** *(3 sessions)*
   `channelLocationMap`, `cluster`, `imagePartition`, `roi`, grids.
+  *Also fix `cluster` `eq` self-comparison defect surfaced 9-Jul-2026 (v1.4.2.1 sweep): `obj==obj` errors (`noSuchMethodOrField`).*
 
 - **v1.5.2 — Registration I: standards mapping** *(2–3 sessions)*
   `+icnna.op.registration.*` for 10/20 / 10/10 / 10/5 family; mesh, distances, projections.

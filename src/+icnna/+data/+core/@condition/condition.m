@@ -66,7 +66,7 @@ classdef condition < icnna.data.core.identifiableObject
 %% Properties
 %
 %   -- Private properties
-%   .classVersion - Char array. (Read only. Constant)
+%   .classVersion - Char array. (Read only. Immutable instance property)
 %       The class version of the object
 %       This is separate from the superclass' own |classVersion|.
 %
@@ -310,11 +310,34 @@ classdef condition < icnna.data.core.identifiableObject
 %       'icnna:data:core:condition:tag:Deprecated'
 %
 %
+% -- ICNNA v1.4.2.1
+%
+% 9-Jul-2026: FOE
+%   + Data integrity fix: |classVersion| changed from Constant
+%   (non-serializable) to immutable (serializable, but still
+%   read-only). The .classVersion() accessor method and all call
+%   site remain unchanged. Class version also remains 1.1.
+%
+%   NOTE: MATLAB does NOT serialize Constant properties, so on reload
+%     an old file, a loaded (not freshly created) object would
+%     not recovered the value of such property when the object was saved
+%     but instead, will load the current class default, e.g. the
+%     current class version. This silently defeats runtime versions
+%     guards and can potentially lead to inconsistencies and ultimately
+%     errors. Instead, immutable properties ARE serialized yet they
+%     remain read-only, hence they will recover properly upon loading
+%     and still remain safe against tampering and forging attempts.
+%
+% 10-Jul-2026: FOE
+%   Bug fixed: Interception of subsasgn now works for calls from
+%     nested structures e.g. myConds(k).unit.
+%   
+%
 
 
 
 
-    properties (Constant, Access=private)
+    properties (SetAccess = immutable, GetAccess = private)
         classVersion = '1.2'; %Read-only. Object's class version.
     end
 
@@ -872,7 +895,28 @@ classdef condition < icnna.data.core.identifiableObject
 
         %Catch the silent typecastings by intercepting the assignment
         function obj = subsasgn(obj, s, val)
-            % Intercept simple .property assignments to warn on implicit typecast
+            % Intercept ONLY simple .property assignments to warn on implicit typecast
+            %
+            %
+            %On a regular call, e.g. myCond.id, s is a struct with 2 fields
+            %
+            %   .type - (char) Valued '.'
+            %   .subs - (char) Valued 'id'
+            %
+            % However, when the call is from some nested structure,
+            % e.g. conds(1).unit, then s becomes a struct array
+            % with those two fields;
+            %
+            %   s(1).type - (char) Valued '()'
+            %   s(1).subs - (char) Valued '1'
+            %   s(2).type - (char) Valued '.'
+            %   s(2).subs - (char) Valued 'unit'
+            %
+            % That is the search for the field below, that looks for a property
+            % name will only work if the type is '.' otherwise
+            % the search will fail (not produce an empty output, but
+            % actually fail!) - hence when the number of elements in s>1
+            % then we should just pass it along.
             if numel(s) == 1 && strcmp(s.type, '.')
                 switch s.subs
                     case 'flagSRInitialized'
@@ -923,22 +967,24 @@ classdef condition < icnna.data.core.identifiableObject
 
 
                 end
-            end
 
-            %Call the appropriate subsagn
-            tmp = metaclass(obj);
-            idx = find(ismember({tmp.PropertyList.Name}, s.subs), 1); %Only find first match
-            if ~isempty(idx)
-                classStr = tmp.PropertyList(idx).DefiningClass.Name;
-                if strcmp(classStr,class(obj))
-                    % Property defined here. Just pass it along
-                    obj = builtin('subsasgn', obj, s, val);
+                %Call the appropriate subsagn
+                tmp = metaclass(obj);
+                idx = find(ismember({tmp.PropertyList.Name}, s.subs), 1); %Only find first match
+                if ~isempty(idx)
+                    classStr = tmp.PropertyList(idx).DefiningClass.Name;
+                    if strcmp(classStr,class(obj))
+                        % Property defined here. Just pass it along
+                        obj = builtin('subsasgn', obj, s, val);
+                    else
+                        % Property inherited. Call the superclass method for property assignment
+                        obj = eval(['subsasgn@' classStr '(obj, s, val)']);
+                    end
                 else
-                    % Property inherited. Call the superclass method for property assignment
-                    obj = eval(['subsasgn@' classStr '(obj, s, val)']);
+                    obj = builtin('subsasgn', obj, s, val);
                 end
-            else
-                obj = builtin('subsasgn', obj, s, val);
+            else %Nested call (s struct has more than 1 element)
+                    obj = builtin('subsasgn', obj, s, val);
             end
         end
 

@@ -25,6 +25,16 @@ function res=eq(obj,obj2)
 %   + Updated calls to get attributes using the struct like syntax
 %   + Added support for new property classVersion
 %
+%
+% -- ICNNA v1.4.2.1
+%
+% 9-Jul-2026: FOE
+%   + classVersion comparison changed from '==' on the property to strcmp on
+%   the classVersion() accessor. classVersion is now an immutable per-object
+%   property, so '==' on version strings can error on unequal lengths and
+%   yields a non-scalar operand for && ; strcmp gives scalar, length-tolerant
+%   string equality, and the accessor is the sanctioned (polymorphic) read.
+%
 
 
 res=true;
@@ -35,7 +45,7 @@ end
 
 res=eq@rawData(obj,obj2);
 
-res = res && (obj.classVersion==obj2.classVersion);
+res = res && strcmp(classVersion(obj),classVersion(obj2));
 
 
 res = res && (strcmp(obj.fileVersion,obj2.fileVersion));

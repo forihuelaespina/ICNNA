@@ -60,6 +60,14 @@ function [f]=plotTimeline(t,options)
 %   + Adjustments to icnna.data.core.timeline class version '1.2'.
 %   + Added support for option .visibleConditionsList
 %
+%
+%
+% -- ICNNA v1.4.2.1
+%
+% 9-Jul-2026: FOE
+%   + Bug fixed: Kill dead pre-1.2 version branches.
+%
+%
 
 
 if ~(isa(t,'timeline') || isa(t,'icnna.data.core.timeline'))
@@ -234,14 +242,28 @@ else
     set(currentAxes,'YLim',[0.5 nVisibleConditions+0.5]);
     set(currentAxes,'YTick',1:nVisibleConditions);
     set(currentAxes,'YTickLabel',namesList);
-    
-    if icnna.util.compareVersions(classVersion(t),'1.1','<=')
-        cevents = t.getEvents();
-    elseif icnna.util.compareVersions(classVersion(t),'1.1','==')
-        cevents = table2struct(t.getEvents());
-    elseif icnna.util.compareVersions(classVersion(t),'1.2','>=')
-        cevents = t.condEvents;
-    end
+
+    %Version serialization begins at class version 1.2, so a timeline
+    %necessarily reports >=1.2;
+    % * The post-handle era 1.1 stores events as a table which was
+    %   superseded by condEvents at class version 1.2. But this is
+    %   now unreachable because of the serialization issue. 
+    % * The pre-1.1 handle era path is in any case directly unreachable
+    %   now (having been cleared in ICNNA version v1.4.0).
+    % 
+    % The two asserts below therefore provides invariant
+    %checks replacing the "old" class version checks branching to
+    %dead code.
+    assert(icnna.util.compareVersions(classVersion(t),'1.1','>='),...
+        'icnna:plot:plotTimeline:UnexpectedLegacyVersion',...
+        ['Timeline reports |classVersion| < 1.1 (handle era). This ' ...
+        'is no longer supported.']);
+    assert(icnna.util.compareVersions(classVersion(t),'1.2','>='),...
+        'icnna:plot:plotTimeline:UnsupportedEventRepresentation',...
+        ['Timeline reports |classVersion| < 1.2. Table based ' ...
+        'representation of events is no longer supported.']);
+
+    cevents = t.condEvents;
 
 
     %Filter the visible conditions

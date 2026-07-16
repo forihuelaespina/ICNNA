@@ -89,6 +89,11 @@ classdef structuredData
 %
 %% Properties
 %
+%   -- Private properties
+%   .classVersion - Char array. (Read only. Immutable instance property)
+%       The class version of the object.
+%
+%   -- Public properties
 %   .id - double
 %       A numerical identifier.
 %   .name - char[]
@@ -165,11 +170,35 @@ classdef structuredData
 %   * Added the documentation of types for the properties that were
 %   all missing.
 %
+%
+%
+% -- ICNNA v1.4.2.1
+%
+% 15-Jul-2026: FOE
+%   + Data integrity fix: |classVersion| changed from Constant
+%   (non-serializable) to immutable (serializable, but still
+%   read-only). The .classVersion() accessor method and all call
+%   site remain unchanged. Class version also remains 1.1.
+%   + The two self-guards on |classVersion| (get.timeline, set.data)
+%   are hardened: their dead pre-1.1 branches are replaces by a loud
+%   assert of the >=1.1 invariant.
+%
+%   NOTE: MATLAB does NOT serialize Constant properties, so on reload
+%     an old file, a loaded (not freshly created) object would
+%     not recovered the value of such property when the object was saved
+%     but instead, will load the current class default, e.g. the
+%     current class version. This silently defeats runtime versions
+%     guards and can potentially lead to inconsistencies and ultimately
+%     errors. Instead, immutable properties ARE serialized yet they
+%     remain read-only, hence they will recover properly upon loading
+%     and still remain safe against tampering and forging attempts.
+%
+%
 
 
 
-    properties (Constant, Access=private)
-        classVersion = '1.1'; %Read-only. Object's class version.
+    properties (SetAccess=immutable, GetAccess=private)
+        classVersion = '1.1'; %Read-only (immutable). Object's class version.
     end
 
 
@@ -218,7 +247,7 @@ classdef structuredData
 
             obj.timeline = icnna.data.core.timeline();
                 %NOTE: Do not initialize a handle object directly in 
-                %the declaration of the properties. Matlab ONLY initilizes
+                %the declaration of the properties. Matlab ONLY initializes
                 %objects for the "class" once, and hence initializing
                 %handle objects there can lead to nasty collateral effects.
             if (nargin==0)
@@ -298,12 +327,18 @@ classdef structuredData
          %Gets the object |timeline|
          %
          % An timeline object
-         if icnna.util.compareVersions(obj.classVersion,'1.1','>=')
-             res = obj.timeline;
-         else % version '1.0' or no classVersion at all
-             res = timeline(tmpT); %Typecast to old timeline
-         end
 
+         %The timeline representation changed at structuredData v1.1
+         %(from old @timeline to @icnna.data.core.timeline). Assert
+         %the representation directly rather than via a classVersion
+         %proxy.
+         %The pre -1.1 code, typecast the old @timeline via an
+         %undefined |tmpT| would have crashed.
+         assert(isa(obj.timeline,'icnna.data.core.timeline'),...
+                'ICNNA:structuredData:get_timeline:UnexpectedLegacyVersion',...
+                ['structuredData holds a legacy (pre-1.1) timeline ' ...
+                'representation. This is no longer supported.']);
+         res = obj.timeline;
       end
       function obj = set.timeline(obj,val)
          %Sets the object |timeline|
@@ -469,31 +504,40 @@ classdef structuredData
                else
                    obj.data = val;
                end
+
+
+               %The timeline representation changed at structuredData v1.1
+               %(old @timeline for which |length| was settable was updated
+               %to @icnna.data.core.timeline for which the |length| is a
+               %derived property and hence not settable).
+               %The previous code attempted to set the |length| directly
+               %which would be an abandoned path now.
+               assert(isa(obj.timeline,'icnna.data.core.timeline'),...
+                   'ICNNA:structuredData:set_data:UnexpectedLegacyVersion',...
+                   ['structuredData holds a legacy (pre-1.1) timeline ' ...
+                   'representation. This is no longer supported.']);
+
                t = obj.timeline;
-               if icnna.util.compareVersions(obj.classVersion,'1.1','>=')
-                   %Length of the timeline now depends
-                   %on the timestampts, so crop or extends the
-                   %timestamps accordingly
-                   if obj.nSamples > t.length
-                       nNewSamples = obj.nSamples - t.length;
-                       if isempty(t.timestamps)
-                           t.timestamps = ...
-                               (1/t.nominalSamplingRate)*(1:nNewSamples);
-                       else
-                           t.timestamps(end+1:obj.nSamples) = ...
-                               t.timestamps(end) + ...
-                               (1/t.nominalSamplingRate)*(1:nNewSamples);
-                       end
-                   elseif obj.nSamples < t.length
-                       warning('off')
-                       t.timestamps = t.timestamps(1:obj.nSamples);
-                       warning('on')
-                   else %obj.nSamples == t.length
-                       %Do nothing
+               %The length of the timeline now depends on the timestamps,
+               %so crop or extends the timestamps accordingly.
+               if obj.nSamples > t.length
+                   nNewSamples = obj.nSamples - t.length;
+                   if isempty(t.timestamps)
+                       t.timestamps = ...
+                           (1/t.nominalSamplingRate)*(1:nNewSamples);
+                   else
+                       t.timestamps(end+1:obj.nSamples) = ...
+                           t.timestamps(end) + ...
+                           (1/t.nominalSamplingRate)*(1:nNewSamples);
                    end
-               else % version '1.0' or no classVersion at all
-                    t.length = obj.nSamples;
+               elseif obj.nSamples < t.length
+                   warning('off')
+                   t.timestamps = t.timestamps(1:obj.nSamples);
+                   warning('on')
+               else %obj.nSamples == t.length
+                   %Do nothing
                end
+
                obj.timeline = t;
                obj.integrity= setNElements(obj.integrity,obj.nChannels);
                if v_nSignals>length(obj.signalTags)

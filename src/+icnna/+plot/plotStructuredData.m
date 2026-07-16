@@ -84,6 +84,15 @@ function [f]=plotStructuredData(sd,options)
 %       being called. Also, this case was not considering the class
 %       icnna.data.core.timeline
 %
+%
+%
+% -- ICNNA v1.4.2.1
+%
+% 9-Jul-2026: FOE
+%   + Bug fixed: Kill dead branches related to handle era class version.
+%   + Bug fixed: Timeline of the structuredData is now correctly accessed.
+%
+%
 
 
 
@@ -162,6 +171,7 @@ tmpData = tmpData(:,:,opt.whichSignals);
 
 [~,tmpNChannels,tmpNSignals] = size(tmpData);
 
+t = sd.timeline;
 
 %Translate conditions tags/names to ids if needed
 if isempty(opt.whichConditions)
@@ -169,14 +179,22 @@ if isempty(opt.whichConditions)
     if isa(t,'timeline')
         opt.whichConditions = 1:t.nConditions;
     else %icnna.data.core.timeline
-        if icnna.util.compareVersions(classVersion(t),'1.1','<=')
-            for iCond = 1:t.nConditions
-                opt.whichConditions(iCond) = t.conditions(iCond).id;
-            end
-        if icnna.util.compareVersions(classVersion(t),'1.2','>=')
-            opt.whichConditions = [t.conditions.id];
-        end
+
+        
+        %Version serialization begins at class version 1.2, so a timeline
+        %necessarily reports >=1.2; The pre-1.2 handle era path is
+        %unreachable now (having been cleared in
+        %ICNNA version v1.4.0). The assert therefore provides an invariant
+        %check replacing the "old" class version check branching to
+        %dead code.
+        assert(icnna.util.compareVersions(classVersion(t),'1.2','>='),...
+            'icnna:plot:plotStructuredData:UnexpectedLegacyVersion',...
+            ['Timeline reports |classVersion| < 1.2 (handle era). This ' ...
+            'is no longer supported.']);
+        opt.whichConditions = [t.conditions.id];
+
     end
+
 elseif iscell(opt.whichConditions)
     tmpWhichConditions  = opt.whichConditions;
     if isa(t,'timeline')

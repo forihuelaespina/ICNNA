@@ -67,6 +67,13 @@ function [t] = getTimelineFromSnirf(aSnirf,options)
 %   + Revert back to regular value (non-handle) class of both
 %   icnna.data.core.timeline and icnna.data.core.condition
 %
+%
+%
+% -- ICNNA v1.4.2.1
+%
+% 9-Jul-2026: FOE
+%   + Bug fixed: Kill dead branches related to handle era class version.
+%
 
 
 
@@ -284,30 +291,41 @@ for iStim = 1:nStims
         %Note, notwithstanding, that the dataLabels are accounted above
         %to identify the most likely columns for onsets, durations
         %and amplitudes.
-    if icnna.util.compareVersions(classVersion(tmpCondition),'1.1','<=')
-        tmpCondition.addEvents(tmpcevents);
-    elseif icnna.util.compareVersions(classVersion(tmpCondition),'1.2','>=')
-        tmpCondition = addEvents(tmpCondition,tmpcevents);
-    end
 
+
+    %Version serialization begins at class version 1.2, so a condition
+    %necessarily reports >=1.2; The pre-1.2 handle era path is
+    %unreachable now (having been cleared in
+    %ICNNA version v1.4.0). The assert therefore provides an invariant
+    %check replacing the "old" class version check branching to
+    %dead code.
+    assert(icnna.util.compareVersions(classVersion(tmpCondition),'1.2','>='),...
+        'icnna:op:getTimelineFromSnirf:UnexpectedLegacyVersion',...
+        ['Condition reports |classVersion| < 1.2 (handle era). This ' ...
+        'is no longer supported.']);
+    tmpCondition = addEvents(tmpCondition,tmpcevents);
+
+
+
+
+    %Version serialization begins at class version 1.2, so a timeline
+    %necessarily reports >= 1.2; The pre-1.2 handle era path is
+    %unreachable now (having been cleared in
+    %ICNNA version v1.4.0). The assert therefore provides an invariant
+    %check replacing the "old" class version check branching to
+    %dead code.
+    assert(icnna.util.compareVersions(classVersion(t),'1.2','>='),...
+        'icnna:op:getTimelineFromSnirf:UnexpectedLegacyVersion',...
+        ['Timeline reports |classVersion| < 1.2 (handle era). This ' ...
+        'is no longer supported.']);
     [idList,namesList] = getConditionsList(t);
     cIdx = find(ismember(cTag,namesList));
     if isempty(cIdx)
-        if icnna.util.compareVersions(classVersion(t),'1.1','<=')
-            t.addConditions(tmpCondition,0);
-        elseif icnna.util.compareVersions(classVersion(t),'1.2','>=')
-            t = addConditions(t,tmpCondition,0);
-        end
+        t = addConditions(t,tmpCondition,0);
     else
         %try to add the events
         theId = idList(cIdx);
-        if icnna.util.compareVersions(classVersion(t),'1.1','<=')
-            t.addEvents([double(theId)*ones(size(tmpcevents,1),1) ...
-                     tmpcevents]);
-        elseif icnna.util.compareVersions(classVersion(t),'1.2','>=')
-            t = addEvents(t,[double(theId)*ones(size(tmpcevents,1),1) ...
-                     tmpcevents]);
-        end
+        t = addEvents(t,[double(theId)*ones(size(tmpcevents,1),1) tmpcevents]);
     end
     clear tmpCondition
 end
