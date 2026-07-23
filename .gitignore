@@ -40,6 +40,16 @@
 ##       claude/** already excludes the folder); claude/README.md
 ##       untracked but kept locally.
 ##
+## 16-Jul-2026 (v0.8): FOE/Claude
+##     + Added scratchpad/ as a guardrail. Throwaway experiment
+##       scaffolding (e.g. the dummy classes used to probe MATLAB
+##       save/load semantics) lives here and must never reach
+##       history. A scratchpad may survive several sessions while
+##       a conceptual process is in flight, but never a commit:
+##       commits do not cut through a conceptual process. Claude
+##       clears it automatically once the process closes, after
+##       confirming with FOE (less error-prone than a manual sweep).
+##
 ## 7-Jul-2026 (v0.8): FOE/Claude
 ##     + Activated project-root /archive/ as the long-term home for
 ##       superseded source files (OneDrive-synced, not published to
@@ -79,6 +89,7 @@ claude/**
 ## Note: claude/archive/ is covered by claude/** above.
 archive/**
 rubbish/**
+scratchpad/**
 
 ## MATLAB editor and manual backup files
 *.asv

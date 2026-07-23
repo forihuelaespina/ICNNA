@@ -316,7 +316,7 @@ classdef condition < icnna.data.core.identifiableObject
 %   + Data integrity fix: |classVersion| changed from Constant
 %   (non-serializable) to immutable (serializable, but still
 %   read-only). The .classVersion() accessor method and all call
-%   site remain unchanged. Class version also remains 1.1.
+%   site remain unchanged. Class version also remains 1.2.
 %
 %   NOTE: MATLAB does NOT serialize Constant properties, so on reload
 %     an old file, a loaded (not freshly created) object would

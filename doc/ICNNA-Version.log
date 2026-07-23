@@ -6,7 +6,7 @@
 
 
 ====================================
-= ICNNA v1.4.2.1
+= ICNNA v1.4.2.1 (released 23-Jul-2026)
 ====================================
 
 
@@ -24,27 +24,96 @@
   accessor and all call sites are unchanged.
 
   Version-branch audit: guard sites branching on classVersion were
-  reviewed. Because versioning is now serialized from each class's current
-  version, no object can self-report a version older than its class's
-  current one, so pre-current-version branches are structurally
-  unreachable; these were replaced by a loud assert (never silently
-  deleted), preserving traceability. Where a class's own-version self-guard
-  reflected a representation change that is itself a type change (e.g.
-  structuredData's timeline becoming icnna.data.core.timeline), the assert
-  checks the representation directly (isa) rather than through a version
+  reviewed. Because versioning is now serialized from each class's
+  current version, no object can self-report a version older than
+  its class's current one, so pre-current-version branches are
+  structurally unreachable; these were replaced by a loud assert
+  (never silently deleted), preserving traceability. Where a
+  class's own-version self-guard reflected a representation change
+  that is itself a type change (e.g. structuredData's timeline
+  becoming icnna.data.core.timeline), the assert checks the
+  representation directly (isa) rather than through a version
   proxy: it states the actual precondition and stays correct for
-  subclasses, which carry their own independent classVersion. Forward-
-  facing branches (guards anticipating future versions, e.g. the
-  signalDescriptor path in @rawData_NIRx/import) were deliberately retained.
+  subclasses, which carry their own independent classVersion.
+  Forward-facing branches (guards anticipating future versions,
+  e.g. the signalDescriptor path in @rawData_NIRx/import) were
+  deliberately retained.
 
-* Recovery of the version tag for pre-existing legacy files (saved before
-  this fix, which never stored the tag) remains a separate planned
-  facility.
+* Recovery of pre-existing legacy files (saved before this fix,
+  which never stored a version tag) is resolved via an ACCEPT-LOSS
+  policy, not migration: see icnna.io.load below.
+
+
++ New functions
+
+* icnna.io.load - Canonical document-level load. Detects files
+    that predate class-versioning integrity (this release) via
+    a MAT-file header/date heuristic and the top-level classVersion,
+    and warns without failing:
+      icnna:io:legacyFile        - file predates versioning integrity.
+      icnna:io:staleClassVersion - loaded object below current
+           class version.
+    Accept-loss: the object is always returned. See KNOWN ISSUES
+    below for the affected properties. For faithful recovery, open
+    the file with the ICNNA release that wrote it (see /stable)
+    and re-save with icnna.io.save.
+
+* icnna.io.save - Canonical document-level save. Forces MAT v7.3
+    (HDF5) so that files written from now on are uniform,
+    self-describing and h5-recoverable. Emits
+    icnna:io:save:interimConvention noting that the
+    interim E/S variable-naming convention predates
+    @icnna.data.core.document and will become |icnnaDoc|.
+
+
++ KNOWN ISSUES
+
+* Loading a file saved before this release (via icnna.io.load,
+  which never migrates) may silently coerce or lose the
+  properties below, because MATLAB's default deserialization
+  coerces or drops fields whose representation changed across
+  releases. icnna.io.load's warnings point
+  here rather than enumerating on every call:
+
+    condition.cevents        table -> struct       may load populated but
+                                                    MEANINGLESS (worst case)
+    timeline.startTime        datenum -> datetime  may reset to a default date
+    timeline.conditions       (was |conds|)        may be empty
+    rawData.dataFiles         dictionary -> struct may be missing/defaulted
+    metaDataTags.additional   cell/dict -> struct  may be missing/defaulted
+    metaDataTags (whole)      class renamed        object may fail to load
+                                                    entirely
+
+  NOT PLANNED for automated recovery (accept-loss policy). For
+  faithful recovery, open the file with the ICNNA release that
+  wrote it (see /stable), manually migrate and re-save with
+  icnna.io.save.
 
 
 Bugs fixed:
 + icnna.data.core.condition.subasgn - Interception of subsasgn now
     works for calls from nested structures e.g. myConds(k).unit.
++ icnna.io.load - Header date-parsing used the invalid datetime
+    format token 'EEE' instead of 'eee', causing the primary parse
+    to always fail and silently fall through to an unreliable
+    free-form fallback.
++ icnna.io.load - Header date-extraction regex assumed only whitespace
+    follows the date up to the end of the 116-byte header. True for
+    classic v6/v7 files, but -v7.3 (HDF5) files append "HDF5 schema
+    X.XX ." after the date, so every file written by icnna.io.save
+    (which forces -v7.3) was spuriously flagged as legacy. Extraction
+    now matches the date's explicit shape instead of "everything to
+    end of string".
+
+
+
++ New tests
+* Added class testCompareVersions.m with initial tests for
+    icnna.util.compareVersions (equal/lower/greater, zero-padded and
+    mixed-length version strings, and the invalid-operator error).
+* Added class testIOLoad.m with initial tests for icnna.io.load
+* Added class testIOSaveLoad.m with initial tests for the save/load
+    round trip. This is an integration class test.
 
 
 ====================================

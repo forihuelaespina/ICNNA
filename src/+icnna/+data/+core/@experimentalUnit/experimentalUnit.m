@@ -5,7 +5,7 @@ classdef experimentalUnit < icnna.data.core.identifiableObject
 %which experimental observations are sampled. What constitutes an
 %experimental unit depends on the experiment, but common examples
 %will be a subject in a regular neuroimaging experiment or a dyad in a
-%hypercscanning experiment.
+%hyperscanning experiment.
 %
 % Experimental units are grouped in an experiment depending on the
 %experimental treatments they receive (see @icnna.data.core.experimentalGroup).
